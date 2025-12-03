@@ -481,6 +481,11 @@ class ChromeCompressor(BaseA11yCompressor):
                 # ガード3: セマンティクス
                 if "menu" in tag or "menu" in role:
                     is_toolbar_area = False
+
+                # ★追加ガード: Apply などの特定のボタンは絶対にツールバーとみなさない
+                if lower_name in ("apply", "change store", "search"):
+                     is_toolbar_area = False
+
                 # ---------------------
 
                 if is_toolbar_area:

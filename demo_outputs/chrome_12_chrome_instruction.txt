@@ -58,6 +58,7 @@ MODAL:
 [radio-button] "Price High-Low" @ (98, 360)
 [radio-button] "Highest Rated" @ (98, 396)
 [radio-button] "Percent Off" @ (98, 432)
+[push-button] "Apply" @ (262, 513)
 [push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
@@ -109,7 +110,6 @@ CONTENT:
 [image] "Menu" @ (307, 414)
 [/BLOCK]
 [BLOCK]
-[push-button] "Apply" @ (262, 513)
 [push-button] "Change store" @ (322, 513)
 [/BLOCK]
 [BLOCK]
