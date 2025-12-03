@@ -465,15 +465,20 @@ def clean_modal_nodes(nodes: List[Node]) -> List[Node]:
                 is_related = False
 
             if is_related:
+                print(f"[DEBUG CLEAN] Collision: '{a['text']}'(prio={a['prio']}) vs '{b['text']}'(prio={b['prio']}) dist={dist:.2f}")
                 if a["prio"] < b["prio"]:
+                    print(f"  -> Removing B: '{b['text']}'")
                     b["removed"] = True
                 elif b["prio"] < a["prio"]:
+                    print(f"  -> Removing A: '{a['text']}'")
                     a["removed"] = True
                     break
                 else:
                     if len(a["text"]) >= len(b["text"]):
+                        print(f"  -> Removing B (len): '{b['text']}'")
                         b["removed"] = True
                     else:
+                        print(f"  -> Removing A (len): '{a['text']}'")
                         a["removed"] = True
                         break
 

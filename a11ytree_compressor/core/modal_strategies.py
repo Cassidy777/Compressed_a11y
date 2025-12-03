@@ -706,6 +706,30 @@ def detect_modal_from_diff(
                 matched_curr[j] = True
                 break
 
+    
+    # ========================================================
+    # ★ DEBUG: Applyボタンの追跡コード (ここから)
+    # ========================================================
+    target_indices = []
+    for i, n in enumerate(curr_nodes):
+        label = (n.get("name") or n.get("text") or "").strip().lower()
+        if "apply" in label:
+            target_indices.append(i)
+            print(f"[DEBUG TRACE] Found 'Apply' at index {i}: {n}")
+
+    for idx in target_indices:
+        is_matched = matched_curr[idx]
+        print(f"[DEBUG TRACE] Index {idx} ('Apply') matched_curr = {is_matched}")
+        if is_matched:
+            print(f"  -> 判定: '既存ノード' (Diffではない)")
+            # 既存と判定された場合、どのノードとマッチしたか知りたい場合はここを拡張可能
+        else:
+            print(f"  -> 判定: '新規ノード' (Diff候補)")
+    # ========================================================
+    # ★ DEBUG: Applyボタンの追跡コード (ここまで)
+    # ========================================================
+
+
     num_prev = len(prev_nodes)
     num_match = sum(matched_prev)
     match_ratio = num_match / max(num_prev, 1)

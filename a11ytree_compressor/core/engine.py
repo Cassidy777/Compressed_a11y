@@ -188,6 +188,11 @@ class BaseA11yCompressor:
             m, b = ClusterModalDetector().detect(nodes, w, h)
             if m:
                 modal_nodes, bg_nodes, mode = m, b, "cluster"
+
+        if modal_nodes:
+            print(f"[DEBUG ENGINE] modal_nodes count BEFORE safety filter: {len(modal_nodes)}")
+            apply_found = any("Apply" in (n.get("name") or n.get("text") or "") for n in modal_nodes)
+            print(f"[DEBUG ENGINE] 'Apply' in modal_nodes BEFORE filter? {apply_found}")
         
         # =========================================================================
         # ★ UI Safety Filter (検出後に「UI領域」を強制排除する)
