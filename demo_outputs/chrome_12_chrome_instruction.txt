@@ -1,0 +1,169 @@
+============================================================
+SAMPLE: domain=chrome, id=12 (chrome-12), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+menu	Google Chrome	""			(99, 0)	(162, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
+push-button	LibreOffice Impress...
+
+INSTRUCTION:
+Browse spider-man toys for kids and sort by lowest price.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: kohls.com/search.jsp
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[link] "Account Button Sign In" @ (1728, 189)
+[section] "Account Button" @ (1728, 180)
+[section] "" @ (1728, 180)
+[section] "Sign In" @ (1728, 209)
+[link] " My List" @ (1810, 189)
+[section] "" @ (1810, 180)
+[section] "My List" @ (1810, 209)
+[link] "Cart Button $0.00" @ (1890, 189)
+[section] "Cart Button" @ (1890, 180)
+[section] "0" @ (1894, 182)
+[static] "0" @ (1894, 173)
+[section] "" @ (1893, 180)
+[section] "$0.00" @ (1890, 209)
+[link] " Kohl's Card" @ (1395, 244)
+[section] "" @ (1352, 244)
+[static] "Kohl's Card" @ (1404, 244)
+[link] " Baby Registry" @ (1558, 244)
+[section] "" @ (1508, 244)
+[static] "Baby Registry" @ (1568, 244)
+[link] " Kohl's Coupons" @ (1737, 244)
+[section] "" @ (1679, 244)
+[static] "Kohl's Coupons" @ (1746, 244)
+[link] " Help" @ (1882, 244)
+[section] "" @ (1864, 244)
+[static] "Help" @ (1891, 244)
+[heading] "Sort Your Refinement By" @ (262, 166)
+[static] "Sort Your Refinement By" @ (223, 166)
+[static] "" @ (430, 161)
+[static] "Close menu" @ (474, 165)
+CONTENT:
+[BLOCK]
+[push-button] "Back" @ (89, 90)
+[push-button] "View site information" @ (207, 90)
+[document-web] "Spider-Man toys for kids | Kohl's" @ (995, 597)
+[link] "Free shipping with $49 purchase. details" @ (752, 139)
+[static] "Free shipping / in store & online with code GOGET20. / $49 / purchase. / Fast..." @ (682, 139)
+[link] "Fast & free store pickup! details" @ (947, 139)
+[link] "Take 20% off in store & online with code GOGET20. details" @ (1190, 139)
+[push-button] " Close menu" @ (430, 154)
+[entry] "What are you looking for today?" @ (654, 189)
+[image] "Kohl's Logo" @ (164, 189)
+[link] "Go to Kohl's Homepage" @ (164, 189)
+[push-button] "search" @ (294, 188)
+[radio-button] "Featured" @ (98, 216)
+[static] "Shop By Category / My Store / Select Store / may be closer to your current lo..." @ (173, 244)
+[section] "My Store: Select Store" @ (365, 244)
+[radio-button] "New Arrivals" @ (98, 252)
+[alert] "Store Change Confirmation" @ (437, 330)
+[push-button] "Close dialog" @ (613, 287)
+[radio-button] "Best Sellers" @ (98, 288)
+[/BLOCK]
+[BLOCK "Store Change Confirmation"]
+[heading] "Store Change Confirmation" @ (256, 283)
+[radio-button] "Price Low-High" @ (98, 324)
+[section] "114results for: “Spider-Man toys for kids”" @ (995, 341)
+[push-button] "Yes, switch to this store" @ (345, 362)
+[push-button] "No, keep current store" @ (529, 362)
+[radio-button] "Price High-Low" @ (98, 360)
+[section] "$16.00 Sale$20.00 Orig.$12.74 Clearance$16.99 Orig.$26.99 Reg.$54.99$12.99$49.99$8.25 Clearance$11.00 Orig.$49.99$24.99 Sale$39.99 Reg.$26.9..." @ (987, 7706)
+[radio-button] "Highest Rated" @ (98, 396)
+[push-button] "Show All Filters" @ (307, 414)
+[push-button] "Sort" @ (378, 414)
+[push-button] "Department" @ (480, 414)
+[push-button] "Gender" @ (593, 414)
+[push-button] "Age Range" @ (703, 414)
+[push-button] "Size Range" @ (826, 414)
+[push-button] "Size" @ (925, 414)
+[push-button] "Brand" @ (1007, 414)
+[push-button] "Material" @ (1103, 414)
+[push-button] "Color" @ (1196, 414)
+[image] "Menu" @ (307, 414)
+[radio-button] "Percent Off" @ (98, 432)
+[/BLOCK]
+[BLOCK]
+[push-button] "Apply" @ (262, 513)
+[push-button] "Change store" @ (322, 513)
+[/BLOCK]
+[BLOCK]
+[link] "Boys 4-20 Marvel Spider-Man 2 pc Hat & Gloves Set" @ (446, 725)
+[link] "Marvel Spidey & His Amazing Friends Spidey Web Crawler Set by Hasbro" @ (812, 725)
+[link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1178, 725)
+[link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1544, 725)
+[/BLOCK]
+[BLOCK]
+[link] "Boys 4-20 Marvel Spider-Man 2 pc Hat & Gloves Set" @ (446, 924)
+[link] "Marvel Spidey & His Amazing Friends Spidey Web Crawler Set by Hasbro" @ (812, 924)
+[link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1178, 924)
+[link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1544, 924)
+[/BLOCK]
+[BLOCK]
+[static] "$12.80" @ (311, 964)
+[static] "$21.59" @ (1042, 964)
+[section] "$12.80 with" @ (446, 965)
+[section] "$21.59 with" @ (1178, 965)
+[static] "$12.74" @ (679, 966)
+[static] "$54.99" @ (1411, 966)
+[static] "with / GOGET20" @ (368, 966)
+[push-button] "GOGET20 " @ (435, 966)
+[static] "Clearance / $16.99 / Orig." @ (756, 968)
+[static] "$16.00 / Sale / $20.00" @ (300, 988)
+[static] "$26.99 / Reg." @ (1031, 988)
+[static] "Rated / 34 / out of 5 stars" @ (1391, 995)
+[static] "5 / 3" @ (681, 997)
+[link] "Rated 4 out of 5 stars" @ (1408, 996)
+[link] "34 user reviews with a 4 out of 5-star rating" @ (1460, 996)
+[link] "Rated 5 out of 5 stars" @ (676, 998)
+[link] "3 user reviews with a 5 out of 5-star rating" @ (724, 998)
+[static] "4.7 / 306" @ (1052, 1015)
+[link] "Rated 4.7 out of 5 stars" @ (1042, 1016)
+[link] "306 user reviews with a 4.7 out of 5-star rating" @ (1098, 1016)
+[/BLOCK]
+[BLOCK]
+[link] "KIDdesigns Spidey and His Amazing Friends Counting & Colors Phone" @ (446, 1226)
+[link] "Hasbro Marvel Water-Webs Bubble Pirate Ship" @ (812, 1226)
+[link] "Marvel Spidey and His Amazing Friends Spidey with Motorcycle by Hasbro" @ (1178, 1226)
+[link] "Hasbro Marvel Spidey and His Amazing Friends Dance 'N Crawl Spidey" @ (1544, 1226)
+[/BLOCK]

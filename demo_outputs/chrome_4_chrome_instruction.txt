@@ -1,0 +1,114 @@
+============================================================
+SAMPLE: domain=chrome, id=4 (chrome-4), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+push-button	Minimise	Minimise			(1821, 27)	(32, 40)
+push-button	Restore	Restore			(1853, 27)	(32, 40)
+push-button	Close	Close			(1885, 27)	(35, 40)
+push-button	Search tabs	Search tabs			(76, 27)	(28, 41)
+push-button	Close	Close			(312, 33)	(28, 28)
+push-button	New tab	New tab			(348, 27)	(28, 41)
+push-button	Reload	Reload			(147, 73)	(34, 34)
+entry	Address and search bar	""			(227, 78)	(1565, 24)
+push-button	Bookmark this tab	""	...
+
+INSTRUCTION:
+Can you make a new folder for me on the bookmarks bar in my internet browser? Let's call it 'Favorites.'
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: ""
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[static] "Customise Chrome" @ (1832, 1047)
+[menu-item] "New tab Ctrl+T" @ (1737, 134)
+[menu-item] "New window Ctrl+N" @ (1737, 165)
+[menu-item] "New Incognito window Ctrl+Shift+N" @ (1737, 196)
+[menu-item] "Your Chrome Not signed in" @ (1737, 249)
+[menu-item] "Passwords and autofill" @ (1737, 288)
+[menu-item] "History" @ (1737, 319)
+[menu-item] "Downloads Ctrl+J" @ (1737, 350)
+[menu-item] "Bookmarks and lists" @ (1737, 381)
+[menu-item] "Tab groups" @ (1737, 412)
+[menu-item] "Extensions" @ (1737, 443)
+[menu-item] "Delete browsing data… Ctrl+Shift+Del" @ (1737, 474)
+[menu-item] "Zoom" @ (1737, 522)
+[menu-item] "Make Text Smaller" @ (1752, 522)
+[menu-item] "Make Text Larger" @ (1843, 522)
+[menu-item] "Full screen F11" @ (1893, 522)
+[menu-item] "Print… Ctrl+P" @ (1737, 570)
+[menu-item] "Search with Google Lens" @ (1737, 601)
+[menu-item] "Find and edit" @ (1737, 663)
+[menu-item] "Save and share" @ (1737, 694)
+[menu-item] "More tools" @ (1737, 725)
+[menu-item] "Help" @ (1737, 773)
+[menu-item] "Settings" @ (1737, 804)
+[menu-item] "Exit" @ (1737, 835)
+[menu] "Bookmarks and lists" @ (1371, 492)
+[menu-item] "Bookmark this tab… Ctrl+D" @ (1371, 381)
+[menu-item] "Show bookmarks bar Ctrl+Shift+B" @ (1371, 460)
+[menu-item] "Show all bookmarks" @ (1371, 491)
+[menu-item] "Bookmark manager Ctrl+Shift+O" @ (1371, 522)
+[menu-item] "Import bookmarks and settings…" @ (1371, 553)
+[menu-item] "Reading list" @ (1371, 602)
+[label] "helloExtension" @ (1852, 1045)
+[label] "Home" @ (1721, 1045)
+CONTENT:
+[BLOCK]
+[label] "yicun.​raw" @ (1457, 109)
+[document-web] "New tab" @ (995, 597)
+[push-button] "Google apps" @ (1886, 146)
+[link] "Gmail" @ (1776, 146)
+[link] "Search for images" @ (1829, 146)
+[static] "Images" @ (1829, 145)
+[combo-box] "Search Google or type a URL" @ (995, 400)
+[push-button] "Search by voice" @ (1302, 400)
+[push-button] "Search by image" @ (1339, 400)
+[link] "Web Store" @ (939, 498)
+[push-button] "Add shortcut" @ (1051, 498)
+[push-button] "More actions for Web Store shortcut" @ (979, 460)
+[static] "Web Store / Add shortcut" @ (939, 529)
+[toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
+[/BLOCK]
