@@ -112,7 +112,7 @@ def calculate_modal_score(
 # 「同じノードか？」の判定（グローバル関数）
 # ============================================================
 
-def same_node(a: Node, b: Node, tol_x: float = 10.0, tol_y: float = 10.0) -> bool:
+def same_node(a: Node, b: Node, tol_x: float = 25.0, tol_y: float = 25.0) -> bool:
     """
     2つのノードが「同じUI要素」とみなせるかどうか。
     tag + (name or text) + 近い座標 で判定する。
@@ -754,14 +754,14 @@ def detect_modal_from_diff(
     centers = [bbox_to_center_tuple(node_bbox_from_raw(n)) for n in curr_nodes]
 
     # ★ アプリ領域の x 範囲を決める（左 20% は OS ランチャーとみなして除外）
-    APP_AREA_X_MIN_FRAC = 0.1          # ここは後で調整可
-    app_x_min = screen_w * APP_AREA_X_MIN_FRAC
+    #APP_AREA_X_MIN_FRAC = 0.1          # ここは後で調整可
+    #app_x_min = screen_w * APP_AREA_X_MIN_FRAC
 
     candidate_indices = []
     for idx in new_indices:
-        cx, cy = centers[idx]
-        if cx >= app_x_min:
-            candidate_indices.append(idx)
+        #cx, cy = centers[idx]
+        #if cx >= app_x_min:
+        candidate_indices.append(idx)
 
     # デバッグ用
     print(f"[DEBUG STEP 3] After Left-Side(Launcher) Filter: {len(candidate_indices)} nodes remain.")

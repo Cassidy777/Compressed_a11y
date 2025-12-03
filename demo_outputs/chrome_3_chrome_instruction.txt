@@ -85,6 +85,7 @@ MODAL:
 [menu-item] "Help" @ (1737, 773)
 [menu-item] "Settings" @ (1737, 804)
 [menu-item] "Exit" @ (1737, 835)
+[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
 [label] "yicun.​raw" @ (1457, 109)

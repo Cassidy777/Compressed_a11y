@@ -363,9 +363,12 @@ class ChromeCompressor(BaseA11yCompressor):
 
     def get_semantic_regions(self, nodes: List[Node], w: int, h: int, dry_run: bool = False) -> Dict[str, List[Node]]:
         regions = {
-            "WINDOW_CONTROLS": [], "BROWSER_TABS": [], "BROWSER_UI": [], "CONTENT": [],
+            "WINDOW_CONTROLS": [], "BROWSER_TABS": [], "BROWSER_UI": [], "CONTENT": [], "APP_LAUNCHER": []
         }
         
+        LAUNCHER_X_MAX = int(w * 0.035) 
+        ICON_W_MAX = int(w * 0.05)
+
         # ====================================================================
         # 1. ツールバー中心Yの推定
         # ====================================================================
@@ -510,7 +513,16 @@ class ChromeCompressor(BaseA11yCompressor):
                 continue
 
             # ----------------------------------------------------------------
-            # Priority 4: Content
+            # ★ Priority 4: APP_LAUNCHER (Contentの前にチェック)
+            # ----------------------------------------------------------------
+            if x <= LAUNCHER_X_MAX and bbox["w"] <= ICON_W_MAX and bbox["h"] >= 40:
+                if tag in ("push-button", "toggle-button"):
+                    if not dry_run: n["tag"] = "launcher-app"
+                    regions["APP_LAUNCHER"].append(n)
+                    continue # ランチャー要素はコンテンツではない
+
+            # ----------------------------------------------------------------
+            # Priority 5: Content
             # ----------------------------------------------------------------
             if not label: continue
             if len(label) == 1 and not label.isalnum(): continue

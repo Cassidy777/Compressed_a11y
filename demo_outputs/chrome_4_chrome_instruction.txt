@@ -95,6 +95,7 @@ MODAL:
 [menu-item] "Reading list" @ (1371, 602)
 [label] "helloExtension" @ (1852, 1045)
 [label] "Home" @ (1721, 1045)
+[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
 [label] "yicun.​raw" @ (1457, 109)

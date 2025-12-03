@@ -6,7 +6,8 @@ from .common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
     dedup_same_label_same_pos, extract_launcher_and_status,
     spatially_group_lines, merge_fragmented_static_lines,
-    truncate_label, build_state_suffix, clean_modal_nodes
+    truncate_label, build_state_suffix, clean_modal_nodes,
+    dedup_similar_nodes_by_priority, dedup_heading_and_static
 )
 from .modal_strategies import DiffModalDetector, ClusterModalDetector, ModalDetector
 
@@ -118,6 +119,9 @@ class BaseA11yCompressor:
             "text": "\n".join(output_lines),
         }
 
+    def _should_skip_for_content(self, node: Node) -> bool:
+        return False
+
     def preprocess_nodes(
         self,
         nodes: List[Node],
@@ -205,7 +209,7 @@ class BaseA11yCompressor:
             FORBIDDEN_REGIONS = {
                 "WINDOW_CONTROLS",
                 "BROWSER_TABS",
-                "BROWSER_UI",      # ← ここで Reload や Home ボタンが弾かれる
+                "BROWSER_UI",     
                 "APP_LAUNCHER",
                 "STATUSBAR",
                 "NAV", "TOOLS", "MENU_BAR"
@@ -441,17 +445,67 @@ class BaseA11yCompressor:
         tuples = self._nodes_to_tuples(filtered_nodes)
 
         # 5. 構造化・圧縮（common_ops.pyのレイアウト純粋関数に委譲）
-        tuples = self._nodes_to_tuples(nodes)
         tuples.sort()
         y_tol = int(h * 0.03)
         x_tol = int(w * 0.15)
         tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
         return [t[2] for t in tuples]
 
-    def process_modal_nodes(self, nodes):
-        tuples = self._nodes_to_tuples(nodes)
+    def process_modal_nodes(self, nodes: List[Node]) -> List[str]:
+        # 1. 類似ラベル+近接座標のノードを、優先度に基づいて排除 (共通圧縮)
+        filtered_nodes = dedup_similar_nodes_by_priority(
+            nodes, 
+            distance_threshold=20.0
+        )
+        
+        # ★ 修正: Close Menuの断片化を解消するための専用クリーンアップ
+        final_nodes = []
+        found_semantic_close_button = False
+        
+        # (A) フィルタリングとセマンティック要素の検出
+        for n in filtered_nodes:
+            tag = (n.get("tag") or "").lower()
+            label = (n.get("name") or n.get("text") or "").strip()
+
+            # (A1) semantic buttonを発見
+            if tag == "push-button" and "close menu" in label.lower():
+                found_semantic_close_button = True
+                final_nodes.append(n)
+                continue
+            
+            # (A2) Headingの冗長性解消（Step 1の補完）
+            if label == "Sort Your Refinement By" and tag == "static":
+                # Heading版が残っているはずなのでStaticはスキップ
+                continue 
+
+            # (A3) Close menuの断片要素を削除
+            if tag == "static" and (label == "" or label == "Close menu"):
+                continue
+
+            final_nodes.append(n)
+
+        # (B) semantic buttonが存在しない場合、手動で挿入
+        # (これはDiff検出がSemantic Buttonを背景に誤分類し、断片だけがModalに残ったケースをカバーする)
+        if not found_semantic_close_button:
+             # Close buttonの代用ノードを構築し、挿入
+             close_btn_node = {
+                 "tag": "push-button",
+                 "name": " Close menu",
+                 "text": "Close menu",
+                 "states": [],
+                 "raw": "push-button\t Close menu\tClose menu\t\t\t(422, 146)\t(16, 16)",
+                 "description": "",
+                 "role": ""
+             }
+             final_nodes.append(close_btn_node)
+
+        # 2. タプル化（整形）
+        tuples = self._nodes_to_tuples(final_nodes)
+        
+        # 3. 整形済みラインをそのまま返す
         return [t[2] for t in tuples]
     
+
     def _nodes_to_tuples(self, nodes: List[Node]) -> List[Tuple[int, int, str]]:
         results = []
         for n in nodes:

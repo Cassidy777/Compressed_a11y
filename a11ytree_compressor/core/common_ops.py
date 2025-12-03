@@ -465,9 +465,9 @@ def clean_modal_nodes(nodes: List[Node]) -> List[Node]:
                 is_related = False
 
             if is_related:
-                if a["prio"] > b["prio"]:
+                if a["prio"] < b["prio"]:
                     b["removed"] = True
-                elif b["prio"] > a["prio"]:
+                elif b["prio"] < a["prio"]:
                     a["removed"] = True
                     break
                 else:
@@ -483,3 +483,150 @@ def clean_modal_nodes(nodes: List[Node]) -> List[Node]:
             final_nodes.append(node)
 
     return final_nodes
+
+
+
+def dedup_similar_nodes_by_priority(
+    nodes: List[Node],
+    distance_threshold: float = 20.0, # 許容する中心座標の距離（ピクセル）
+) -> List[Node]:
+    """
+    近接し、かつラベルが類似・重複するノード群を、優先度（get_node_priority）に基づいて間引く。
+    """
+    if not nodes:
+        return []
+
+    # 1. ノードのメタ情報を準備
+    meta_list = []
+    for i, n in enumerate(nodes):
+        bbox = node_bbox_from_raw(n)
+        cx, cy = bbox_to_center_tuple(bbox)
+        
+        label = (n.get("name") or n.get("text") or "").strip()
+        prio = get_node_priority(n)
+        
+        meta_list.append({
+            "idx": i, "node": n, 
+            "cx": cx, "cy": cy,
+            "label": label.lower(), 
+            "prio": prio,
+            "removed": False
+        })
+    
+    n_count = len(meta_list)
+
+    # 2. 優先度と近接性に基づく重複排除ロジック
+    for i in range(n_count):
+        if meta_list[i]["removed"]: continue
+        a = meta_list[i]
+        
+        for j in range(i + 1, n_count):
+            if meta_list[j]["removed"]: continue
+            b = meta_list[j]
+
+            # 座標が近いか？ (ユークリッド距離)
+            dist = math.hypot(a["cx"] - b["cx"], a["cy"] - b["cy"])
+
+            is_duplicate_candidate = False
+            
+            if a["label"] == b["label"]:
+                # ラベルが完全一致する場合、Y座標が近ければ重複と見なす (X方向のズレを許容)
+                if abs(a["cy"] - b["cy"]) <= 30.0:
+                    is_duplicate_candidate = True
+            elif dist <= distance_threshold:
+                 # ラベルが包含関係にある場合、近接座標 (20.0px) の制約を維持
+                 is_duplicate_candidate = True
+
+            if not is_duplicate_candidate:
+                continue
+
+            # ラベルが関連しているか？ (完全一致 or 包含関係)
+            # ラベルがないノード同士は、この関数では削除しない（他のフィルターに委譲）
+            if not a["label"] or not b["label"]:
+                is_related = False
+                
+            else:
+                is_label_related = (
+                    a["label"] == b["label"]
+                    or a["label"] in b["label"]
+                    or b["label"] in a["label"]
+                )
+
+            if is_label_related:
+                # 優先度が低い方を削除（prioが大きい方が敗者）
+                if a["prio"] < b["prio"]:
+                    b["removed"] = True
+                elif b["prio"] < a["prio"]:
+                    a["removed"] = True
+                    break # aが削除されたので、次のiに進む
+                else:
+                    # 優先度が同じ場合: ラベルの長い方（より冗長なコンテナ名）を削除（安全策）
+                    if len(a["label"]) > len(b["label"]):
+                        a["removed"] = True
+                        break
+                    else:
+                        b["removed"] = True
+
+    return [meta["node"] for meta in meta_list if not meta["removed"]]
+
+
+
+def dedup_heading_and_static(
+    nodes: List[Node],
+    y_tolerance: int = 15,
+) -> List[Node]:
+    """
+    Content領域で、'heading' タグと同一のラベルを持ち、かつY座標が近い 
+    'static' ノードを、'heading' ノードを残して削除する。
+    """
+    headings_meta: List[Dict[str, Any]] = []
+    
+    # 1. headingノードの情報を収集
+    for n in nodes:
+        tag = (n.get("tag") or "").lower()
+        label = (n.get("name") or n.get("text") or "").strip()
+        if tag == "heading" and label:
+            try:
+                bbox = node_bbox_from_raw(n)
+                cy = bbox_to_center_tuple(bbox)[1]
+                # 小文字のラベルと中心Y座標を保持
+                headings_meta.append({"label": label.lower(), "cy": cy}) 
+            except:
+                pass
+                
+    if not headings_meta:
+        return nodes
+
+    result_nodes = []
+    for n in nodes:
+        tag = (n.get("tag") or "").lower()
+        label = (n.get("name") or n.get("text") or "").strip()
+        
+        # headingノードは常に残す
+        if tag == "heading":
+            result_nodes.append(n)
+            continue
+            
+        # staticノードが重複しているかチェック
+        if tag == "static" and label:
+            try:
+                bbox = node_bbox_from_raw(n)
+                cy = bbox_to_center_tuple(bbox)[1]
+                
+                # 既存のheadingと照合
+                is_duplicate = False
+                for h in headings_meta:
+                    if h["label"] == label.lower() and abs(cy - h["cy"]) <= y_tolerance:
+                        is_duplicate = True
+                        break
+                        
+                if is_duplicate:
+                    # 重複しているstaticは削除
+                    continue
+
+            except:
+                pass
+        
+        result_nodes.append(n)
+        
+    return result_nodes
