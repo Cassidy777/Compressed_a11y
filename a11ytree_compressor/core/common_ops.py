@@ -368,28 +368,25 @@ def build_hierarchical_content_lines(
 # 圧縮！
 def get_node_priority(node: Node) -> int:
     """
-    重複除去時の優先順位を決める。
-    クリッカブルな要素を優先し、ただの表示テキストは低くする。
+    ノードの操作性・重要性に基づく優先度を返す。
+    数値が小さいほど高優先度。
     """
     tag = (node.get("tag") or "").lower()
-    role = (node.get("role") or "").lower()
-
-    # 最高優先度: 入力・操作系
-    if tag in ("entry", "input", "combo-box", "check-box", "menu-item", "toggle-button"):
-        return 20
+    
+    # 最高優先度: 入力・操作系 (0)
+    if tag in ("entry", "combo-box", "check-box", "radio-button", "toggle-button", "input"):
+        return 0 
         
-    # 高優先度: リンク・ボタン
-    if tag in ("push-button", "link", "button"):
+    # 高優先度: クリック/遷移系 (10)
+    if tag in ("push-button", "link", "menu-item", "button"):
         return 10
-    if role in ("link", "button", "menuitem"):
-        return 10
-
-    # 中優先度: 見出し
-    if tag in ("heading",):
-        return 5
-
-    # 低優先度: 静的テキスト・コンテナ
-    return 1
+    
+    # 中優先度: 構造系 (20)
+    if tag == "heading":
+        return 20 
+        
+    # 低優先度: 静的テキスト、コンテナ、画像など (30)
+    return 30
 
 
 def clean_modal_nodes(nodes: List[Node]) -> List[Node]:

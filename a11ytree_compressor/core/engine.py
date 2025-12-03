@@ -423,6 +423,24 @@ class BaseA11yCompressor:
         return spatially_group_lines(tuples, y_threshold=int(h * 0.04))
 
     def process_content_lines(self, nodes, w, h):
+        """
+        コンテンツ領域の圧縮パイプライン。
+        Instruction-Awareな整形を行う前に、ノードの冗長性を排除する。
+        """
+        # 1. Content固有のフィルタリング
+        #    (ドメイン固有の _should_skip_for_content など)
+        filtered_nodes = [n for n in nodes if not self._should_skip_for_content(n)]
+        
+        # 2. HeadingとStaticの重複を排除 (「heading + static の重複 → heading だけ残す」)
+        filtered_nodes = dedup_heading_and_static(filtered_nodes)
+        
+        # 3. 類似ラベル+近接座標のノードを、優先度に基づいて排除 (メインの重複排除)
+        filtered_nodes = dedup_similar_nodes_by_priority(filtered_nodes, distance_threshold=20.0)
+        
+        # 4. 抽出・整形（Instruction-Awareな処理もここに含まれる）
+        tuples = self._nodes_to_tuples(filtered_nodes)
+
+        # 5. 構造化・圧縮（common_ops.pyのレイアウト純粋関数に委譲）
         tuples = self._nodes_to_tuples(nodes)
         tuples.sort()
         y_tol = int(h * 0.03)

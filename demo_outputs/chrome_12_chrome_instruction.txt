@@ -77,7 +77,7 @@ MODAL:
 [static] "Help" @ (1891, 244)
 [heading] "Sort Your Refinement By" @ (262, 166)
 [static] "Sort Your Refinement By" @ (223, 166)
-[static] "" @ (430, 161)
+[section] "" @ (430, 158)
 [static] "Close menu" @ (474, 165)
 CONTENT:
 [BLOCK]
@@ -88,7 +88,6 @@ CONTENT:
 [static] "Free shipping / in store & online with code GOGET20. / $49 / purchase. / Fast..." @ (682, 139)
 [link] "Fast & free store pickup! details" @ (947, 139)
 [link] "Take 20% off in store & online with code GOGET20. details" @ (1190, 139)
-[push-button] " Close menu" @ (430, 154)
 [entry] "What are you looking for today?" @ (654, 189)
 [image] "Kohl's Logo" @ (164, 189)
 [link] "Go to Kohl's Homepage" @ (164, 189)
