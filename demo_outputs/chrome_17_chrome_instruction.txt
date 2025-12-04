@@ -1,0 +1,159 @@
+============================================================
+SAMPLE: domain=chrome, id=17 (chrome-17), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Find flights from Seattle to New York on 5th next month and only show those that can be purchased with miles.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: delta.com/jp/en
+BROWSER_TABS:
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (1902, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Search tabs" @ (90, 47)
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[document-web] "Delta Air Lines | Flights & Plane Tickets + Hotels & Cars" @ (995, 597)
+[link] "Delta Air Lines" @ (461, 149)
+[link] "Skyteam" @ (537, 152)
+[link] "SIGN UP" @ (1358, 151)
+[section] "Join SkyMiles® for free" @ (1366, 205)
+[push-button] "Close Dialog" @ (1484, 205)
+[push-button] "LOG IN" @ (1441, 151)
+[link] " 3 notifications are available Notification" @ (1498, 150)
+[section] "3notifications are available" @ (1505, 148)
+[static] "notifications are available" @ (1562, 147)
+[link] "search-button" @ (1557, 152)
+[static] "" @ (1556, 153)
+[link] "HND Departure Airport or City Tokyo-Haneda Airport, Japan" @ (459, 274)
+[static] "HND" @ (459, 253)
+[static] "Departure Airport or City" @ (535, 296)
+[static] "Tokyo-Haneda Airport, Japan" @ (459, 305)
+[link] "To Destination Airport or City Your Destination" @ (640, 274)
+[static] "To" @ (641, 253)
+[static] "Destination Airport or City" @ (722, 296)
+[static] "Your Destination" @ (641, 298)
+[label] "Trip Type:, changes will reload the page" @ (719, 241)
+[static] "" @ (862, 267)
+[section] "Round Trip" @ (789, 264)
+[section] "" @ (1096, 264)
+[section] "departureDate" @ (933, 264)
+[static] "...lendar Use enter to open, escape to close the calendar, page down for next month and page up for previous month, Depart date not selected Return..." @ (1815, 264)
+[section] "returnDate" @ (1029, 264)
+[label] "Passenger" @ (1139, 241)
+[section] "1 Passenger" @ (1212, 264)
+[label] "SEARCH OPTIONS" @ (394, 344)
+[link] " Shop with Miles help" @ (682, 362)
+[static] "Shop with Miles help" @ (729, 351)
+[check-box] " Shop with Miles" (UNCHECKED) @ (551, 362)
+[link] " Refundable Fares Only help" @ (1192, 362)
+[static] "Refundable Fares Only help" @ (1251, 351)
+[check-box] " Refundable Fares Only" (UNCHECKED) @ (1026, 362)
+[check-box] " My dates are flexible" (UNCHECKED) @ (707, 362)
+[check-box] " Exclude Main Basic" (UNCHECKED) @ (871, 362)
+[link] " Advanced Search" @ (1297, 363)
+[section] "" @ (1353, 363)
+[static] "SEARCH" @ (1458, 260)
+[static] "FLIGHT SEARCH" @ (1526, 271)
+[section] "Delta Sync Wi-Fi is available on most domestic flights. Terms of Use apply." @ (987, 660)
+[static] "CONNECT TO YOUR" @ (433, 556)
+[static] "ME TIME" @ (355, 600)
+[link] "...irtime with fast, free Delta Sync Wi-Fi presented by T-Mobile as a SkyMiles Member." @ (480, 650)
+[link] "LEARN MORE" @ (361, 707)
+[static] "Delta Sync Wi-Fi is available on most domestic flights. Terms of Use apply." @ (441, 753)
+[link] "VACATIONS" @ (483, 970)
+[static] "CARS" @ (655, 963)
+[static] "& STAYS" @ (664, 977)
+[section] "This link opens another site in a new window that may not follow the same accessibility policies as Delta A..." @ (699, 970)
+[link] "CRUISES" @ (824, 970)
+[link] "GIFT CARDS" @ (996, 970)
+[link] "Updated Bag & Travel Fees" @ (1465, 970)
+[section] "THE DELTA CUSTOMER EXPERIENCE" @ (980, 1085)
+[section] "Welcome to Delta" @ (814, 566)
+[push-button] "JAPAN - ENGLISH" @ (814, 627)
+[section] "ようこそ、デルタ航空へ" @ (1175, 566)
+[push-button] "日本 - 日本語" @ (1175, 627)
+[link] "Select other Location and Language" @ (995, 719)
+[image] "Delta Logo" @ (797, 192)
+[heading] "Third Parties and Cross-Border Transfers" @ (990, 239)
+[static] "To provide the services offered through this website, Delta provides your personal information to third parties, including third parties in ..." @ (986, 275)
+[link] "Third Parties and Cross-Border Transfers Notice" @ (901, 290)
+[static] "...our consent to the provision of personal information to third parties and cross-border transfers below by switching each toggle on. You may den..." @ (988, 320)
+[toggle-button] "Provision to Third Parties" (UNCHECKED) @ (1209, 394)
+[toggle-button] "Cross-Border Transfers" (UNCHECKED) @ (1209, 448)
+[section] "If you proceed with using this website, Delta and our third-party partners will access and store data on your device as..." @ (990, 533)
+[push-button] "Necessary" @ (990, 622)
+[push-button] "First Party Analytics" @ (990, 670)
+[toggle-button] "Third Party Analytics" (UNCHECKED) @ (1209, 721)
+[toggle-button] "Enhanced Functionality" (UNCHECKED) @ (1209, 773)
+[push-button] "Advertising" @ (990, 825)
+[push-button] "Confirm My Choices" @ (995, 900)
+[static] "https://www.delta.com/kr/en/legal/notices/third-parties-and-cross-borders-transfers-notice" @ (388, 1069)
+[push-button] " Close menu" @ (430, 154)
+CONTENT:
+[BLOCK]
+[(402, 1019)] "(1156, 41)" @ (0, 0)
+[link] "CARS & STAYS" @ (0, 0)
+[link] "CONNECT TO YOUR ME TIME" @ (0, 0)
+[link] "SKIP TO BOOK" @ (123, 126)
+[/BLOCK]
+[BLOCK]
+[combo-box] "Trip Type:, changes will reload the page" @ (797, 264)
+[/BLOCK]
+[BLOCK]
+[push-button] " departureDate returnDate" @ (1003, 264)
+[/BLOCK]
+[BLOCK]
+[combo-box] "Passenger" @ (1247, 264)
+[/BLOCK]
+[BLOCK]
+[push-button] "SEARCH FLIGHT SEARCH" @ (1457, 260)
+[/BLOCK]
+[BLOCK]
+[push-button] "Minimise" @ (1837, 47)
+[push-button] "Restore" @ (1869, 47)
+[/BLOCK]

@@ -59,9 +59,6 @@ BROWSER_UI:
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
-[label] "helloExtension" @ (1852, 1045)
-[label] "Home" @ (1721, 1045)
-[static] "Customise Chrome" @ (1832, 1047)
 [menu-item] "New tab Ctrl+T" @ (1737, 134)
 [menu-item] "New window Ctrl+N" @ (1737, 165)
 [menu-item] "New Incognito window Ctrl+Shift+N" @ (1737, 196)
@@ -100,7 +97,6 @@ CONTENT:
 [static] "Web Store / Add shortcut" @ (939, 529)
 [/BLOCK]
 [BLOCK]
-[label] "yicun.​raw" @ (1457, 109)
 [push-button] "Search by voice" @ (1302, 400)
 [push-button] "Search by image" @ (1339, 400)
 [/BLOCK]

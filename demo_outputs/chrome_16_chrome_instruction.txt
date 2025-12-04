@@ -1,0 +1,81 @@
+============================================================
+SAMPLE: domain=chrome, id=16 (chrome-16), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Show side effects of Tamiflu.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: drugs.com/sfx/tamiflu-side-effects.html
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[document-web] "Tamiflu Side Effects: Common, Severe, Long Term" @ (995, 597)
+[push-button] "Close" @ (1321, 392)
+[section] "DRUGS.COM NEWSLETTERS" @ (771, 418)
+[heading] "Drug & health news" @ (771, 511)
+[static] "Drug &" @ (749, 461)
+[static] "health news" @ (745, 536)
+[paragraph] "Stay up-to-date with the latest drug news and FDA Alerts delivered straight to your inbox." @ (1117, 454)
+[check-box] "News & warnings for Tamiflu" (UNCHECKED) @ (936, 539)
+[check-box] "FDA Safety Alerts" (UNCHECKED) @ (936, 578)
+[check-box] "Daily MedNews" (UNCHECKED) @ (936, 617)
+[check-box] "Monthly newsletter" (UNCHECKED) @ (936, 656)
+[static] "Email address" @ (981, 701)
+[entry] "Email address Subscribe" @ (1117, 715)
+[push-button] "Subscribe" @ (1248, 715)
+[paragraph] "Your is important to us." @ (1117, 773)
+[static] "Your" @ (946, 773)
+[link] "privacy" @ (987, 773)
+[static] "is important to us." @ (1074, 773)
+[push-button] " Close menu" @ (430, 154)

@@ -1,0 +1,163 @@
+============================================================
+SAMPLE: domain=chrome, id=13 (chrome-13), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Show side effects of Tamiflu.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: drugs.com
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+CONTENT:
+[BLOCK]
+[document-web] "Drugs.com – Know More. Be Sure." @ (995, 597)
+[link] "Health Professionals" @ (257, 536)
+[section] "Health Professionals" @ (257, 575)
+[/BLOCK]
+[BLOCK "Know more. Be sure."]
+[link] "Drugs.com - Go to homepage" @ (543, 163)
+[link] "Register" @ (1453, 163)
+[link] "Sign in" @ (1535, 163)
+[link] "Drugs A-Z" @ (753, 163)
+[link] "Pill Identifier" @ (866, 163)
+[link] "Interaction Checker" @ (1016, 163)
+[link] "News" @ (1136, 163)
+[link] "Pro Edition" @ (1224, 163)
+[link] "More Resources …" @ (1318, 163)
+[static] "Resources / More" @ (1368, 160)
+[heading] "Know more. Be sure." @ (987, 268)
+[static] "Drug and health information, from pharmacists you can trust." @ (987, 309)
+[entry] "Search Drugs.com" @ (987, 362)
+[push-button] "Search" @ (1366, 362)
+[section] "Trending searches:" @ (723, 414)
+[link] "Ozempic" @ (826, 414)
+[link] "Mounjaro" @ (896, 414)
+[link] "Ubrelvy" @ (962, 414)
+[link] "Zepbound" @ (1031, 414)
+[link] "Botox" @ (1093, 414)
+[link] "Dupixent" @ (1152, 414)
+[link] "Journavx" @ (1222, 414)
+[link] "Austedo" @ (1289, 414)
+[static] "Trending / searches" @ (688, 414)
+[link] "Drugs & Medications" @ (549, 536)
+[link] "Pill Identifier" @ (841, 536)
+[link] "Drug Interaction Checker" @ (1133, 536)
+[link] "Symptom Checker" @ (1425, 536)
+[link] "Side Effects" @ (1717, 536)
+[push-button] "Previous" @ (419, 536)
+[push-button] "Next" @ (1555, 536)
+[section] "Drugs & Medications" @ (549, 575)
+[section] "Pill Identifier" @ (841, 575)
+[section] "Drug Interaction Checker" @ (1133, 575)
+[section] "Symptom Checker" @ (1425, 575)
+[section] "Side Effects" @ (1717, 575)
+[static] "Drugs & / Medications / Pill / Identifier / Drug Interaction / Checker / Symptom" @ (500, 575)
+[link] "Symptoms" @ (709, 659)
+[static] "Browse by Site Section" @ (1108, 659)
+[link] "Browse drugs by letter: a" @ (423, 723)
+[link] "Browse drugs by letter: b" @ (467, 723)
+[link] "Browse drugs by letter: c" @ (511, 723)
+[link] "Browse drugs by letter: d" @ (555, 723)
+[link] "Browse drugs by letter: e" @ (599, 723)
+[link] "Browse drugs by letter: f" @ (643, 723)
+[link] "Browse drugs by letter: g" @ (687, 723)
+[link] "Browse drugs by letter: h" @ (731, 723)
+[link] "Browse drugs by letter: i" @ (775, 723)
+[link] "Browse drugs by letter: j" @ (819, 723)
+[link] "Browse drugs by letter: k" @ (863, 723)
+[link] "Browse drugs by letter: l" @ (907, 723)
+[link] "Browse drugs by letter: m" @ (951, 723)
+[list-item] "()" @ (1139, 714)
+[link] "Drugs A-Z" @ (1041, 714)
+[link] "Español" @ (1119, 714)
+[link] "Health Professionals" @ (1379, 714)
+[static] "A / B / C / D / E / F / G / H / I / J / K / L / M" @ (423, 723)
+[link] "Side Effects Checker" @ (1082, 748)
+[link] "Medical News" @ (1353, 748)
+[link] "Browse drugs by letter: n" @ (423, 767)
+[link] "Browse drugs by letter: o" @ (467, 767)
+[link] "Browse drugs by letter: p" @ (511, 767)
+[link] "Browse drugs by letter: q" @ (555, 767)
+[link] "Browse drugs by letter: r" @ (599, 767)
+[link] "Browse drugs by letter: s" @ (643, 767)
+[link] "Browse drugs by letter: t" @ (687, 767)
+[link] "Browse drugs by letter: u" @ (731, 767)
+[link] "Browse drugs by letter: v" @ (775, 767)
+[link] "Browse drugs by letter: w" @ (819, 767)
+[link] "Browse drugs by letter: x" @ (863, 767)
+[link] "Browse drugs by letter: y" @ (907, 767)
+[link] "Browse drugs by letter: z" @ (951, 767)
+[static] "N / O / P / Q / R / S / T / U / V / W / X / Y / Z" @ (423, 767)
+[link] "Dosage Guidelines" @ (1075, 782)
+[link] "FDA Alerts" @ (1341, 782)
+[link] "Browse drugs by numbers: 0-9" @ (423, 811)
+[link] "Advanced Search" @ (533, 811)
+[static] "0-9" @ (423, 811)
+[link] "Manage your Meds" @ (1076, 816)
+[link] "New Drugs" @ (1342, 816)
+[static] "Resources / More" @ (1379, 849)
+[link] "Mobile Apps" @ (1051, 850)
+[link] "More Resources" @ (1320, 850)
+[paragraph] "Browse A-Z: , , , or" @ (687, 857)
+[static] "Browse A-Z:" @ (451, 857)
+[link] "drugs" @ (520, 857)
+[link] "treatments" @ (594, 857)
+[link] "conditions" @ (686, 857)
+[link] "drug classes" @ (781, 857)
+[static] "or" @ (840, 857)
+[link] "symptoms" @ (892, 857)
+[link] "FDA Medwatch Alerts FDA Issues New Boxed Warning for Acute Serious Liver Injury and Acute Liver Failure Following Treatment with Elevidys an..." @ (587, 1127)
+[link] "New Drug Approvals FDA Grants Accelerated Approval to Hyrnuo (sevabertinib) for Non-Squamous Non-Small Cell Lung Cancer" @ (987, 1127)
+[link] "Medical News Novo Nordisk Rolls Out Lower Prices for Ozempic and Wegovy" @ (1387, 1127)
+[/BLOCK]

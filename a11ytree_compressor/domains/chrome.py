@@ -36,6 +36,10 @@ BROWSER_UI_ANCHOR_BUTTONS = {
     "you",
     "chrome",
     "bookmark this tab",
+    "back",                   
+    "view site information",  
+    "extensions",             
+    "side panel",
 }
 
 BROWSER_UI_ANCHOR_ENTRIES = {
@@ -58,22 +62,35 @@ WINDOW_CONTROL_NAMES = {
 
 class CookieBannerDetector(ModalDetector):
     """
-    画面下部の Cookie 同意バナーを検出する。
+    画面下部の Cookie 同意バナー、または中央の Cookie 同意モーダルを検出する。
     """
-    def detect(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
-        FOOTER_START_Y = int(screen_h * 0.65)
-        
-        anchor_indices = []
-        cookie_related_indices = set()
-        all_centers = []
 
-        # 1. アンカー探索
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+
+    def _short_node_repr(self, n: Node) -> str:
+        tag = (n.get("tag") or "").lower()
+        label = (n.get("name") or n.get("text") or "")
+        return f"{tag} | {label[:40]!r}"
+
+    def detect(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
+        # 修正1: 画面中央も拾えるように、ヘッダー領域(上部20%)のみを除外する
+        SEARCH_START_Y = int(screen_h * 0.20)
+
+        if self.debug:
+            print("\n================ CookieBannerDetector DEBUG ================")
+            print(f"screen_w={screen_w}, screen_h={screen_h}, num_nodes={len(nodes)}")
+            print(f"SEARCH_START_Y={SEARCH_START_Y}")
+
+        # インデックスと中心座標を収集
+        candidates: List[dict] = []
+        
         for idx, n in enumerate(nodes):
             bbox = node_bbox_from_raw(n)
             cx, cy = bbox_to_center_tuple(bbox)
-            all_centers.append((cx, cy))
 
-            if cy < FOOTER_START_Y: continue
+            if cy < SEARCH_START_Y:
+                continue
 
             tag = (n.get("tag") or "").lower()
             label = (n.get("name") or n.get("text") or "").strip()
@@ -82,104 +99,629 @@ class CookieBannerDetector(ModalDetector):
             is_anchor = False
             is_related = False
 
+            # BUTTON/LINK で COOKIE_BUTTON_ANCHORS に完全一致するもの
             if tag in ("push-button", "link") and label in COOKIE_BUTTON_ANCHORS:
                 is_anchor = True
                 is_related = True
-            
+
+            # テキストに "cookie" "consent" "privacy" などのキーワードが入っている
             if any(kw in lower for kw in COOKIE_TEXT_KEYWORDS):
                 is_related = True
                 if tag in ("push-button", "link"):
                     is_anchor = True
 
-            if is_anchor: anchor_indices.append(idx)
-            if is_related: cookie_related_indices.add(idx)
+            if is_related:
+                candidates.append({
+                    "idx": idx,
+                    "cy": cy,
+                    "cx": cx,
+                    "is_anchor": is_anchor
+                })
 
-        if not anchor_indices or not cookie_related_indices:
+        # (1) 候補が少なすぎる場合は却下
+        if len(candidates) < 2:
+            if self.debug:
+                print("[FILTER] Too few related nodes (<2) → reject Cookie banner")
+            return [], nodes
+
+        # 修正2: クラスタリング (Y座標でグループ分け)
+        # 中央のモーダルと、フッターの「Privacy Policy」リンクが離れている場合に分離する
+        candidates.sort(key=lambda x: x["cy"])
+        
+        clusters = []
+        current_cluster = [candidates[0]]
+        
+        # Y座標が画面高さの10%以上離れていたら別グループとする
+        Y_GAP_THRESHOLD = screen_h * 0.10
+        
+        for i in range(1, len(candidates)):
+            curr = candidates[i]
+            prev = candidates[i-1]
+            if (curr["cy"] - prev["cy"]) > Y_GAP_THRESHOLD:
+                clusters.append(current_cluster)
+                current_cluster = []
+            current_cluster.append(curr)
+        clusters.append(current_cluster)
+
+        # ベストなクラスタを選定
+        # 評価基準: アンカー(ボタン)を含む数を優先、同数ならY座標が大きい(下にある)ものを優先
+        best_cluster = None
+        max_score = -1
+
+        for cluster in clusters:
+            anchor_count = sum(1 for c in cluster if c["is_anchor"])
+            avg_y = sum(c["cy"] for c in cluster) / len(cluster)
+            
+            # スコアリング: アンカー数 * 10000 + Y座標 (下にあるほど有利)
+            score = anchor_count * 10000 + avg_y
+            
+            if score > max_score:
+                max_score = score
+                best_cluster = cluster
+
+        if not best_cluster or len(best_cluster) < 2:
+            if self.debug:
+                print("[FILTER] No valid cluster found")
+            return [], nodes
+
+        # 選ばれたクラスタのインデックスセット
+        target_indices = {c["idx"] for c in best_cluster}
+        
+        # デバッグ出力
+        if self.debug:
+            print(f"[STEP1] clusters_count={len(clusters)}, best_cluster_size={len(best_cluster)}")
+            anchor_indices = [c["idx"] for c in best_cluster if c["is_anchor"]]
+            print(f"[STEP1] best_cluster_anchors={anchor_indices}")
+
+        # (2) 'privacy' だけの場合は Cookie バナーではない (厳しすぎる場合調整)
+        def is_privacy_only(i):
+            t = (nodes[i].get("name") or nodes[i].get("text") or "").lower()
+            return "privacy" in t and all(kw not in t for kw in ["cookie", "consent"])
+
+        if all(is_privacy_only(i) for i in target_indices):
+            if self.debug:
+                print("[FILTER] privacy-only pattern → reject Cookie banner")
             return [], nodes
 
         # 2. バウンディングボックス計算
-        min_cx = min(all_centers[i][0] for i in cookie_related_indices)
-        max_cx = max(all_centers[i][0] for i in cookie_related_indices)
-        min_cy = min(all_centers[i][1] for i in cookie_related_indices)
-        max_cy = max(all_centers[i][1] for i in cookie_related_indices)
+        cluster_cxs = [c["cx"] for c in best_cluster]
+        cluster_cys = [c["cy"] for c in best_cluster]
+        
+        min_cx, max_cx = min(cluster_cxs), max(cluster_cxs)
+        min_cy, max_cy = min(cluster_cys), max(cluster_cys)
 
-        MARGIN_X = int(screen_w * 0.08)
+        MARGIN_X = int(screen_w * 0.05) # マージン少し縮小
         MARGIN_Y = 40
         box_l, box_r = min_cx - MARGIN_X, max_cx + MARGIN_X
         box_t, box_b = min_cy - MARGIN_Y, max_cy + MARGIN_Y
 
+        # 画面との重なり具合の参考用
+        box_w = box_r - box_l
+        box_h = box_b - box_t
+        area_ratio = (box_w * box_h) / (screen_w * screen_h + 1e-9)
+
+        # 修正3: 面積閾値の緩和 (0.05 -> 0.01)
+        # 高解像度(5100px)の場合、中央の小さなモーダルは0.5%程度になることもあるため
+        if area_ratio < 0.01:
+            if self.debug:
+                print(f"[FILTER] area_ratio={area_ratio:.4f} < 0.01 → reject Cookie banner")
+            return [], nodes
+
+        if self.debug:
+            print(f"[STEP2] modal_box=(l={box_l}, t={box_t}, r={box_r}, b={box_b}), "
+                  f"size=({box_w}x{box_h}), area_ratio={area_ratio:.4f}")
+
         # 3. 分割
-        modal, bg = [], []
+        modal: List[Node] = []
+        bg: List[Node] = []
+
         for idx, n in enumerate(nodes):
-            cx, cy = all_centers[idx]
-            # BBox内 かつ (関連ノード or Closeボタン)
+            bbox = node_bbox_from_raw(n)
+            cx, cy = bbox_to_center_tuple(bbox)
+            
             is_in_box = box_l <= cx <= box_r and box_t <= cy <= box_b
+
             tag = (n.get("tag") or "").lower()
             label = (n.get("name") or n.get("text") or "").strip().lower()
-            
-            is_target = idx in cookie_related_indices or (tag == "push-button" and label == "close")
 
-            if is_in_box and is_target:
+            # ターゲットに含まれる、またはボックス内の Close ボタン
+            is_target = (idx in target_indices) or (tag == "push-button" and label == "close")
+            
+            # ボックス内にあり、かつターゲット群に関連するか、インタラクティブ要素であれば巻き込む
+            # (単純な包含判定だと背景の巨大DIVなどを巻き込むリスクがあるため、少し条件をつける)
+            should_include = False
+            if is_in_box:
+                if is_target:
+                    should_include = True
+                elif idx in target_indices:
+                    should_include = True
+                # ボックス内のボタンやリンクは、Cookieバナーの一部である可能性が高いので含める
+                elif tag in ("push-button", "link", "check-box", "toggle-button"):
+                    should_include = True
+                # ボックス内のテキストも、短いものなら説明文として含める
+                elif tag in ("static", "paragraph", "heading") and len(label) < 200:
+                    should_include = True
+
+            if should_include:
                 modal.append(n)
             else:
                 bg.append(n)
-        
+
         return modal, bg
+
+
+
+
+# ============================================================================
+# 2. Chrome-Specific Modal Detectors (Strategies)
+# ============================================================================
+# ★ 追加: 画面中央に要素が凝縮しているパターン（Newsletter等）を検出するクラス
+class CenteredOverlayDetector(ModalDetector):
+    """
+    「画面中央に要素が密集している」という構造的特徴に基づいてポップアップを検出する。
+    キーワードは必須とせず、位置・サイズ・密度（インタラクティブ要素の含有）で判定する。
+    """
+
+    def __init__(self, debug: bool = False):
+        self.debug = debug
+
+    def _short_node_repr(self, n: Node) -> str:
+        tag = (n.get("tag") or "").lower()
+        label = (n.get("name") or n.get("text") or "")[:30]
+        return f"{tag}: {label!r}"
+
+    def detect(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
+        if not nodes:
+            return [], nodes
+
+        if self.debug:
+            print("\n================ CenteredOverlayDetector DEBUG ================")
+            print(f"screen_w={screen_w}, screen_h={screen_h}, num_nodes={len(nodes)}")
+
+        # 1. 簡易クラスタリング
+        DIST_THRESHOLD = min(screen_w, screen_h) * 0.12
+
+        centers = []
+        valid_indices = []
+        for i, n in enumerate(nodes):
+            try:
+                bbox = node_bbox_from_raw(n)
+                cx = bbox["x"] + bbox["w"] // 2
+                cy = bbox["y"] + bbox["h"] // 2
+                if 0 <= cx <= screen_w and 0 <= cy <= screen_h:
+                    centers.append((cx, cy))
+                    valid_indices.append(i)
+            except Exception as e:
+                if self.debug:
+                    print(f"[SKIP NODE] idx={i}, error={e}")
+                continue
+
+        if not centers:
+            if self.debug:
+                print("no valid centers → return no modal")
+            return [], nodes
+
+        n_points = len(centers)
+        visited = [False] * n_points
+        clusters: List[List[int]] = []
+
+        for i in range(n_points):
+            if visited[i]:
+                continue
+            cluster_group = [valid_indices[i]]
+            queue = [i]
+            visited[i] = True
+
+            while queue:
+                curr_idx = queue.pop(0)
+                cx1, cy1 = centers[curr_idx]
+                for j in range(n_points):
+                    if visited[j]:
+                        continue
+                    cx2, cy2 = centers[j]
+                    dist = ((cx1 - cx2)**2 + (cy1 - cy2)**2)**0.5
+                    if dist < DIST_THRESHOLD:
+                        visited[j] = True
+                        queue.append(j)
+                        cluster_group.append(valid_indices[j])
+
+            clusters.append(cluster_group)
+
+        if self.debug:
+            print(f"num_clusters={len(clusters)}")
+
+        # 2. クラスタ評価
+        best_cluster = None
+        best_score = -1.0
+
+        screen_cx, screen_cy = screen_w / 2, screen_h / 2
+        max_dist = ((screen_w/2)**2 + (screen_h/2)**2)**0.5
+
+        BONUS_KEYWORDS = {"subscribe", "sign", "login", "register", "join", "search", "agree"}
+        total_nodes = len(nodes)
+
+        best_bbox = None  # 吸収フェーズ用
+
+        for c_idx, group in enumerate(clusters):
+            debug_info = {
+                "cluster_idx": c_idx,
+                "num_nodes": len(group),
+                "interactive_count": 0,
+                "has_keyword": False,
+                "reason": [],
+            }
+
+            if len(group) < 3:
+                debug_info["reason"].append("len<3 (too small)")
+                if self.debug:
+                    print(f"[CLUSTER {c_idx}] SKIP early: {debug_info}")
+                continue
+
+            xs, ys = [], []
+            interactive_count = 0
+            has_bonus_keyword = False
+
+            for idx in group:
+                n = nodes[idx]
+                bbox = node_bbox_from_raw(n)
+                xs.extend([bbox["x"], bbox["x"] + bbox["w"]])
+                ys.extend([bbox["y"], bbox["y"] + bbox["h"]])
+
+                tag = (n.get("tag") or "").lower()
+                label = (n.get("name") or n.get("text") or "").lower()
+
+                if tag in ("push-button", "entry", "input", "link", "check-box"):
+                    interactive_count += 1
+                if any(k in label for k in BONUS_KEYWORDS):
+                    has_bonus_keyword = True
+
+            min_x, max_x = min(xs), max(xs)
+            min_y, max_y = min(ys), max(ys)
+            w = max_x - min_x
+            h = max_y - min_y
+            cx = min_x + w / 2
+            cy = min_y + h / 2
+
+            area_ratio = (w * h) / (screen_w * screen_h + 1e-9)
+            dist_from_center = ((cx - screen_cx)**2 + (cy - screen_cy)**2)**0.5
+            center_ratio = dist_from_center / (max_dist + 1e-9)
+            cluster_ratio = len(group) / (total_nodes + 1e-9)
+
+            # アスペクト比（幅 / 高さ）: ヘッダー検出用
+            aspect_ratio = w / (h + 1e-9)
+
+            debug_info.update({
+                "bbox": (min_x, min_y, w, h),
+                "area_ratio": round(area_ratio, 4),
+                "center_ratio": round(center_ratio, 4),
+                "cluster_ratio": round(cluster_ratio, 4),
+                "aspect_ratio": round(aspect_ratio, 2), # デバッグ用に追加
+                "interactive_count": interactive_count,
+                "has_keyword": has_bonus_keyword,
+            })
+
+            w_ratio = w / (screen_w + 1e-9)  # 幅の占有率
+            h_ratio = h / (screen_h + 1e-9)  # 高さの占有率
+
+            # --- (A) フィルタリング (Hard Filter) ---
+            # ここで is_rejected フラグを立て、Trueなら即座に continue する
+            is_rejected = False
+
+            # 1. ページ全体 (≳98%) を除外
+            if w > screen_w * 0.98 and h > screen_h * 0.98:
+                debug_info["reason"].append("too_large (page-size)")
+                is_rejected = True
+
+            # 2. 面積が小さすぎる (≲5%) ものも除外
+            if area_ratio < 0.05:
+                debug_info["reason"].append("too_small_area (<5%)")
+                is_rejected = True
+
+            # 3. 高さが小さすぎる（ヘッダー帯など）はモーダルではない
+            # 【重要】失敗ケース(h_ratio=0.11) を弾く
+            h_ratio = h / (screen_h + 1e-9)
+            if h_ratio < 0.2:
+                debug_info["reason"].append("too_short_height (<20% screen)")
+                is_rejected = True
+
+            # 4. 極端に横長（アスペクト比 > 5.0）はヘッダー/バナーとみなす
+            # 【追加】失敗ケース(aspect=15.1) を弾く。成功ケースは aspect=1.9 なので影響なし
+            if aspect_ratio > 5.0:
+                debug_info["reason"].append(f"too_flat_aspect_ratio ({aspect_ratio:.1f})")
+                is_rejected = True
+
+            # 5. 画面のかなりの部分を覆い、かつノード数も全体の大半 → ページ本体
+            is_full_screen_coverage = (w > screen_w * 0.90) and (h > screen_h * 0.90)
+            if cluster_ratio > 0.60:
+                # ノード数が多く、かつ「横幅が画面いっぱい(>92%)」の場合はページ本体とみなす
+                # (Delta航空のような巨大モーダルは幅67%程度なので、ここを通過する)
+                if w_ratio > 0.92:
+                    debug_info["reason"].append(f"too_many_nodes_wide_body (w={w_ratio:.2f})")
+                    is_rejected = True
+                
+                # ケース3: 全画面(幅も高さも)をほぼ覆っている場合
+                elif w_ratio > 0.90 and h_ratio > 0.90:
+                    debug_info["reason"].append("too_many_nodes (fullscreen cover)")
+                    is_rejected = True
+
+
+            # 6. 面積はかなり大きいのにノード数が少ない → レイアウト用コンテナとみなす
+            # 【重要】失敗ケースの Cluster 1 (Backdrop/Body) を弾く
+            if area_ratio > 0.7 and cluster_ratio < 0.2:
+                debug_info["reason"].append("sparse_big_region (layout container)")
+                is_rejected = True
+
+            # 7. インタラクティブ要素がない
+            if interactive_count == 0:
+                debug_info["reason"].append("no_interactive_element")
+                is_rejected = True
+
+            # 8. 画面中心から遠すぎる
+            if center_ratio > 0.35:
+                debug_info["reason"].append("too_far_from_center_band")
+                is_rejected = True
+
+            # フィルタに引っかかったら評価をスキップ
+            if is_rejected:
+                if self.debug:
+                    print(f"[CLUSTER {c_idx}] REJECTED: {debug_info}")
+                continue
+
+            # (C) スコアリング（ここまで到達したものは「モーダル候補」として有力）
+            center_score = 50 * (1.0 - (dist_from_center / max_dist))
+            density_score = min(len(group), 30)
+            keyword_score = 10 if has_bonus_keyword else 0
+            total_score = center_score + density_score + keyword_score
+
+            debug_info.update({
+                "center_score": round(center_score, 2),
+                "density_score": density_score,
+                "keyword_score": keyword_score,
+                "total_score": round(total_score, 2),
+            })
+
+            if self.debug:
+                print(f"[CLUSTER {c_idx}] PASSED: {debug_info}")
+
+            if total_score > best_score:
+                best_score = total_score
+                best_cluster = group
+                best_bbox = (min_x, max_x, min_y, max_y)
+
+        if self.debug:
+            if best_cluster is None:
+                print(">>> RESULT: no modal detected (best_cluster=None)")
+            else:
+                print(">>> RESULT: best_cluster selected")
+                print(f"best_score={best_score}")
+                print(f"best_cluster_size={len(best_cluster)}")
+                for idx in best_cluster:
+                    n = nodes[idx]
+                    try:
+                        bbox = node_bbox_from_raw(n)
+                        print(f"  - node_idx={idx}, {self._short_node_repr(n)}, "
+                              f"bbox=({bbox['x']},{bbox['y']},{bbox['w']},{bbox['h']})")
+                    except Exception:
+                        pass
+
+        # 3. 吸収フェーズ
+        if best_cluster and best_bbox is not None:
+            cluster_set = set(best_cluster)
+            modal: List[Node] = []
+            bg: List[Node] = []
+
+            min_x, max_x, min_y, max_y = best_bbox
+            EXPAND = 20
+            mx1 = min_x - EXPAND
+            mx2 = max_x + EXPAND
+            my1 = min_y - EXPAND
+            my2 = max_y + EXPAND
+
+            absorbed = []
+
+            for i, n in enumerate(nodes):
+                bbox = node_bbox_from_raw(n)
+                cx = bbox["x"] + bbox["w"] // 2
+                cy = bbox["y"] + bbox["h"] // 2
+
+                if (i in cluster_set) or (mx1 <= cx <= mx2 and my1 <= cy <= my2):
+                    modal.append(n)
+                    if i not in cluster_set:
+                        absorbed.append(i)
+                else:
+                    bg.append(n)
+
+            if self.debug:
+                print(f"[ABSORB] absorbed {len(absorbed)} nodes: {absorbed}")
+
+            return modal, bg
+
+        return [], nodes
+
+
+
+
+# ============================================================================
+# 3. Chrome Compressor Implementation
+# ============================================================================
+
+class ChromeCompressor(BaseA11yCompressor):
+    domain_name = "chrome"
+
+    def get_modal_detectors(self) -> List[ModalDetector]:
+        return [
+            # ★ 1. Diffで見つからなかった場合の「中央ポップアップ」検出 (最強)
+            CenteredOverlayDetector(),
+            
+            # 2. それでもなければ汎用クラスタ (誤検知リスクあり、順序は要調整)
+            # ClusterModalDetector(), 
+            
+            # 3. 専用UI検出
+            CookieBannerDetector(),
+            FloatingMenuDetector(),
+            FullscreenOverlayDetector(),
+        ]
 
 
 class FullscreenOverlayDetector(ModalDetector):
     """
     Delta航空のような全画面オーバーレイ（Close Dialog ... Confirm）を検出。
     """
-    def detect(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
-        TOP_MIN_Y = int(screen_h * 0.08)
-        TOP_MAX_Y = int(screen_h * 0.55)
-        BOT_MIN_Y = int(screen_h * 0.50)
-        
-        TOP_ANCHORS = ["close dialog", "close"]
-        BOT_ANCHORS = ["confirm my choices", "accept all", "save preferences"]
-        
-        top_centers, bot_centers = [], []
+    def __init__(self, debug: bool = False):
+        self.debug = debug
 
+    def detect(
+        self,
+        nodes: List[Node],
+        screen_w: int,
+        screen_h: int
+    ) -> Tuple[List[Node], List[Node]]:
+        if not nodes:
+            return [], nodes
+
+        import re  # 念のためここで
+
+        TOP_MIN_Y = int(screen_h * 0.05)
+        TOP_MAX_Y = int(screen_h * 0.80)
+        BOT_MIN_Y = int(screen_h * 0.20)
+
+        TOP_ANCHORS = {
+            "close", "close dialog", "dismiss", "cancel", "done",
+            "back", "return", "exit", "×", "x", "✕"
+        }
+        BOT_ANCHORS = {
+            "confirm", "confirm my choices", "accept", "accept all", "save",
+            "save preferences", "agree", "allow", "continue", "submit",
+            "apply", "ok", "yes", "no", "reject", "reject all", "decline"
+        }
+
+        TARGET_TAGS = {
+            "push-button", "link", "toggle-button", "image", "graphic", "button"
+        }
+
+        top_centers: List[int] = []
+        bot_centers: List[int] = []
+
+        # 1. アンカー探索
         for n in nodes:
             tag = (n.get("tag") or "").lower()
-            if tag != "push-button": continue
+            if tag not in TARGET_TAGS:
+                continue
+
             label = (n.get("name") or n.get("text") or "").strip().lower()
-            if not label: continue
+            if not label:
+                continue
 
             bbox = node_bbox_from_raw(n)
             cx, cy = bbox_to_center_tuple(bbox)
-            if cx < screen_w * 0.05: continue # 左端除外
 
-            # Top Anchor
+            # 左端 5% を除外（ハンバーガーメニューなどの誤爆防止）
+            if cx < screen_w * 0.05:
+                continue
+
+            label_words = set(re.split(r"[\s_\-]+", label))
+
+            is_top = False
+            # Top anchors
             if TOP_MIN_Y <= cy <= TOP_MAX_Y:
-                if any(k in label for k in TOP_ANCHORS) and cy > screen_h * 0.1:
+                if (label in TOP_ANCHORS) or (label_words & TOP_ANCHORS):
                     top_centers.append(cy)
+                    is_top = True
 
-            # Bottom Anchor
-            if cy >= BOT_MIN_Y:
-                if any(k in label for k in BOT_ANCHORS):
+            # Bottom anchors
+            if (not is_top) and cy >= BOT_MIN_Y:
+                if ((label in BOT_ANCHORS)
+                    or (label_words & BOT_ANCHORS)
+                    or ("confirm my choices" in label)
+                    or ("save preferences" in label)):
                     bot_centers.append(cy)
 
         if not top_centers or not bot_centers:
+            # アンカーが両方なければオーバーレイとはみなさない
             return [], nodes
 
-        # 範囲決定
+        # 2. 垂直範囲決定
         top_y = min(top_centers) - 40
         bot_y = max(bot_centers) + 40
-        
-        if (bot_y - top_y) < screen_h * 0.4: # 小さすぎる場合は対象外
+        height = bot_y - top_y
+
+        # 高さが小さすぎる → 単なるバナー等
+        if height < screen_h * 0.3:
+            if self.debug:
+                print(f"[Fullscreen] REJECT: Height too small ({height})")
             return [], nodes
 
-        modal, bg = [], []
+        # 3. バンド内 / 外で分割
+        candidate_modal: List[Node] = []
+        candidate_bg: List[Node] = []
+
         for n in nodes:
             bbox = node_bbox_from_raw(n)
             _, cy = bbox_to_center_tuple(bbox)
             if top_y <= cy <= bot_y:
-                modal.append(n)
+                candidate_modal.append(n)
             else:
-                bg.append(n)
-        return modal, bg
+                candidate_bg.append(n)
+
+        total_nodes = len(nodes)
+        modal_nodes_count = len(candidate_modal)
+        node_ratio = modal_nodes_count / (total_nodes + 1e-9)
+
+        # 【追加】候補領域の横幅を計算
+        if candidate_modal:
+            xs = []
+            for n in candidate_modal:
+                bbox = node_bbox_from_raw(n)
+                xs.extend([bbox["x"], bbox["x"] + bbox["w"]])
+            min_x, max_x = min(xs), max(xs)
+            modal_width = max_x - min_x
+            width_ratio = modal_width / (screen_w + 1e-9)
+        else:
+            width_ratio = 0.0
+
+        interactive_count = sum(
+            1 for n in candidate_modal
+            if (n.get("tag") or "").lower()
+            in {"push-button", "link", "input", "entry", "check-box"}
+        )
+
+        debug_info = {
+            "top_y": top_y,
+            "bot_y": bot_y,
+            "height": height,
+            "node_ratio": round(node_ratio, 3),
+            "width_ratio": round(width_ratio, 3), # デバッグ用
+            "modal_count": modal_nodes_count,
+            "interactive_count": interactive_count,
+        }
+
+# 条件1: ノード含有率が極端に高い (80%以上) 場合
+        if node_ratio > 0.80:
+            if self.debug:
+                print(f"[Fullscreen] REJECT: Dominant Node Count (>80%) {debug_info}")
+            return [], nodes
+
+        # 条件2: 「高さ」と「ノード数」がある程度大きい場合
+        if height > screen_h * 0.60 and node_ratio > 0.60:
+            if width_ratio > 0.90:
+                if self.debug:
+                    print(f"[Fullscreen] REJECT: Large Area & Full Width (Likely Page Body) {debug_info}")
+                return [], nodes
+            else:
+                pass
+
+        # 条件3: インタラクティブ要素がほとんどない大きな領域は記事ページ誤検知の可能性
+        # (ここで計算していた処理は上に移動済みなので、判定だけ残す)
+        if modal_nodes_count > 20 and (interactive_count / (modal_nodes_count + 1e-9)) < 0.05:
+            if self.debug:
+                print(f"[Fullscreen] REJECT: Low interactivity {debug_info}")
+            return [], nodes
+
+        if self.debug:
+            print(f"[Fullscreen] ACCEPT: {debug_info}")
+
+        return candidate_modal, candidate_bg
+
 
 
 class FloatingMenuDetector(ModalDetector):
@@ -235,9 +777,10 @@ class ChromeCompressor(BaseA11yCompressor):
 
     def get_modal_detectors(self) -> List[ModalDetector]:
         return [
-            CookieBannerDetector(),
+            CookieBannerDetector(debug=True),
+            CenteredOverlayDetector(debug=True),
             FloatingMenuDetector(),
-            FullscreenOverlayDetector(),
+            FullscreenOverlayDetector(debug=True),
         ]
 
     def split_static_ui(
@@ -376,7 +919,7 @@ class ChromeCompressor(BaseA11yCompressor):
         
         # 定数定義
         TITLEBAR_H = 60
-        TOOLBAR_TOL = int(h * 0.03)
+        TOOLBAR_TOL = min(int(h * 0.03), 30)
         
         # タブ領域の下限設定
         TOOLBAR_HALF_HEIGHT = 25

@@ -178,9 +178,12 @@ class BaseA11yCompressor:
         # 2. Priority 2: Domain Specific (Diffで見つからなかった場合)
         if not modal_nodes:
             for detector in self.get_modal_detectors():
+                print("[DEBUG] Trying detector:", detector.__class__.__name__)  # ← 追加
+
                 m, b = detector.detect(nodes, w, h)
                 if m:
                     modal_nodes, bg_nodes, mode = m, b, detector.__class__.__name__
+                    print("[DEBUG] SUCCESS detector:", mode)  # ← 追加
                     break
             
         # 3. Priority 3: Generic Cluster (最終手段)
@@ -264,9 +267,9 @@ class BaseA11yCompressor:
         """
         clean_nodes: List[Node] = []
 
-        # 拡張子のパターン（~ や # で終わる一時ファイルも含める）
+        # 1. 拡張子のパターン（~ や # で終わる一時ファイルも含める）
         file_ext_pattern = re.compile(
-            r'\.(pptx|ppt|docx|xlsx|pdf|png|jpg|jpeg|gif|xcf|desktop|txt|py|sh|zip|tar|gz|mp3|mp4|mov|wav)(~|#)?$',
+            r'\.(pptx|ppt|docx|xlsx|pdf|png|jpg|jpeg|gif|xcf|desktop|txt|py|sh|zip|tar|gz|mp3|mp4|mov|wav|raw)(~|#)?$',
             re.IGNORECASE,
         )
         # .~lock.xxx みたいなロックファイル
@@ -274,6 +277,9 @@ class BaseA11yCompressor:
 
         # ゼロ幅スペースなどを削除するためのパターン
         zero_width_chars = re.compile(r'[\u200b\u200c\u200d\ufeff]')
+
+        # 2. 特定のデスクトップアイコン名を除外するセットを定義
+        ignored_names = {"home", "helloextension", "trash"}
 
         for n in nodes:
             tag = (n.get("tag") or "").lower()
@@ -292,6 +298,10 @@ class BaseA11yCompressor:
             # 小文字化 & ゼロ幅文字の削除
             lower = raw_name.lower()
             normalized = zero_width_chars.sub("", lower)
+
+            
+            if normalized in ignored_names:
+                continue
 
             # ロックファイル・ゴミファイル名
             if lock_file_pattern.match(normalized):

@@ -1,0 +1,151 @@
+============================================================
+SAMPLE: domain=chrome, id=14 (chrome-14), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Show side effects of Tamiflu.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: drugs.com/search.php
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+CONTENT:
+[BLOCK]
+[document-web] "Tamiflu - Search results. Page 1 of about 681 results" @ (995, 597)
+[/BLOCK]
+[BLOCK]
+[link] "Drugs.com - Go to homepage" @ (473, 163)
+[entry] "Search Drugs.com" @ (1012, 158)
+[combo-box] "Select the section you want to search in" @ (1298, 158)
+[push-button] "All" @ (1298, 158)
+[push-button] "Search" @ (1352, 158)
+[link] "Register" @ (1453, 158)
+[link] "Sign in" @ (1535, 158)
+[static] "Select the section you want to search in" @ (1430, 188)
+[static] "Browse medications:" @ (706, 187)
+[link] "A" @ (780, 187)
+[link] "B" @ (793, 187)
+[link] "C" @ (806, 187)
+[link] "D" @ (819, 187)
+[link] "E" @ (831, 187)
+[link] "F" @ (843, 187)
+[link] "G" @ (855, 187)
+[link] "H" @ (868, 187)
+[link] "I" @ (880, 187)
+[link] "J" @ (889, 187)
+[link] "K" @ (901, 187)
+[link] "L" @ (913, 187)
+[link] "M" @ (926, 187)
+[link] "N" @ (941, 187)
+[link] "O" @ (955, 187)
+[link] "P" @ (968, 187)
+[link] "Q" @ (981, 187)
+[link] "R" @ (995, 187)
+[link] "S" @ (1007, 187)
+[link] "T" @ (1018, 187)
+[link] "U" @ (1031, 187)
+[link] "V" @ (1044, 187)
+[link] "W" @ (1059, 187)
+[link] "X" @ (1073, 187)
+[link] "Y" @ (1085, 187)
+[link] "Z" @ (1097, 187)
+[link] "0-9" @ (1114, 187)
+[link] "Advanced Search" @ (1329, 187)
+[link] "Drugs A-Z" @ (441, 225)
+[link] "Pill Identifier" @ (562, 225)
+[link] "Drug Interaction Checker" @ (740, 225)
+[link] "Compare Drugs" @ (927, 225)
+[link] "News" @ (1038, 225)
+[link] "Pro Edition" @ (1134, 225)
+[link] "More Resources …" @ (1236, 225)
+[link] "Help & Support" @ (1513, 225)
+[static] "Resources / More" @ (1286, 223)
+[/BLOCK]
+[BLOCK "Tamiflu"]
+[link] "Home" @ (421, 399)
+[link] "Search" @ (481, 399)
+[static] "681 results" @ (550, 399)
+[heading] "Tamiflu" @ (763, 473)
+[link] "Tamiflu Tamiflu is an antiviral medication that blocks the actions of influen..." @ (805, 531)
+[paragraph] "Tamiflu is an antiviral medication that blocks the actions of influenza virus..." @ (805, 551)
+[static] "Tamiflu / is an antiviral medication that blocks the actions of influenza vir..." @ (458, 510)
+[link] "Side Effects" @ (473, 628)
+[link] "Pregnancy / Breastfeeding" @ (530, 662)
+[link] "Drug Interactions" @ (495, 696)
+[link] "Dosage" @ (456, 730)
+[static] "5.9 / 10" @ (456, 771)
+[image] "Rating: 5.9 out of 10" @ (591, 771)
+[/BLOCK]
+[BLOCK]
+[link] "Support Group Q & A" @ (898, 628)
+[link] "Professional" @ (865, 662)
+[link] "Compare Alternatives" @ (901, 696)
+[link] "565 Reviews" @ (745, 771)
+[/BLOCK]
+[BLOCK]
+[link] "Español" @ (1185, 399)
+[push-button] "Save" @ (1148, 472)
+[static] "Related News" @ (1326, 692)
+[link] "Tamiflu Safe For Children, Study Concludes" @ (1421, 741)
+[/BLOCK]
+[BLOCK "Tamiflu Prescribing Information"]
+[heading] "Tamiflu Prescribing Information" @ (805, 864)
+[link] "Tamiflu Prescribing Information Prescribing Information (FDA) TAMIFLU is indi..." @ (805, 940)
+[static] "Tamiflu / Prescribing Information" @ (444, 863)
+[static] "Prescribing Information (FDA)" @ (504, 899)
+[paragraph] "TAMIFLU is indicated for the treatment of acute, uncomplicated illness due to..." @ (805, 977)
+[static] "TAMIFLU / is indicated for the treatment of acute, uncomplicated illness due ..." @ (440, 936)
+[/BLOCK]
+[BLOCK]
+[link] "Frequently asked questions about Tamiflu" @ (632, 1086)
+[/BLOCK]

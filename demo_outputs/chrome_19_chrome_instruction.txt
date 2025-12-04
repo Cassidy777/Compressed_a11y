@@ -1,0 +1,139 @@
+============================================================
+SAMPLE: domain=chrome, id=19 (chrome-19), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+On next Monday, look up a flight from Mumbai to Stockholm.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: qatarairways.com/en-hk/homepage.html
+WINDOW_CONTROLS:
+[window-button] "Minimise" @ (1837, 47)
+[window-button] "Restore" @ (1869, 47)
+[window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[paragraph] "We use cookies to tailor your experience to your needs, bringing you special offers, unique features and much more. By selecting ‘Agree’, yo..." @ (995, 974)
+[link] "Cookie preferences" @ (1315, 1041)
+[link] "Accept all" @ (1507, 1041)
+[paragraph] "Discover the latest offers and news and start planning your next trip with us." @ (987, 980)
+[push-button] " Close menu" @ (430, 154)
+CONTENT:
+[BLOCK "Unlock more with our Silver Hair travel exclusive"]
+[heading] "Unlock more with our Silver Hair travel exclusive" @ (0, 0)
+[document-web] "Book Flights - Book & Fly from Hong Kong | Qatar Airways" @ (995, 597)
+[image] "Unlock more with our<br>Silver Hair travel exclusive" @ (987, 354)
+[/BLOCK]
+[BLOCK]
+[link] "TSA Checked Baggage Restriction for Travellers to/from, or via, USA" @ (863, 115)
+[section] "Travel alerts" @ (995, 133)
+[link] "Prohibited Tobacco Items in the Republic of Singapore" @ (863, 145)
+[link] "QatarAirways-Logo Qatar Airways Logo Qatar Airways Logo Qatar Airways Logo Qatar Airways Logo Qatar Airways Logo" @ (491, 185)
+[push-button] "Explore (current)" @ (673, 187)
+[push-button] "Book" @ (773, 187)
+[push-button] "Experience" @ (889, 187)
+[push-button] "Privilege Club" @ (1043, 187)
+[image] "Qatar Airways Logo" @ (480, 182)
+[image] "one world logo" @ (594, 184)
+[link] "one-world one world logo One World Logo" @ (594, 184)
+[static] "(current) / Explore" @ (740, 186)
+[static] "Unlock more with our" @ (584, 308)
+[static] "Silver Hair travel exclusive" @ (613, 356)
+[push-button] "Book now" @ (477, 442)
+[/BLOCK]
+[BLOCK]
+[link] "Close the travel alerts bar" @ (1566, 134)
+[static] "꤉" @ (1567, 135)
+[link] "Profile Icon Log in" @ (1462, 183)
+[link] "| Sign up" @ (1540, 183)
+[link] "Help" @ (1261, 185)
+[push-button] "Search Icon" @ (1315, 185)
+[push-button] "EN" @ (1375, 185)
+[image] "Profile Icon" @ (1434, 189)
+[static] "Log in / Sign up" @ (1478, 188)
+[/BLOCK]
+[BLOCK]
+[radio-button] "Return" @ (443, 629)
+[radio-button] "One way" @ (562, 629)
+[radio-button] "Multi-city" @ (695, 629)
+[static] "ꤒ" @ (708, 690)
+[combo-box] "Airport autocomplete" @ (571, 697)
+[label] "From" @ (571, 698)
+[label] "To" @ (862, 698)
+[label] "Book using Avios" @ (511, 768)
+[check-box] "Award ticket checkbox" (UNCHECKED) @ (442, 781)
+[/BLOCK]
+[BLOCK]
+[entry] "Please enter depart date in the format dd space mmm space yyyy" @ (1055, 688)
+[entry] "Please enter return date in the format dd space mmm space yyyy" @ (1193, 688)
+[static] "Departure / Return" @ (1024, 679)
+[label] "Passengers / Class" @ (1404, 680)
+[static] "ꤐ" @ (1522, 690)
+[push-button] "Search flights" @ (1449, 768)
+[section] "ꤠAdd promo code" @ (1262, 768)
+[static] "ꤠ / Add promo code" @ (1200, 768)
+[/BLOCK]
+[BLOCK]
+[push-button] "Feedback" @ (1903, 845)
+[/BLOCK]
+[BLOCK "Let's go places together"]
+[heading] "Let's go places together" @ (987, 920)
+[static] "Discover the latest offers and news and start planning your next trip with us." @ (690, 968)
+[image] "Senior Exclusive" @ (542, 1094)
+[/BLOCK]
+[BLOCK]
+[image] "Book early and save" @ (838, 1094)
+[/BLOCK]
+[BLOCK]
+[image] "Stopover in Qatar from $14 pp" @ (1134, 1094)
+[/BLOCK]
+[BLOCK]
+[image] "Celebrate Disney Enchanted Winter" @ (1430, 1094)
+[/BLOCK]

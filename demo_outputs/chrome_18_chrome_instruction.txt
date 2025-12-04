@@ -1,0 +1,131 @@
+============================================================
+SAMPLE: domain=chrome, id=18 (chrome-18), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Search for a one way flight from Dublin to Vienna on 10th next month for 2 adults.
+
+DETECTED DOMAIN: chrome
+
+=== COMPRESSED A11Y ===
+URL: ryanair.com/gb/en
+BROWSER_TABS:
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (1902, 47)
+[browser-tab-button] "Close" @ (326, 47)
+APP_LAUNCHER:
+[launcher-app] "Search tabs" @ (90, 47)
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
+[browser-button] "Reload" @ (164, 90)
+[browser-button] "You" @ (1862, 90)
+[browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
+[browser-entry] "Address and search bar" @ (1009, 90)
+[browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[static] "Our Bag Sizers Explained" @ (579, 473)
+[link] "Read more" @ (701, 473)
+[push-button] "city breaks" @ (987, 696)
+[paragraph] "We value your privacy" @ (995, 512)
+[paragraph] "By clicking “Yes, I agree”, you agree to Ryanair using cookies to improve your browsing experience, to personalise content, to provide socia..." @ (995, 580)
+[link] "Cookie Policy" @ (985, 616)
+[static] "or" @ (1037, 616)
+[link] "Privacy Policy" @ (1090, 616)
+[static] "." @ (1134, 616)
+[push-button] "View cookie settings" @ (764, 672)
+[push-button] "No, thanks" @ (989, 672)
+[push-button] "Yes, I agree" @ (1214, 672)
+[push-button] " Close menu" @ (430, 154)
+CONTENT:
+[BLOCK]
+[document-web] "Official Ryanair website | Book direct for the lowest fares | Ryanair.com" @ (995, 597)
+[link] "Ryanair logo" @ (181, 141)
+[/BLOCK]
+[BLOCK]
+[push-button] "flights" @ (473, 212)
+[push-button] "Car Hire" @ (608, 212)
+[push-button] "hotels" @ (740, 212)
+[push-button] "Gift cards" @ (881, 212)
+[push-button] "Apply promo code" @ (705, 263)
+[radio-button] "Return trip" @ (419, 264)
+[radio-button] "One way" @ (538, 264)
+[label] "From" @ (438, 308)
+[label] "To" @ (874, 308)
+[entry] "From" @ (625, 329)
+[entry] "To" @ (1064, 329)
+[static] "Filters: / Price range / Times" @ (459, 371)
+[push-button] "Open previous notification" @ (426, 471)
+[section] "Our Bag Sizers ExplainedWe no longer accept printed boarding passes.Help stop ATC delays due to staff shortagesOur Bag Sizers ExplainedWe no..." @ (2799, 471)
+[image] "city breaks" @ (987, 696)
+[/BLOCK]
+[BLOCK]
+[push-button] "Minimise" @ (1837, 47)
+[push-button] "Restore" @ (1869, 47)
+[push-button] "Plan" @ (1289, 141)
+[link] "FAQs" @ (1367, 141)
+[link] "Assistance" @ (1428, 141)
+[push-button] "My Bookings" @ (1517, 141)
+[push-button] "myRyanair Portal" @ (1802, 141)
+[push-button] "Open market switcher" @ (1618, 141)
+[push-button] "Log in" @ (1695, 141)
+[static] "Verified / by Ryanair" @ (1464, 210)
+[push-button] "Search" @ (1426, 321)
+[push-button] "Open next notification" @ (1548, 471)
+[static] "1 of 3 / We no longer accept printed boarding passes." @ (1506, 471)
+[/BLOCK]
+[BLOCK]
+[push-button] "GIFT CARDS gift cards" @ (987, 1037)
+[link] "gift cards" @ (914, 1037)
+[push-button] "EARLY ACCESS EARLY ACCESS" @ (1036, 1037)
+[link] "EARLY ACCESS" @ (963, 1037)
+[static] "GIFT CARDS / EARLY ACCESS" @ (433, 978)
+[/BLOCK]
+[BLOCK "Why are you not subscribed?"]
+[heading] "Why are you not subscribed?" @ (1754, 715)
+[paragraph] "Subscribe now to get our best deals delivered straight to your inbox and by push notifications in your device. For information on how to uns..." @ (1754, 780)
+[static] "Subscribe now to get our best deals delivered straight to your inbox and by push notifications in your device. For information on how to uns..." @ (1754, 776)
+[push-button] "Why are you not subscribed?" @ (1576, 791)
+[link] "Privacy Policy" @ (1749, 812)
+[entry] "Email address" @ (1754, 862)
+[push-button] "Sign me up!" @ (1754, 908)
+[push-button] "IMPORTANT UPDATE IMPORTANT UPDATE" @ (2000, 1037)
+[link] "IMPORTANT UPDATE" @ (1927, 1037)
+[push-button] "WINTER BREAKS WINTER BREAKS" @ (2049, 1037)
+[link] "WINTER BREAKS" @ (1976, 1037)
+[push-button] "FLY TO CORK fly to cork" @ (2098, 1037)
+[static] "WINTER BREAKS / FLY TO CORK" @ (1495, 1001)
+[/BLOCK]

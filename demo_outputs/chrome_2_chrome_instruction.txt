@@ -61,28 +61,18 @@ BROWSER_UI:
 [browser-button] "Chrome" @ (1900, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
-CONTENT:
-[BLOCK]
+MODAL:
 [document-web] "New tab" @ (995, 597)
-[/BLOCK]
-[BLOCK]
-[combo-box] "Search Google or type a URL" @ (995, 400)
-[/BLOCK]
-[BLOCK]
-[link] "Web Store" @ (939, 498)
-[push-button] "Add shortcut" @ (1051, 498)
-[push-button] "More actions for Web Store shortcut" @ (979, 460)
-[static] "Web Store / Add shortcut" @ (939, 529)
-[/BLOCK]
-[BLOCK]
-[label] "yicun.​raw" @ (1457, 109)
-[push-button] "Search by voice" @ (1302, 400)
-[push-button] "Search by image" @ (1339, 400)
-[/BLOCK]
-[BLOCK]
-[push-button] "Google apps" @ (1886, 146)
 [link] "Gmail" @ (1776, 146)
 [link] "Search for images" @ (1829, 146)
-[static] "Images" @ (1829, 145)
+[push-button] "Google apps" @ (1886, 146)
+[combo-box] "Search Google or type a URL" @ (995, 400)
+[push-button] "Search by voice" @ (1302, 400)
+[push-button] "Search by image" @ (1339, 400)
+[link] "Web Store" @ (939, 498)
+[push-button] "More actions for Web Store shortcut" @ (979, 460)
+[static] "Web Store" @ (939, 529)
+[push-button] "Add shortcut" @ (1051, 498)
+[static] "Add shortcut" @ (1051, 529)
 [toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
-[/BLOCK]
+[push-button] " Close menu" @ (430, 154)

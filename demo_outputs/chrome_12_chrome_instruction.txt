@@ -44,12 +44,15 @@ APP_LAUNCHER:
 [launcher-app] "Trash" @ (35, 816)
 [launcher-app] "Show Applications" @ (35, 1045)
 BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
 [browser-button] "Reload" @ (164, 90)
 [browser-button] "You" @ (1862, 90)
 [browser-button] "Chrome" @ (1900, 90)
+[browser-button] "View site information" @ (207, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
+[push-button] "Close dialog" @ (613, 287)
 [heading] "Sort Your Refinement By" @ (262, 166)
 [radio-button] "Featured" @ (98, 216)
 [radio-button] "New Arrivals" @ (98, 252)
@@ -61,10 +64,12 @@ MODAL:
 [push-button] "Apply" @ (262, 513)
 [push-button] " Close menu" @ (430, 154)
 CONTENT:
-[BLOCK]
-[push-button] "Back" @ (89, 90)
-[push-button] "View site information" @ (207, 90)
+[BLOCK "Store Change Confirmation"]
 [document-web] "Spider-Man toys for kids | Kohl's" @ (995, 597)
+[link] "Free shipping with $49 purchase. details" @ (752, 139)
+[static] "Free shipping / in store & online with code GOGET20. / $49 / purchase. / Fast..." @ (682, 139)
+[link] "Fast & free store pickup! details" @ (947, 139)
+[link] "Take 20% off in store & online with code GOGET20. details" @ (1190, 139)
 [push-button] " Close menu" @ (430, 154)
 [entry] "What are you looking for today?" @ (654, 189)
 [image] "Kohl's Logo" @ (164, 189)
@@ -73,34 +78,6 @@ CONTENT:
 [static] "Shop By Category / My Store / Select Store" @ (173, 244)
 [section] "My Store: Select Store" @ (365, 244)
 [alert] "Store Change Confirmation" @ (437, 330)
-[/BLOCK]
-[BLOCK]
-[link] "Free shipping with $49 purchase. details" @ (752, 139)
-[static] "Free shipping / in store & online with code GOGET20. / $49 / purchase. / Fast..." @ (682, 139)
-[push-button] "Close dialog" @ (613, 287)
-[/BLOCK]
-[BLOCK]
-[link] "Fast & free store pickup! details" @ (947, 139)
-[/BLOCK]
-[BLOCK]
-[link] "Take 20% off in store & online with code GOGET20. details" @ (1190, 139)
-[/BLOCK]
-[BLOCK]
-[link] " Kohl's Card" @ (1395, 244)
-[static] "Kohl's Card / Baby Registry / Kohl's Coupons / Help" @ (1404, 244)
-[link] " Baby Registry" @ (1558, 244)
-[/BLOCK]
-[BLOCK]
-[link] "Account Button Sign In" @ (1728, 189)
-[section] "Account Button" @ (1728, 180)
-[link] " My List" @ (1810, 189)
-[link] "Cart Button $0.00" @ (1890, 189)
-[section] "Cart Button" @ (1890, 180)
-[static] "$0.00 / Sign In / My List" @ (1894, 173)
-[link] " Kohl's Coupons" @ (1737, 244)
-[link] " Help" @ (1882, 244)
-[/BLOCK]
-[BLOCK "Store Change Confirmation"]
 [heading] "Store Change Confirmation" @ (256, 283)
 [static] "may be closer to your current location. Do you want to switch? / 114 / result..." @ (414, 307)
 [section] "114results for: “Spider-Man toys for kids”" @ (995, 341)
@@ -124,7 +101,20 @@ CONTENT:
 [link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1178, 725)
 [/BLOCK]
 [BLOCK]
+[link] " Kohl's Card" @ (1395, 244)
+[static] "Kohl's Card / Baby Registry / Kohl's Coupons / Help" @ (1404, 244)
+[link] " Baby Registry" @ (1558, 244)
 [link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1544, 725)
+[/BLOCK]
+[BLOCK]
+[link] "Account Button Sign In" @ (1728, 189)
+[section] "Account Button" @ (1728, 180)
+[link] " My List" @ (1810, 189)
+[link] "Cart Button $0.00" @ (1890, 189)
+[section] "Cart Button" @ (1890, 180)
+[static] "$0.00 / Sign In / My List" @ (1894, 173)
+[link] " Kohl's Coupons" @ (1737, 244)
+[link] " Help" @ (1882, 244)
 [/BLOCK]
 [BLOCK]
 [link] "Boys 4-20 Marvel Spider-Man 2 pc Hat & Gloves Set" @ (446, 924)

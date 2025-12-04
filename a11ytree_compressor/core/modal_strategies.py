@@ -36,7 +36,8 @@ def calculate_modal_score(
     # ★修正1: 強いボタンのキーワード定義を追加（成功させるための重要な加点要素）
     STRONG_BUTTONS = {
         "ok", "cancel", "close", "save", "apply",
-        "yes", "no", "agree", "accept", "decline",
+        "yes", "no","confirm","subscribe", "sign up", "sign in", "login",
+        "agree", "accept","reject", "allow", "block", "decline",
         "delete", "remove", "done", "search", "switch"
     }
 
@@ -995,7 +996,8 @@ class ClusterModalDetector(ModalDetector):
     """
     DEFAULT_ANCHORS = {
         "ok", "cancel", "save", "apply", "close", "done", "delete", "remove",
-        "yes", "no", "agree", "accept"
+        "yes", "no", "agree", "accept",
+        "subscribe", "sign up", "sign in", "login", "search"
     }
 
     def detect(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
@@ -1010,16 +1012,30 @@ class ClusterModalDetector(ModalDetector):
             all_centers.append((cx, cy))
 
             tag = (n.get("tag") or "").lower()
-            if tag not in ("push-button", "link"):
-                continue
-            
             label = (n.get("name") or n.get("text") or "").strip().lower()
-            if not label: continue
+            
+            # --- 変更箇所: アンカー判定ロジックの強化 ---
+            is_anchor = False
 
-            if label in self.DEFAULT_ANCHORS:
-                # ウィンドウ枠のCloseは除外
-                if label == "close" and cy < screen_h * 0.1:
-                    continue
+            # (A) 従来のボタン/リンク判定
+            if tag in ("push-button", "link"):
+                if label: # ラベルがある場合のみ
+                    if label in self.DEFAULT_ANCHORS:
+                        # ウィンドウ枠(上部)のCloseは除外
+                        if label == "close" and cy < screen_h * 0.1:
+                            pass
+                        else:
+                            is_anchor = True
+            
+            # (B) ★追加: 入力欄 (Entry) もモーダルの核になりうる
+            # ニュースレター購読やログイン画面は Entry が中心になることが多い
+            elif tag == "entry":
+                # ただし、画面最上部のアドレスバーなどは除外したい
+                # (ここでは簡易的に画面中央付近にあるか、あるいはY座標で判断)
+                if cy > screen_h * 0.15: 
+                    is_anchor = True
+
+            if is_anchor:
                 anchor_indices.append(idx)
                 anchor_centers.append((cx, cy))
 
@@ -1034,14 +1050,19 @@ class ClusterModalDetector(ModalDetector):
         anchor_ys = [cy for _, cy in anchor_centers]
         min_anchor_y = min(anchor_ys)
         max_anchor_y = max(anchor_ys)
-        LIMIT_TOP = min_anchor_y - (screen_h * 0.2)
-        LIMIT_BOTTOM = max_anchor_y + (screen_h * 0.2)
+        
+        # 上下の探索範囲制限（フッター誤爆防止のため、アンカーの少し上下まで）
+        # ★ 変更: 範囲を少し広げて確実に巻き込む
+        LIMIT_TOP = min_anchor_y - (screen_h * 0.25)
+        LIMIT_BOTTOM = max_anchor_y + (screen_h * 0.25)
 
         changed = True
         while changed:
             changed = False
             for i, (cx_i, cy_i) in enumerate(all_centers):
                 if i in cluster: continue
+                
+                # 画面のあまりに離れた場所にある要素は巻き込まない
                 if cy_i < LIMIT_TOP or cy_i > LIMIT_BOTTOM: continue
 
                 for j in list(cluster):
@@ -1060,6 +1081,8 @@ class ClusterModalDetector(ModalDetector):
         c_ys = [all_centers[i][1] for i in cluster]
         
         height = max(c_ys) - min(c_ys)
+        
+        # ★ 変更: 閾値を少し緩めて、大きめのモーダルも許容する
         if height > screen_h * 0.8:
             return [], nodes
 
