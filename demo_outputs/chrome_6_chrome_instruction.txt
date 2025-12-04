@@ -66,8 +66,12 @@ BROWSER_UI:
 CONTENT:
 [BLOCK]
 [push-button] "Back" @ (89, 90)
-[label] "yicun.​raw" @ (1457, 109)
 [document-web] "Bookmarks" @ (995, 597)
+[/BLOCK]
+[BLOCK]
+[label] "yicun.​raw" @ (1457, 109)
+[/BLOCK]
+[BLOCK]
 [menu-item] "Add new bookmark" @ (1824, 205)
 [menu-item] "Add new folder" @ (1824, 241)
 [menu-item] "Import bookmarks" @ (1824, 294)

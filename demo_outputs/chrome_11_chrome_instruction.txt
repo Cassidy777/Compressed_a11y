@@ -54,31 +54,41 @@ CONTENT:
 [push-button] "Back" @ (89, 90)
 [push-button] "View site information" @ (207, 90)
 [document-web] "Spider-Man toys for kids | Kohl's" @ (995, 597)
+[entry] "What are you looking for today?" @ (654, 189)
+[image] "Kohl's Logo" @ (164, 189)
+[link] "Go to Kohl's Homepage" @ (164, 189)
+[push-button] "search" @ (294, 188)
+[static] "Shop By Category / My Store / Select Store" @ (173, 244)
+[section] "My Store: Select Store" @ (365, 244)
+[alert] "Store Change Confirmation" @ (437, 330)
+[/BLOCK]
+[BLOCK]
 [link] "Free shipping with $49 purchase. details" @ (744, 139)
 [static] "Free shipping / in store & online with code GOGET20. / $49 / purchase. / Fast..." @ (675, 139)
+[push-button] "Close dialog" @ (613, 287)
+[/BLOCK]
+[BLOCK]
 [link] "Fast & free store pickup! details" @ (939, 139)
+[/BLOCK]
+[BLOCK]
 [link] "Take 20% off in store & online with code GOGET20. details" @ (1182, 139)
+[/BLOCK]
+[BLOCK]
+[link] " Kohl's Card" @ (1380, 244)
+[static] "Kohl's Card / Baby Registry / Kohl's Coupons / Help" @ (1389, 244)
+[link] " Baby Registry" @ (1543, 244)
+[/BLOCK]
+[BLOCK]
 [link] "Account Button Sign In" @ (1713, 189)
 [section] "Account Button" @ (1713, 180)
 [link] " My List" @ (1795, 189)
 [link] "Cart Button $0.00" @ (1875, 189)
 [section] "Cart Button" @ (1875, 180)
 [static] "$0.00 / Sign In / My List" @ (1879, 173)
-[entry] "What are you looking for today?" @ (654, 189)
-[image] "Kohl's Logo" @ (164, 189)
-[link] "Go to Kohl's Homepage" @ (164, 189)
-[push-button] "search" @ (294, 188)
-[/BLOCK]
-[BLOCK "Store Change Confirmation"]
-[static] "Shop By Category / My Store / Select Store" @ (173, 244)
-[section] "My Store: Select Store" @ (365, 244)
-[link] " Kohl's Card" @ (1380, 244)
-[static] "Kohl's Card / Baby Registry / Kohl's Coupons / Help" @ (1389, 244)
-[link] " Baby Registry" @ (1543, 244)
 [link] " Kohl's Coupons" @ (1722, 244)
 [link] " Help" @ (1867, 244)
-[alert] "Store Change Confirmation" @ (437, 330)
-[push-button] "Close dialog" @ (613, 287)
+[/BLOCK]
+[BLOCK "Store Change Confirmation"]
 [heading] "Store Change Confirmation" @ (256, 283)
 [static] "may be closer to your current location. Do you want to switch? / 114 / result..." @ (414, 307)
 [section] "114results for: “Spider-Man toys for kids”" @ (987, 341)
@@ -96,47 +106,47 @@ CONTENT:
 [push-button] "Material" @ (1095, 414)
 [push-button] "Color" @ (1188, 414)
 [image] "Menu" @ (299, 414)
-[/BLOCK]
-[BLOCK]
 [push-button] "Change store" @ (314, 513)
-[/BLOCK]
-[BLOCK]
 [link] "Boys 4-20 Marvel Spider-Man 2 pc Hat & Gloves Set" @ (438, 725)
 [link] "Marvel Spidey & His Amazing Friends Spidey Web Crawler Set by Hasbro" @ (804, 725)
 [link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1170, 725)
+[/BLOCK]
+[BLOCK]
 [link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1536, 725)
 [/BLOCK]
 [BLOCK]
 [link] "Boys 4-20 Marvel Spider-Man 2 pc Hat & Gloves Set" @ (438, 924)
-[link] "Marvel Spidey & His Amazing Friends Spidey Web Crawler Set by Hasbro" @ (804, 924)
-[link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1170, 924)
-[link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1536, 924)
-[/BLOCK]
-[BLOCK]
 [static] "$12.80" @ (303, 964)
-[static] "$21.59" @ (1035, 964)
 [section] "$12.80 with" @ (438, 965)
-[section] "$21.59 with" @ (1170, 965)
-[static] "$12.74" @ (671, 966)
-[static] "$54.99" @ (1403, 966)
 [static] "with / GOGET20" @ (360, 966)
 [push-button] "GOGET20 " @ (428, 966)
-[static] "Clearance / $16.99 / Orig." @ (748, 968)
 [static] "$16.00 / Sale / $20.00" @ (292, 988)
-[static] "$26.99 / Reg." @ (1024, 988)
-[static] "Rated / 34 / out of 5 stars" @ (1383, 995)
+[link] "KIDdesigns Spidey and His Amazing Friends Counting & Colors Phone" @ (438, 1226)
+[/BLOCK]
+[BLOCK]
+[link] "Marvel Spidey & His Amazing Friends Spidey Web Crawler Set by Hasbro" @ (804, 924)
+[static] "$12.74" @ (671, 966)
+[static] "Clearance / $16.99 / Orig." @ (748, 968)
 [static] "5 / 3" @ (673, 997)
-[link] "Rated 4 out of 5 stars" @ (1400, 996)
-[link] "34 user reviews with a 4 out of 5-star rating" @ (1452, 996)
 [link] "Rated 5 out of 5 stars" @ (668, 998)
 [link] "3 user reviews with a 5 out of 5-star rating" @ (716, 998)
+[link] "Hasbro Marvel Water-Webs Bubble Pirate Ship" @ (804, 1226)
+[/BLOCK]
+[BLOCK]
+[link] "Marvel Classic Spider-Man Buddy & Throw by The Big One Kids™" @ (1170, 924)
+[static] "$21.59" @ (1035, 964)
+[section] "$21.59 with" @ (1170, 965)
+[static] "$26.99 / Reg." @ (1024, 988)
 [static] "4.7 / 306" @ (1045, 1015)
 [link] "Rated 4.7 out of 5 stars" @ (1034, 1016)
 [link] "306 user reviews with a 4.7 out of 5-star rating" @ (1090, 1016)
+[link] "Marvel Spidey and His Amazing Friends Spidey with Motorcycle by Hasbro" @ (1170, 1226)
 [/BLOCK]
 [BLOCK]
-[link] "KIDdesigns Spidey and His Amazing Friends Counting & Colors Phone" @ (438, 1226)
-[link] "Hasbro Marvel Water-Webs Bubble Pirate Ship" @ (804, 1226)
-[link] "Marvel Spidey and His Amazing Friends Spidey with Motorcycle by Hasbro" @ (1170, 1226)
+[link] "Marvel Spider-Man 2-Pack Titan Hero Figures And Vehicles Playset by Hasbro" @ (1536, 924)
+[static] "$54.99" @ (1403, 966)
+[static] "Rated / 34 / out of 5 stars" @ (1383, 995)
+[link] "Rated 4 out of 5 stars" @ (1400, 996)
+[link] "34 user reviews with a 4 out of 5-star rating" @ (1452, 996)
 [link] "Hasbro Marvel Spidey and His Amazing Friends Dance 'N Crawl Spidey" @ (1536, 1226)
 [/BLOCK]

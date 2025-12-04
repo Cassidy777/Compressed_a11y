@@ -217,72 +217,89 @@ def merge_fragmented_static_lines(
     return [x for x in new_content if x is not None]
 
 
-# Content 内で 大きな余白 or [heading] タグが出現し、かつ前の見出しから一定距離離れているとき [BLOCK] で分割
-def build_hierarchical_content_lines(
+# ============================================================================
+# Helper 1: X軸方向の分割 (案3の実装)
+# ============================================================================
+def split_blocks_horizontally(
+    blocks: List[List[Tuple[int, int, str]]],
+    x_gap_threshold: int
+) -> List[List[Tuple[int, int, str]]]:
+    """
+    Y軸で分割されたブロックリストを受け取り、
+    各ブロック内でX軸方向に大きな隙間があればさらに分割して返す。
+    """
+    new_blocks = []
+
+    for block in blocks:
+        if not block:
+            continue
+
+        # 要素数が1つなら分割しようがないのでそのまま追加
+        if len(block) < 2:
+            new_blocks.append(block)
+            continue
+
+        # ブロック内の要素をX座標順にソート (x, y)
+        # content_tuples = (y, x, line) なので t[1] が x
+        sorted_nodes = sorted(block, key=lambda t: (t[1], t[0]))
+        
+        sub_blocks = []
+        current_sub = [sorted_nodes[0]]
+        
+        for i in range(1, len(sorted_nodes)):
+            prev = sorted_nodes[i-1]
+            curr = sorted_nodes[i]
+            
+            # X座標の差分 (単純な左端同士の比較)
+            dx = curr[1] - prev[1]
+            
+            # 隙間が閾値を超えていれば分割
+            if dx > x_gap_threshold:
+                sub_blocks.append(current_sub)
+                current_sub = [curr]
+            else:
+                current_sub.append(curr)
+        
+        sub_blocks.append(current_sub)
+        
+        # 分割された各サブブロックを元のY順（上から下）に戻してから結果に追加
+        for sub in sub_blocks:
+            sub.sort(key=lambda t: (t[0], t[1])) 
+            new_blocks.append(sub)
+
+    return new_blocks
+
+
+# ============================================================================
+# Helper 2: Y軸方向の分割ロジック (ループから呼ぶために切り出し)
+# ============================================================================
+def _segment_content_by_y(
     content_tuples: List[Tuple[int, int, str]],
-    big_gap_px: Optional[int] = None,
-    heading_section_gap_px: Optional[int] = None,
-) -> List[str]:
-
-    if not content_tuples:
-        return []
-
-    if big_gap_px is None or heading_section_gap_px is None:
-        # y の値を集める
-        ys = sorted(y for (y, _x, _line) in content_tuples)
-        dy_list: List[int] = []
-        for i in range(1, len(ys)):
-            dy = ys[i] - ys[i - 1]
-            if dy > 0:
-                dy_list.append(dy)
-
-        base_gap: int
-        if dy_list:
-            dy_sorted = sorted(dy_list)
-            # 下位 70% くらいまでの中央値を「典型的な行間」とみなす
-            k = max(1, int(len(dy_sorted) * 0.7))
-            small_dy = dy_sorted[:k]
-            base_gap = small_dy[len(small_dy) // 2]
-        else:
-            # すべて同じ y、などで dy が取れない場合のフォールバック
-            base_gap = 20
-
-        # 典型行間の n 倍でしきい値を決める
-        auto_big_gap = int(base_gap * 4.5)      # 行間の 2.5倍 くらいで「段落の切れ目」
-        auto_heading_gap = int(base_gap * 8.0)  # 行間の 4倍 くらいで「別カード/セクション」
-
-        # あまりに小さすぎる値を避けるための最低保証
-        auto_big_gap = max(auto_big_gap, base_gap * 3, 40)
-        auto_heading_gap = max(auto_heading_gap, auto_big_gap + base_gap)
-
-        if big_gap_px is None:
-            big_gap_px = auto_big_gap
-        if heading_section_gap_px is None:
-            heading_section_gap_px = auto_heading_gap
-
+    big_gap_px: int,
+    heading_section_gap_px: int
+) -> List[List[Tuple[int, int, str]]]:
+    """
+    指定された閾値を使ってY軸方向のブロック分割を行う。
+    （元の build_hierarchical_content_lines のループ内ロジックと同じ）
+    """
     heading_pattern = re.compile(r'\[heading\] "(.*)" @ \((\d+), (\d+)\)')
 
     blocks: List[List[Tuple[int, int, str]]] = []
     current_block: List[Tuple[int, int, str]] = []
 
     current_block_first_heading_text: Optional[str] = None
-    current_block_first_heading_y: Optional[int] = None
-    last_y: Optional[int] = None
-    last_heading_text: Optional[str] = None
     last_heading_y: Optional[int] = None
+    last_y: Optional[int] = None
 
     for y, x, line in content_tuples:
         h_match = heading_pattern.match(line)
         is_heading = h_match is not None
         h_text = h_match.group(1) if is_heading else None
 
-        # まだブロックが始まっていない場合
         if not current_block:
             current_block.append((y, x, line))
             if is_heading:
                 current_block_first_heading_text = h_text
-                current_block_first_heading_y = y
-                last_heading_text = h_text
                 last_heading_y = y
             last_y = y
             continue
@@ -296,12 +313,10 @@ def build_hierarchical_content_lines(
         # 2) Heading によるセクション切り替え
         if is_heading:
             if current_block_first_heading_text is None:
-                # ブロック初回の Heading まで距離がある場合は分割
                 block_start_y = current_block[0][0]
                 if (y - block_start_y) > heading_section_gap_px:
                     start_new_block = True
             else:
-                # 最後に見た Heading から十分離れた位置に、新しい Heading が出たら分割
                 if last_heading_y is not None and (y - last_heading_y) > heading_section_gap_px:
                     start_new_block = True
 
@@ -309,42 +324,131 @@ def build_hierarchical_content_lines(
             blocks.append(current_block)
             current_block = []
             current_block_first_heading_text = None
-            current_block_first_heading_y = None
-            last_heading_text = None
             last_heading_y = None
-
-        current_block.append((y, x, line))
-
-        if is_heading:
-            if current_block_first_heading_text is None:
+            
+            # 新ブロックの先頭として追加
+            current_block.append((y, x, line))
+            if is_heading:
                 current_block_first_heading_text = h_text
-                current_block_first_heading_y = y
-            # ★ heading の時だけ更新する
-            last_heading_text = h_text
-            last_heading_y = y
+                last_heading_y = y
+        else:
+            current_block.append((y, x, line))
+            if is_heading:
+                last_heading_y = y
 
-        # ★ 毎ループ最後に更新する
         last_y = y
 
     if current_block:
         blocks.append(current_block)
+        
+    return blocks
 
-    # シンプルなページ用フォールバック (総行数が少ないなら1ブロック)
-    total_lines = sum(len(b) for b in blocks)
+
+# ============================================================================
+# Main Function: 自動調整ループ + X軸分割 (案1, 3, 6の統合)
+# ============================================================================
+def build_hierarchical_content_lines(
+    content_tuples: List[Tuple[int, int, str]],
+    big_gap_px: Optional[int] = None,
+    heading_section_gap_px: Optional[int] = None,
+) -> List[str]:
+
+    if not content_tuples:
+        return []
+
+    # 1. 基本となる行間 (base_gap) を計算
+    ys = sorted(y for (y, _x, _line) in content_tuples)
+    dy_list = []
+    for i in range(1, len(ys)):
+        dy = ys[i] - ys[i - 1]
+        if dy > 0:
+            dy_list.append(dy)
+
+    base_gap: int
+    if dy_list:
+        dy_sorted = sorted(dy_list)
+        k = max(1, int(len(dy_sorted) * 0.7))
+        small_dy = dy_sorted[:k]
+        base_gap = small_dy[len(small_dy) // 2]
+    else:
+        base_gap = 20
+
+    # 最低保証を入れる (小さすぎる計算結果を防ぐ)
+    base_gap = max(base_gap, 40)
+
+    # 2. 閾値の候補パターン (倍率)
+    # 全体的に倍率を上げ、さらに広い範囲を試すように変更
+    threshold_candidates = [
+        (3.0, 5.0),   # 厳しめ: それでも従来の2.5倍より少し緩く
+        (6.0, 10.0),   # 標準: デフォルト的な設定
+        (10.0, 18.0),  # 緩め: カード内の要素を極力まとめる設定
+    ]
+    # 引数で固定値が指定されている場合は、それを最優先（候補1つだけにする）
+    if big_gap_px is not None and heading_section_gap_px is not None:
+        threshold_candidates = [("custom", "custom")]
+
+    final_blocks = []
+
+    # 3. 自動調整ループ
+    for i, (big_mult, head_mult) in enumerate(threshold_candidates):
+        
+        # 閾値の決定
+        if big_mult == "custom":
+            curr_big = big_gap_px
+            curr_head = heading_section_gap_px
+        else:
+            curr_big = max(int(base_gap * big_mult), 40)
+            curr_head = max(int(base_gap * head_mult), curr_big + base_gap)
+
+        # Y軸分割の実行
+        temp_blocks = _segment_content_by_y(content_tuples, curr_big, curr_head)
+
+        # 4. 過分割チェック (評価ロジック)
+        is_last_try = (i == len(threshold_candidates) - 1)
+        
+        num_blocks = len(temp_blocks)
+        # 要素数が1つだけの「孤立ブロック」の数を数える
+        num_single_item_blocks = sum(1 for b in temp_blocks if len(b) == 1)
+        # 孤立ブロックの割合
+        single_ratio = num_single_item_blocks / max(num_blocks, 1)
+
+        # 【判定基準】
+        # - ブロック数が50を超える (多すぎ)
+        # - または、ブロック数が10以上あり、かつ半分以上が「1行だけのブロック」 (バラバラすぎ)
+        is_over_segmented = (num_blocks > 50) or (num_blocks > 10 and single_ratio > 0.5)
+
+        if not is_over_segmented or is_last_try:
+            # 問題ない、または最後の候補ならこれを採用してループを抜ける
+            final_blocks = temp_blocks
+            break
+        
+        # 過分割と判定されたら、次のループ（より緩い閾値）へ進む
+        # print(f"[DEBUG] Over-segmented with mult={big_mult}. Retrying...")
+
+    # 5. フォールバック処理 (総行数が少ない場合の過剰分割防止)
+    # 既存コードのロジックを踏襲
+    heading_pattern = re.compile(r'\[heading\] "(.*)" @ \((\d+), (\d+)\)')
+    total_lines = sum(len(b) for b in final_blocks)
     has_heading_any = any(
         heading_pattern.match(line) is not None
-        for block in blocks
+        for block in final_blocks
         for (_y, _x, line) in block
     )
     if (not has_heading_any) and total_lines <= 30:
         merged_block = []
-        for block in blocks:
+        for block in final_blocks:
             merged_block.extend(block)
-        blocks = [merged_block]
+        final_blocks = [merged_block]
 
-    # 出力生成
+    # 6. X軸分割の実行 (案3)
+    # ここで「横並びのカード」などを分割する
+    # 閾値は base_gap の 3.0倍 程度 (Y軸の2.5倍より少し広めにとるのがコツ)
+    x_gap_threshold = max(int(base_gap * 4.0), 150)
+    final_blocks = split_blocks_horizontally(final_blocks, x_gap_threshold)
+
+    # 7. 出力文字列の生成
     out_lines = []
-    for block in blocks:
+    for block in final_blocks:
         block_heading = None
         for _y, _x, line in block:
             m = heading_pattern.match(line)
@@ -362,6 +466,7 @@ def build_hierarchical_content_lines(
         out_lines.append("[/BLOCK]")
 
     return out_lines
+
 
 
 
@@ -465,20 +570,15 @@ def clean_modal_nodes(nodes: List[Node]) -> List[Node]:
                 is_related = False
 
             if is_related:
-                print(f"[DEBUG CLEAN] Collision: '{a['text']}'(prio={a['prio']}) vs '{b['text']}'(prio={b['prio']}) dist={dist:.2f}")
                 if a["prio"] < b["prio"]:
-                    print(f"  -> Removing B: '{b['text']}'")
                     b["removed"] = True
                 elif b["prio"] < a["prio"]:
-                    print(f"  -> Removing A: '{a['text']}'")
                     a["removed"] = True
                     break
                 else:
                     if len(a["text"]) >= len(b["text"]):
-                        print(f"  -> Removing B (len): '{b['text']}'")
                         b["removed"] = True
                     else:
-                        print(f"  -> Removing A (len): '{a['text']}'")
                         a["removed"] = True
                         break
 

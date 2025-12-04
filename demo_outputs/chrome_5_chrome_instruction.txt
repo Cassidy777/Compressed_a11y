@@ -66,15 +66,19 @@ BROWSER_UI:
 CONTENT:
 [BLOCK "Bookmarks"]
 [push-button] "Back" @ (89, 90)
-[label] "yicun.​raw" @ (1457, 109)
 [document-web] "Bookmarks" @ (995, 597)
-[push-button] "Organise" @ (1888, 142)
 [heading] "Bookmarks" @ (461, 142)
+[static] "Bookmarks bar" @ (193, 198)
+[static] "Other bookmarks" @ (199, 238)
+[/BLOCK]
+[BLOCK]
 [entry] "Search bookmarks" @ (1144, 142)
 [/BLOCK]
 [BLOCK]
-[static] "Bookmarks bar" @ (193, 198)
-[static] "Other bookmarks" @ (199, 238)
+[label] "yicun.​raw" @ (1457, 109)
+[/BLOCK]
+[BLOCK]
+[push-button] "Organise" @ (1888, 142)
 [/BLOCK]
 [BLOCK]
 [static] "To bookmark pages, click the star in the address bar" @ (1123, 624)
