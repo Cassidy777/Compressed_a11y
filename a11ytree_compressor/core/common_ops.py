@@ -82,8 +82,8 @@ def bbox_to_center_tuple(bbox: Dict[str, int]) -> Tuple[int, int]:
     return x + w // 2, y + h // 2
 
 
-# label が長すぎたら80文字にして末尾に "..." をつける
-def truncate_label(label: str, max_len: int = 80, ellipsis: str = "...") -> str:
+# label が長すぎたら100文字にして末尾に "..." をつける
+def truncate_label(label: str, max_len: int = 100, ellipsis: str = "...") -> str:
     if len(label) <= max_len:
         return label
     return label[: max_len - len(ellipsis)] + ellipsis
@@ -691,16 +691,34 @@ def dedup_similar_nodes_by_priority(
             # ラベルが関連しているか？ (完全一致 or 包含関係)
             # ラベルがないノード同士は、この関数では削除しない（他のフィルターに委譲）
             if not a["label"] or not b["label"]:
-                is_related = False
-                
+                is_label_related = False
             else:
                 is_label_related = (
                     a["label"] == b["label"]
                     or a["label"] in b["label"]
                     or b["label"] in a["label"]
                 )
-
+            
             if is_label_related:
+                # ★ 追加: ラベル長が極端に違う場合は「別物」とみなしてスキップ
+                longer = max(len(a["label"]), len(b["label"]))
+                shorter = min(len(a["label"]), len(b["label"]))
+                # 例: 長い方 >= 60 文字 & 長さ比 <= 0.5 のときは重複扱いしない
+                if longer >= 60 and shorter / max(longer, 1) <= 0.5:
+                    continue
+
+                # ★ 追加: link と static のペアなら、必ず link 側を残す
+                tag_a = (a["node"].get("tag") or "").lower()
+                tag_b = (b["node"].get("tag") or "").lower()
+                if "link" in {tag_a, tag_b}:
+                    print("[DEBUG] found link pair:", tag_a, tag_b, a["label"], b["label"])
+                if {"link", "static"} == {tag_a, tag_b}:
+                    if tag_a == "link":
+                        b["removed"] = True
+                    else:
+                        a["removed"] = True
+                    continue
+
                 # 優先度が低い方を削除（prioが大きい方が敗者）
                 if a["prio"] < b["prio"]:
                     b["removed"] = True
@@ -708,8 +726,8 @@ def dedup_similar_nodes_by_priority(
                     a["removed"] = True
                     break # aが削除されたので、次のiに進む
                 else:
-                    # 優先度が同じ場合: ラベルの長い方（より冗長なコンテナ名）を削除（安全策）
-                    if len(a["label"]) > len(b["label"]):
+                    # 優先度が同じ場合: ラベルの短い方（情報が少ない方）を削除
+                    if len(a["label"]) < len(b["label"]):
                         a["removed"] = True
                         break
                     else:

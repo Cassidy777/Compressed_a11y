@@ -11,6 +11,7 @@ from .common_ops import (
     dedup_similar_nodes_by_priority, dedup_heading_and_static
 )
 from .modal_strategies import DiffModalDetector, ClusterModalDetector, ModalDetector
+from collections import Counter
 
 
 class BaseA11yCompressor:
@@ -68,7 +69,9 @@ class BaseA11yCompressor:
         instruction_keywords: Optional[Set[str]] = None,  # ★ 追加
         use_instruction: bool = False,
     ) -> Dict[str, Any]:
+
         print("[DEBUG] instruction passed to modal_detector:", repr(instruction))
+    
         # ★ ここでインスタンスに保持しておく
         self.instruction = instruction or ""
         self.instruction_keywords = instruction_keywords or set()
@@ -93,10 +96,21 @@ class BaseA11yCompressor:
         # 1. 前処理
         nodes = self.preprocess_nodes(nodes, instruction, use_instruction)
 
+        # === DEBUG 1: preprocess_nodes 後のタグ分布 ===
+        tag_counter = Counter((n.get("tag") or "").lower() for n in nodes)
+        print("[DEBUG-1] AFTER preprocess_nodes tag_counter:", tag_counter)
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            if tag == "link":
+                label = (n.get("name") or n.get("text") or "")[:80]
+                print("[DEBUG-1] LINK AFTER PREPROCESS:", label, "@", n.get("x"), n.get("y"))
+        # === DEBUG 1 END ===
+
         # 1.5 ★ 静的UIをモーダル検出から外す（ここで一時退避）
         nodes_for_modal, detached_static_nodes = self.split_static_ui(
             nodes, screen_w, screen_h
         )
+
 
         # 2. モーダル分離（Diff / ドメイン専用 / Cluster）
         modal_nodes, base_nodes_after_modal, modal_mode = self._detect_modals(
@@ -144,6 +158,18 @@ class BaseA11yCompressor:
         3. OSファイル由来のノイズラベル(__MACOSX, .DS_Storeなど)の除去
         4. （必要なら）背景ノイズとなるファイル名ラベルの除去
         """
+
+        # === DEBUG-preprocess 1: 入ってきた時点のタグ分布 ===
+        before_tags = Counter((n.get("tag") or "").lower() for n in nodes)
+        print("=== preprocess_nodes: BEFORE ===")
+        print("[DEBUG-pre] tags BEFORE:", before_tags)
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            if tag == "link":
+                label = (n.get("name") or n.get("text") or "")[:80]
+                print("[DEBUG-pre] RAW LINK:", label, "@", n.get("x"), n.get("y"))
+        # === DEBUG-preprocess 1 END ===
+
         # 0. マルチラインラベルを1行に統一（共通処理）
         if self.enable_multiline_normalization:
             nodes = normalize_multiline_fields(nodes)
@@ -192,6 +218,17 @@ class BaseA11yCompressor:
         # 4. 背景ファイル除去（enable_background_filtering=True のときのみ）
         if self.enable_background_filtering:
             nodes = self._filter_background_noise(nodes)
+
+        # === DEBUG-preprocess 2: 出ていく時点のタグ分布 ===
+        after_tags = Counter((n.get("tag") or "").lower() for n in nodes)
+        print("=== preprocess_nodes: AFTER ===")
+        print("[DEBUG-pre] tags AFTER:", after_tags)
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            if tag == "link":
+                label = (n.get("name") or n.get("text") or "")[:80]
+                print("[DEBUG-pre] PROCESSED LINK:", label, "@", n.get("x"), n.get("y"))
+        # === DEBUG-preprocess 2 END ===
 
         return nodes
 

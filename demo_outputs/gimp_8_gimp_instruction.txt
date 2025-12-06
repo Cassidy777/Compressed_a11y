@@ -62,13 +62,12 @@ TOOLBOX (Left Panel):
 [combo-box] "66.7 %" @ (253, 1064)
 [text] "66.7 %" @ (242, 1064)
 [/BLOCK]
-STATUSBAR:
-[status] "berry.png (17.0 MB)" @ (1101, 1064)
-MODAL:
+CANVAS (Center):
 [label] "There is one image with unsaved changes:" @ (1009, 456)
 [label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
 [label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
-[push-button] "Discard Changes" @ (1135, 681)
-[push-button] "Cancel" @ (995, 681)
 [push-button] "Help" @ (855, 681)
-[push-button] " Close menu" @ (430, 154)
+[push-button] "Cancel" @ (995, 681)
+[push-button] "Discard Changes" @ (1135, 681)
+STATUSBAR:
+[status] "berry.png (17.0 MB)" @ (1101, 1064)

@@ -27,16 +27,27 @@ BROWSER_TABS:
 [browser-tab-button] "Close" @ (326, 47)
 APP_LAUNCHER:
 [launcher-app] "Google Chrome" @ (35, 65)
+---
 [launcher-app] "Thunderbird Mail" @ (35, 133)
+---
 [launcher-app] "Visual Studio Code" @ (35, 201)
+---
 [launcher-app] "VLC media player" @ (35, 269)
+---
 [launcher-app] "LibreOffice Writer" @ (35, 337)
+---
 [launcher-app] "LibreOffice Calc" @ (35, 405)
+---
 [launcher-app] "LibreOffice Impress" @ (35, 473)
+---
 [launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
 [launcher-app] "Files" @ (35, 609)
+---
 [launcher-app] "Ubuntu Software" @ (35, 677)
+---
 [launcher-app] "Help" @ (35, 745)
+---
 [launcher-app] "Trash" @ (35, 816)
 ---
 [launcher-app] "Show Applications" @ (35, 1045)
@@ -48,9 +59,25 @@ BROWSER_UI:
 [browser-button] "View site information" @ (207, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[static] "Try" @ (463, 398)
+[static] "list-item great deals under $20k (478, 378) (217, 41)" @ (476, 398)
+[static] "great deals under $20k" @ (558, 398)
+[entry] "Try finding a car with me, Carson™ great deals under $20k SUVs w/carplay under $30k using your own wo..." @ (595, 398)
+[static] "- Or search by -" @ (595, 455)
+[combo-box] "New/used" @ (595, 512)
+[menu-item] "New" @ (595, 489)
+[combo-box] "Make" @ (595, 569)
+[menu-item] "INFINITI" @ (595, 546)
+[combo-box] "Model" @ (595, 626)
+[menu-item] "QX80" @ (595, 603)
+[combo-box] "Distance" @ (515, 683)
+[menu-item] "50 miles" @ (515, 660)
+[entry] "ZIP" @ (675, 683)
+[push-button] "Show 68 matches" @ (595, 740)
+[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
-[document-web] "New Cars, Used Cars, Car Dealers, Prices & Reviews | Cars.com" @ (995, 597)
 [link] "Skip to main content" @ (86, 130)
 [link] "Switch Up to the QX80 TodayVisit infinitiusacom" @ (987, 485)
 [/BLOCK]
@@ -72,33 +99,8 @@ CONTENT:
 [push-button] "Feedback" @ (1889, 271)
 [/BLOCK]
 [BLOCK]
-[entry] "Try finding a car with me, Carson™ great deals under $20k SUVs w/carplay under $30k using your own wo..." @ (595, 398)
-[image] "search" @ (727, 398)
-[static] "Try / great deals under $20k / - Or search by -" @ (463, 398)
-[combo-box] "New/used" @ (595, 512)
-[menu-item] "New" @ (595, 489)
-[combo-box] "Make" @ (595, 569)
-[menu-item] "INFINITI" @ (595, 546)
-[combo-box] "Model" @ (595, 626)
-[menu-item] "QX80" @ (595, 603)
-[combo-box] "Distance" @ (515, 683)
-[menu-item] "50 miles" @ (515, 660)
-[entry] "ZIP" @ (675, 683)
-[push-button] "Show 68 matches" @ (595, 740)
-[/BLOCK]
-[BLOCK]
-[section] "Sponsored: Switch Up to the QX80 Today" @ (1459, 737)
-[static] "Sponsored: / Switch Up to the QX80 / Today / Visit infinitiusa.com" @ (1405, 727)
-[/BLOCK]
-[BLOCK]
-[section] "How Much Is the 2026 Toyota RAV4?" @ (574, 4362)
-[/BLOCK]
-[BLOCK]
-[section] "Ford Recalls 229,000-Plus Broncos, Bronco Sports for Instrument Panel Failure" @ (1239, 4350)
-[/BLOCK]
-[BLOCK]
-[section] "20,000-Plus Ford Escape, Lincoln Corsair PHEVs Recalled for Fire Risk" @ (681, 4687)
-[/BLOCK]
-[BLOCK]
-[section] "10 Biggest News Stories of the Week: Nissan Sentra Lives Large, Toyota Tacoma Charges Ahead" @ (1279, 4687)
+[static] "Sponsored:" @ (1405, 727)
+[static] "Switch Up to the QX80" @ (1449, 736)
+[static] "Today" @ (1423, 745)
+[static] "Visit infinitiusa.com" @ (1425, 763)
 [/BLOCK]

@@ -64,10 +64,12 @@ BROWSER_UI:
 [browser-button] "Chrome" @ (239, 90)
 [browser-entry] "Address and search bar" @ (1041, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
-MODAL:
-[document-web] "Bookmarks" @ (995, 597)
+CONTENT:
+[BLOCK "Add folder"]
 [heading] "Add folder" @ (995, 523)
 [entry] "Name" @ (995, 591)
+[/BLOCK]
+[BLOCK]
 [push-button] "Cancel" @ (1123, 662)
 [push-button] "Save" @ (1201, 662)
-[push-button] " Close menu" @ (430, 154)
+[/BLOCK]

@@ -1,0 +1,3632 @@
+diff --git a/a11ytree_compressor/__pycache__/a11y_utils.cpython-38.pyc b/a11ytree_compressor/__pycache__/a11y_utils.cpython-38.pyc
+index f26df7a..cbcd861 100644
+Binary files a/a11ytree_compressor/__pycache__/a11y_utils.cpython-38.pyc and b/a11ytree_compressor/__pycache__/a11y_utils.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/a11y_utils.py b/a11ytree_compressor/a11y_utils.py
+index 6e7fe39..11a2c3b 100644
+--- a/a11ytree_compressor/a11y_utils.py
++++ b/a11ytree_compressor/a11y_utils.py
+@@ -1,26 +1,74 @@
+ # a11y_utils.py
+ from typing import List, Dict, Any
+ 
++# a11y の tag として想定しているもの一覧
++KNOWN_TAGS = {
++    "label",
++    "text",
++    "static",
++    "push-button",
++    "check-box",
++    "radio-button",
++    "combo-box",
++    "spin-button",
++    "menu",
++    "menu-item",
++    "entry",
++    "heading",
++    "toggle-button",
++    # 必要になったらここに追加していく
++}
++
++
+ def parse_raw_a11y(text: str) -> List[Dict[str, Any]]:
+-    nodes = []
++    nodes: List[Dict[str, Any]] = []
++    last_node: Dict[str, Any] | None = None
++
+     for line in text.splitlines():
+-        line = line.strip()
+-        if not line:
++        original_line = line  # raw 用にそのまま保持
++        stripped = original_line.strip()
++        if not stripped:
+             continue
+         
+-        # ヘッダー行スキップ (追加)
+-        if line.startswith("LINEAR AT:") or line.startswith("PROPERTY:"):
++        # ヘッダー行スキップ
++        if stripped.startswith("LINEAR AT:") or stripped.startswith("PROPERTY:"):
+             continue
+-        if line.startswith("tag\tname\t"): # ★ これを追加
++        if stripped.startswith("tag\tname\t"):
+             continue
+ 
+-        parts = line.split("\t")
+-        
+-        tag  = parts[0].strip()
+-        # 万が一 "tag" という文字だけの行がきても弾けるように
+-        if tag.lower() == "tag": 
++        parts = original_line.split("\t")
++        tag_candidate = parts[0].strip() if parts else ""
++
++        # 万が一 "tag" だけの行が来ても弾く
++        if tag_candidate.lower() == "tag":
+             continue
+ 
++        # ★「ちゃんとした1行=1ノード」かどうかの判定
++        #   - カラム数が十分ある
++        #   - tag が KNOWN_TAGS に含まれる
++        is_well_formed = (
++            len(parts) >= 5 and
++            tag_candidate in KNOWN_TAGS
++        )
++
++        if not is_well_formed:
++            # ★ ここが「途中行」をマージするロジック
++            if last_node is not None:
++                extra = stripped
++                if extra:
++                    # text がすでにあれば text に、なければ name に足す
++                    if last_node.get("text"):
++                        last_node["text"] = (last_node["text"] + " " + extra).strip()
++                    else:
++                        last_node["name"] = (last_node.get("name", "") + " " + extra).strip()
++            else:
++                # 先頭からいきなりおかしな行が来た場合は無視
++                # print(f"[WARN] stray line in a11y: {original_line!r}")
++                pass
++            continue
++
++        # ここから「正常な1行=1ノード」の処理
++        tag  = tag_candidate
+         name = parts[1].strip() if len(parts) > 1 else ""
+         text_val = parts[2].strip() if len(parts) > 2 else ""
+         desc = parts[3].strip() if len(parts) > 3 else ""
+@@ -32,14 +80,16 @@ def parse_raw_a11y(text: str) -> List[Dict[str, Any]]:
+             if raw_states:
+                 states = [s.strip() for s in raw_states.split(",")]
+ 
+-        nodes.append({
++        node: Dict[str, Any] = {
+             "tag": tag,
+             "name": name,
+             "text": text_val,
+             "description": desc,
+             "role": role,
+             "states": states,
+-            "raw": line,
+-        })
+-        
+-    return nodes
+\ No newline at end of file
++            "raw": stripped,  # or original_line でもOK（好み）
++        }
++        nodes.append(node)
++        last_node = node
++
++    return nodes
+diff --git a/a11ytree_compressor/core/__pycache__/common_ops.cpython-38.pyc b/a11ytree_compressor/core/__pycache__/common_ops.cpython-38.pyc
+index 24404c1..8f6ae70 100644
+Binary files a/a11ytree_compressor/core/__pycache__/common_ops.cpython-38.pyc and b/a11ytree_compressor/core/__pycache__/common_ops.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/core/__pycache__/engine.cpython-38.pyc b/a11ytree_compressor/core/__pycache__/engine.cpython-38.pyc
+index 29010e3..d424fa3 100644
+Binary files a/a11ytree_compressor/core/__pycache__/engine.cpython-38.pyc and b/a11ytree_compressor/core/__pycache__/engine.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/core/__pycache__/modal_strategies.cpython-38.pyc b/a11ytree_compressor/core/__pycache__/modal_strategies.cpython-38.pyc
+index 6473153..35ad684 100644
+Binary files a/a11ytree_compressor/core/__pycache__/modal_strategies.cpython-38.pyc and b/a11ytree_compressor/core/__pycache__/modal_strategies.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/core/common_ops.py b/a11ytree_compressor/core/common_ops.py
+index 9d61b00..dcfb4ac 100644
+--- a/a11ytree_compressor/core/common_ops.py
++++ b/a11ytree_compressor/core/common_ops.py
+@@ -6,6 +6,49 @@ from typing import Dict, Any, List, Optional, Tuple, Set
+ Node = Dict[str, Any]
+ 
+ 
++# マルチラインの name/text/description を 1 行に正規化するヘルパー
++def flatten_multiline_label(s: Optional[str]) -> Optional[str]:
++    """
++    改行を含むラベル文字列を「1 行」に潰す。
++    - 各行を strip() してからスペースで連結
++    - ゼロ幅スペースなどの不可視文字も簡易的に除去
++    """
++    if s is None:
++        return None
++    if not isinstance(s, str):
++        return s
++
++    # ゼロ幅スペース系を一応削除（GIMPの変な文字対策）
++    for ch in ("\u200b", "\u200e", "\u200f"):
++        s = s.replace(ch, "")
++
++    # 改行(\r\n, \n, \r)で分割して、空行を落としてから結合
++    parts = re.split(r'[\r\n]+', s)
++    parts = [p.strip() for p in parts if p.strip()]
++
++    if not parts:
++        return ""
++
++    return " ".join(parts)
++
++
++def normalize_multiline_fields(
++    nodes: List[Node],
++    keys: Tuple[str, ...] = ("name", "text", "description"),
++) -> List[Node]:
++    """
++    各ノードについて、指定されたキー（デフォルト: name/text/description）に
++    改行が含まれていれば 1 行に潰して上書きする。
++    """
++    for n in nodes:
++        for key in keys:
++            val = n.get(key)
++            if isinstance(val, str) and ("\n" in val or "\r" in val):
++                n[key] = flatten_multiline_label(val)
++    return nodes
++
++
++
+ # 座標、サイズの文字列を str → int へ
+ def parse_xy(raw: str) -> Optional[Tuple[int, int]]:
+     if not raw: return None
+diff --git a/a11ytree_compressor/core/engine.py b/a11ytree_compressor/core/engine.py
+index 3ba3d52..b71dc92 100644
+--- a/a11ytree_compressor/core/engine.py
++++ b/a11ytree_compressor/core/engine.py
+@@ -5,6 +5,7 @@ from ..a11y_instruction_utils import get_instruction_keywords, smart_truncate
+ from .common_ops import (
+     Node, node_bbox_from_raw, bbox_to_center_tuple,
+     dedup_same_label_same_pos, extract_launcher_and_status,
++    normalize_multiline_fields,
+     spatially_group_lines, merge_fragmented_static_lines,
+     truncate_label, build_state_suffix, clean_modal_nodes,
+     dedup_similar_nodes_by_priority, dedup_heading_and_static
+@@ -15,6 +16,7 @@ from .modal_strategies import DiffModalDetector, ClusterModalDetector, ModalDete
+ class BaseA11yCompressor:
+     domain_name = "generic"
+     
++    
+     # ★ 追加: 背景ノイズ（デスクトップアイコン等）を除去するかどうかのフラグ
+     # OSドメインなど、ファイル自体が主役の場合は False にオーバーライドする
+     enable_background_filtering: bool = True
+@@ -26,6 +28,12 @@ class BaseA11yCompressor:
+     # 必要なドメイン（GIMPなど）でのみ True にオーバーライドする
+     enable_cluster_fallback: bool = False
+ 
++    # name/text/description の multi-line 正規化を行うかどうか
++    enable_multiline_normalization: bool = True
++
++    # 追加：近接 static 行のマージ（"A / B / C" みたいにまとめるか）
++    enable_static_line_merge: bool = True
++
+     def __init__(self):
+         self.diff_detector = DiffModalDetector()
+         # instruction 用の状態を初期化しておくと安心
+@@ -130,42 +138,66 @@ class BaseA11yCompressor:
+     ) -> List[Node]:
+         """
+         ノードのクリーニング:
++        0. name/text/description の改行・不可視文字の正規化
+         1. 完全重複ノードの除去
+         2. OSトップバー由来のノイズ(UI)の除去
+-        3. （必要なら）背景ノイズとなるファイル名ラベルの除去
+-       """
+-       # 1. 同じラベル・同じ座標の重複をまとめる
++        3. OSファイル由来のノイズラベル(__MACOSX, .DS_Storeなど)の除去
++        4. （必要なら）背景ノイズとなるファイル名ラベルの除去
++        """
++        # 0. マルチラインラベルを1行に統一（共通処理）
++        if self.enable_multiline_normalization:
++            nodes = normalize_multiline_fields(nodes)
++
++        # 1. タグ・ラベル・座標が完全一致する重複ノードをまとめる
+         nodes = dedup_same_label_same_pos(nodes)
+ 
+-        # 2. OS UI（GNOMEトップバーなど）の共通ノイズを除外
+-        #    → どのアプリでも共通して「アプリの一部ではない」もの
++        # 2. OSメニュー用ブラックリスト（menuタグ専用）
+         os_menu_blacklist = {
+             "system",
+             "google chrome",
+-            "_​_​MACOSX",
+-           # 必要ならここに "network", "volume", "battery", "settings" などを足していける
++            "__macosx",
++        }
++
++        # 3. OSノイズラベル（タグに依存しない）
++        OS_NOISE_LABELS = {
++            "__macosx",
++            ".ds_store",
+         }
+ 
+         filtered: List[Node] = []
+         for n in nodes:
+             tag = (n.get("tag") or "").lower()
+-            name = (n.get("name") or "").strip().lower()
++            name = (n.get("name") or "") or ""
++            text = (n.get("text") or "") or ""
+ 
+-            # GNOMEのSystemメニューなど、OSトップバー由来のmenuは完全スキップ
+-            if tag == "menu" and name in os_menu_blacklist:
++            # name/text をまとめてラベルっぽく扱う
++            label = (name or text).strip().lower()
++
++            # ゼロ幅スペースなどを削除（_​_​MACOSX 対策）
++            for ch in ("\u200b", "\u200e", "\u200f"):
++                label = label.replace(ch, "")
++
++            # 2-a) GNOMEのSystemメニューなど、OSトップバー由来のmenu
++            if tag == "menu" and label in os_menu_blacklist:
++                continue
++
++            # 3-a) __MACOSX, .DS_Store など、OSファイル由来のラベルはタグに関係なく弾く
++            if label in OS_NOISE_LABELS:
+                 continue
+ 
+             filtered.append(n)
+ 
+         nodes = filtered
+ 
+-        # 3. 背景ファイル除去（例: Chrome でデスクトップが映り込むケース）
++        # 4. 背景ファイル除去（enable_background_filtering=True のときのみ）
+         if self.enable_background_filtering:
+             nodes = self._filter_background_noise(nodes)
+ 
+         return nodes
+ 
+ 
++
++
+     def _detect_modals(self, nodes, w, h, instruction) -> Tuple[List[Node], List[Node], str]:
+         modal_nodes, bg_nodes, mode = [], nodes, "none"
+ 
+@@ -446,6 +478,7 @@ class BaseA11yCompressor:
+         コンテンツ領域の圧縮パイプライン。
+         Instruction-Awareな整形を行う前に、ノードの冗長性を排除する。
+         """
++        print("[DEBUG] process_content_lines:", self.domain_name, "static_merge=", self.enable_static_line_merge)
+         # 1. Content固有のフィルタリング
+         #    (ドメイン固有の _should_skip_for_content など)
+         filtered_nodes = [n for n in nodes if not self._should_skip_for_content(n)]
+@@ -463,7 +496,8 @@ class BaseA11yCompressor:
+         tuples.sort()
+         y_tol = int(h * 0.03)
+         x_tol = int(w * 0.15)
+-        tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
++        if self.enable_static_line_merge:
++            tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
+         return [t[2] for t in tuples]
+ 
+     def process_modal_nodes(self, nodes: List[Node]) -> List[str]:
+diff --git a/a11ytree_compressor/domains/__pycache__/chrome.cpython-38.pyc b/a11ytree_compressor/domains/__pycache__/chrome.cpython-38.pyc
+index 329bafc..4660771 100644
+Binary files a/a11ytree_compressor/domains/__pycache__/chrome.cpython-38.pyc and b/a11ytree_compressor/domains/__pycache__/chrome.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/domains/__pycache__/gimp.cpython-38.pyc b/a11ytree_compressor/domains/__pycache__/gimp.cpython-38.pyc
+new file mode 100644
+index 0000000..cb58520
+Binary files /dev/null and b/a11ytree_compressor/domains/__pycache__/gimp.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/domains/chrome.py b/a11ytree_compressor/domains/chrome.py
+index 9570b16..8a32476 100644
+--- a/a11ytree_compressor/domains/chrome.py
++++ b/a11ytree_compressor/domains/chrome.py
+@@ -548,6 +548,9 @@ class CenteredOverlayDetector(ModalDetector):
+ class ChromeCompressor(BaseA11yCompressor):
+     domain_name = "chrome"
+ 
++    enable_multiline_normalization = False
++    enable_static_line_merge = False
++
+     def get_modal_detectors(self) -> List[ModalDetector]:
+         return [
+             # ★ 1. Diffで見つからなかった場合の「中央ポップアップ」検出 (最強)
+@@ -1136,11 +1139,11 @@ class ChromeCompressor(BaseA11yCompressor):
+         
+         # 2. タプル化 (Baseクラスのメソッドを利用)
+         tuples = self._nodes_to_tuples(filtered_nodes)
+-        tuples.sort()
+-        
++        tuples.sort()        
+         y_tol = int(screen_h * 0.03)
+         x_tol = int(screen_w * 0.15)
+-        tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
++        if self.enable_static_line_merge:
++            tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
+         
+         return build_hierarchical_content_lines(
+             tuples,
+diff --git a/a11ytree_compressor/domains/gimp.py b/a11ytree_compressor/domains/gimp.py
+new file mode 100644
+index 0000000..41bc9db
+--- /dev/null
++++ b/a11ytree_compressor/domains/gimp.py
+@@ -0,0 +1,282 @@
++import re
++from typing import List, Dict, Tuple, Set
++from ..core.engine import BaseA11yCompressor
++from ..core.common_ops import (
++    Node, node_bbox_from_raw, bbox_to_center_tuple,
++    build_hierarchical_content_lines
++)
++
++class GimpCompressor(BaseA11yCompressor):
++    domain_name = "gimp"
++    
++    # 【修正1】背景フィルタリングを無効化
++    # 理由: berry.png (幅1628px) が「背景画像」と誤判定されて消えるのを防ぐため
++    enable_background_filtering = False
++    
++    # 【修正2】ステータスバー自動抽出を無効化
++    # 理由: id=7とid=8でタグが label <-> status で揺らぎ、MODAL誤検知の原因になるのを防ぐため
++    use_statusbar = False
++
++    MENU_KEYWORDS: Set[str] = {
++        "file", "edit", "select", "view", "image", "layer", 
++        "colors", "tools", "filters", "windows", "help"
++    }
++
++    def split_static_ui(self, nodes: List[Node], w: int, h: int) -> Tuple[List[Node], List[Node]]:
++        regions = self.get_semantic_regions(nodes, w, h, dry_run=True)
++        
++        static_nodes = []
++        dynamic_nodes = [] 
++        
++        static_groups = ["MENUBAR", "APP_LAUNCHER"]
++        static_ids = set()
++        for group in static_groups:
++            for n in regions.get(group, []):
++                static_ids.add(id(n))
++        
++        for n in nodes:
++            if id(n) in static_ids:
++                static_nodes.append(n)
++            else:
++                dynamic_nodes.append(n)
++        
++        # --- DEBUG TRACE: split_static_ui ---
++        # berry.png が「動的(Dynamic)」として扱われているか確認
++        # (動的であればDiff検出の対象になり、前画面と同じなら背景として扱われる)
++        for n in nodes:
++            if "berry" in (n.get("name") or n.get("text") or "").lower():
++                status = "STATIC" if n in static_nodes else "DYNAMIC"
++                print(f"[DEBUG TRACE] split_static_ui: 'berry' node classified as -> {status}")
++        # ------------------------------------
++
++        return dynamic_nodes, static_nodes
++
++    def get_semantic_regions(
++        self, nodes: List[Node], w: int, h: int, dry_run: bool = False
++    ) -> Dict[str, List[Node]]:
++        regions = {
++            "MENUBAR": [],
++            "APP_LAUNCHER": [],
++            "TOOLBOX": [],
++            "DOCKS": [],
++            "CANVAS": [],
++            "STATUSBAR": [],
++            "MODAL": [],
++        }
++
++        LAUNCHER_X_LIMIT = w * 0.05
++        MENU_Y_LIMIT = h * 0.10
++        LEFT_PANEL_LIMIT = w * 0.22
++        RIGHT_PANEL_START = w * 0.78
++        STATUS_Y_START = h * 0.95
++
++        for n in nodes:
++            bbox = node_bbox_from_raw(n)
++            cx, cy = bbox_to_center_tuple(bbox)
++            x, y, bw, bh = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
++            
++            tag = (n.get("tag") or "").lower()
++            role = (n.get("role") or "").lower()
++            name = (n.get("name") or n.get("text") or "").strip()
++            name_lower = name.lower()
++
++            # --- DEBUG TRACE: 領域判定の追跡 ---
++            is_target = "berry" in name_lower
++            if is_target:
++                print(f"[DEBUG TRACE] Processing 'berry': Pos=({x},{y}) Size=({bw}x{bh}) Center=({cx},{cy}) Tag={tag}")
++            # ----------------------------------
++
++            # 1. APP_LAUNCHER
++            if x < LAUNCHER_X_LIMIT and bw < w * 0.06 and bh > 30:
++                if tag in ("push-button", "toggle-button"):
++                    regions["APP_LAUNCHER"].append(n)
++                    if is_target: print("  -> Assigned to APP_LAUNCHER")
++                    continue
++            if tag == "launcher-app":
++                regions["APP_LAUNCHER"].append(n)
++                if is_target: print("  -> Assigned to APP_LAUNCHER")
++                continue
++
++            # 2. MENUBAR
++            if cy < MENU_Y_LIMIT:
++                if tag == "menu" or name_lower in self.MENU_KEYWORDS:
++                    regions["MENUBAR"].append(n)
++                    if is_target: print("  -> Assigned to MENUBAR")
++                    continue
++
++            # 3. 浮動コンテナ (CANVASへ)
++            if role in ("dialog", "alert", "window") or tag in ("window", "dialog"):
++                regions["CANVAS"].append(n)
++                if is_target: print("  -> Assigned to CANVAS (Rule: Role/Tag)")
++                continue
++            if tag in ("list-item", "table-cell", "menu-item"):
++                regions["CANVAS"].append(n)
++                if is_target: print("  -> Assigned to CANVAS (Rule: List/Table Item)")
++                continue
++            if tag == "push-button" and name_lower in ("ok", "cancel", "reset", "close", "help", "discard changes"):
++                regions["CANVAS"].append(n)
++                if is_target: print("  -> Assigned to CANVAS (Rule: Dialog Button)")
++                continue
++
++            # 4. TOOLBOX
++            if cx < LEFT_PANEL_LIMIT:
++                regions["TOOLBOX"].append(n)
++                if is_target: print("  -> Assigned to TOOLBOX")
++                continue
++
++            # 5. DOCKS
++            if cx > RIGHT_PANEL_START:
++                regions["DOCKS"].append(n)
++                if is_target: print("  -> Assigned to DOCKS")
++                continue
++
++            # 6. STATUSBAR (下部) # berry.png (ファイル名) はここに配置されることが多い 
++            if cy > STATUS_Y_START: 
++                regions["STATUSBAR"].append(n) 
++                continue
++
++            # 7. CANVAS
++            regions["CANVAS"].append(n)
++            if is_target: print("  -> Assigned to CANVAS (Rule: Default/Center)")
++
++
++
++        return regions
++
++    def _build_output(self, regions, modal_nodes, w, h) -> List[str]:
++        lines = []
++        lines.extend(self.get_meta_header(regions))
++        
++        modal_ids = {id(n) for n in modal_nodes} if modal_nodes else set()
++
++        def filter_modal(nodes, region_name="Unknown"):
++            filtered = []
++            for n in nodes:
++                if id(n) not in modal_ids:
++                    filtered.append(n)
++                else:
++                    # --- DEBUG TRACE: MODAL化の確認 ---
++                    if "berry" in (n.get("name") or "").lower():
++                        print(f"[DEBUG TRACE] 'berry' was DETECTED AS MODAL (Removed from {region_name})")
++                    # ----------------------------------
++            return filtered
++
++        if "WINDOW_CONTROLS" in regions:
++            lines.append("WINDOW_CONTROLS:")
++            lines.extend(self.process_region_lines(filter_modal(regions["WINDOW_CONTROLS"]), w, h))
++        
++        if regions["APP_LAUNCHER"]:
++            lines.append("APP_LAUNCHER:")
++            lines.extend(self.process_region_lines(filter_modal(regions["APP_LAUNCHER"]), w, h))
++
++        if regions["MENUBAR"]:
++            lines.append("MENUBAR:")
++            lines.extend(self.process_region_lines(filter_modal(regions["MENUBAR"]), w, h))
++
++        toolbox_nodes = filter_modal(regions["TOOLBOX"], "TOOLBOX")
++        if toolbox_nodes:
++            lines.append("TOOLBOX (Left Panel):")
++            lines.extend(self.process_panel_lines(toolbox_nodes, w, h))
++
++        # --- CANVAS (原因究明と出力) ---
++        canvas_nodes = filter_modal(regions["CANVAS"], "CANVAS")
++        if canvas_nodes:
++            # ★DEBUG: 犯人捜しコード
++            # もし背景フィルタがONだったら、berry.pngは消えていたか？をチェック
++            self.check_background_filter_behavior(canvas_nodes, w, h)
++            
++            lines.append("CANVAS (Center):")
++            # 修正済み(enable_background_filtering=False)なので、ここでは消えないはず
++            lines.extend(self.process_content_lines(canvas_nodes, w, h))
++
++        docks_nodes = filter_modal(regions["DOCKS"], "DOCKS")
++        if docks_nodes:
++            lines.append("DOCKS (Right Panel):")
++            lines.extend(self.process_panel_lines(docks_nodes, w, h))
++
++        # ★ STATUSBAR 出力部分を修正
++        statusbar_nodes = filter_modal(regions.get("STATUSBAR", []), "STATUSBAR")
++        if statusbar_nodes:
++            lines.append("STATUSBAR:")
++            raw_status_lines = self.process_region_lines(statusbar_nodes, w, h)
++
++            cleaned_status_lines: List[str] = []
++            status_pattern = re.compile(r'^\[status\] "(.*?)"')
++
++            for ln in raw_status_lines:
++                m = status_pattern.match(ln)
++                if m:
++                    text_inside = m.group(1).strip()
++                    # 中身が完全に空なら捨てる
++                    if not text_inside:
++                        # print(f"[DEBUG] drop empty status line: {ln!r}")
++                        continue
++                cleaned_status_lines.append(ln)
++
++            lines.extend(cleaned_status_lines)
++
++        if modal_nodes:
++            lines.append("MODAL:")
++            lines.extend(self.process_modal_nodes(modal_nodes))
++            
++        return lines
++
++    def check_background_filter_behavior(self, nodes: List[Node], w: int, h: int):
++        """
++        デバッグ用: 背景フィルタが有効だった場合の挙動をシミュレートしてログに出す。
++        """
++        target = next((n for n in nodes if "berry" in (n.get("name") or n.get("text") or "").lower()), None)
++        
++        if target:
++            # 強制的にフィルタONの状態でテスト
++            filtered_result = self.filter_background_nodes([target], w, h)
++            
++            print(f"[DEBUG INVESTIGATION] Target 'berry' found in CANVAS nodes.")
++            if not filtered_result:
++                print(f"  -> [ROOT CAUSE CONFIRMED] With 'enable_background_filtering=True', this node WOULD BE DELETED.")
++                print(f"  -> Reason: Node is too large/wide (treated as background image).")
++                print(f"  -> Fix: 'enable_background_filtering=False' is now applied.")
++            else:
++                print(f"  -> This node passes the background filter (Issue might be elsewhere).")
++
++    def process_panel_lines(self, nodes: List[Node], w: int, h: int) -> List[str]:
++        # (変更なし)
++        import re
++        tuples = self._nodes_to_tuples(nodes)
++        tuples.sort()
++        merged_tuples = []
++        skip_next = False
++        Y_DIST_LIMIT = 40
++        X_DIST_LIMIT = 80
++
++        for i in range(len(tuples)):
++            if skip_next:
++                skip_next = False
++                continue
++            curr_y, curr_x, curr_line = tuples[i]
++            if i == len(tuples) - 1:
++                merged_tuples.append(tuples[i])
++                break
++            next_y, next_x, next_line = tuples[i+1]
++            
++            is_curr_label = any(tag in curr_line for tag in ["[label]", "[static]", "[text]"])
++            is_next_input = any(tag in next_line for tag in ["[spin-button]", "[combo-box]", "[entry]", "[text]", "[toggle-button]"])
++            is_vertical_neighbor = (0 <= next_y - curr_y <= Y_DIST_LIMIT) and (abs(next_x - curr_x) < X_DIST_LIMIT)
++            
++            if is_curr_label and is_next_input and is_vertical_neighbor:
++                curr_text = self._extract_text_content(curr_line)
++                next_text = self._extract_text_content(next_line)
++                if curr_text and next_text:
++                    clean_label = curr_text.rstrip(":, ").strip()
++                    new_line = next_line.replace(f'"{next_text}"', f'"{clean_label}: {next_text}"')
++                    merged_tuples.append((curr_y, curr_x, new_line))
++                    skip_next = True
++                    continue
++            merged_tuples.append(tuples[i])
++
++        return build_hierarchical_content_lines(merged_tuples)
++
++    def _extract_text_content(self, line: str) -> str:
++        import re
++        m = re.search(r' "(.*?)" ', line)
++        return m.group(1) if m else ""
+\ No newline at end of file
+diff --git a/a11ytree_compressor/pipelines/__pycache__/a11y_compress.cpython-38.pyc b/a11ytree_compressor/pipelines/__pycache__/a11y_compress.cpython-38.pyc
+index 1ed650b..f81def4 100644
+Binary files a/a11ytree_compressor/pipelines/__pycache__/a11y_compress.cpython-38.pyc and b/a11ytree_compressor/pipelines/__pycache__/a11y_compress.cpython-38.pyc differ
+diff --git a/a11ytree_compressor/pipelines/a11y_compress.py b/a11ytree_compressor/pipelines/a11y_compress.py
+index 52d6e07..e14c984 100644
+--- a/a11ytree_compressor/pipelines/a11y_compress.py
++++ b/a11ytree_compressor/pipelines/a11y_compress.py
+@@ -9,8 +9,8 @@ from ..a11y_instruction_utils import get_instruction_keywords
+ # 新しいアーキテクチャのインポート
+ from ..core.engine import BaseA11yCompressor
+ from ..domains.chrome import ChromeCompressor
++from ..domains.gimp import GimpCompressor
+ # 他ドメインは後で増やす:
+-# from ..domains.gimp import GimpCompressor
+ # from ..domains.libreoffice_calc import LibreOfficeCalcCompressor
+ # from ..domains.libreoffice_writer import LibreOfficeWriterCompressor
+ # from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
+@@ -20,7 +20,7 @@ from ..domains.chrome import ChromeCompressor
+ # 1) domain → Compressor クラスのマッピング
+ DOMAIN_COMPRESSORS = {
+     "chrome": ChromeCompressor,
+-    # "gimp": GimpCompressor,
++    "gimp": GimpCompressor,
+     # "libreoffice_calc": LibreOfficeCalcCompressor,
+     # "libreoffice_writer": LibreOfficeWriterCompressor,
+     # "libreoffice_impress": LibreOfficeImpressCompressor,
+@@ -34,10 +34,6 @@ def compress_from_raw_a11y(
+     mode: Literal["instruction", "observation"] = "instruction",
+     compressor: Optional[BaseA11yCompressor] = None,
+ ) -> Dict[str, Any]:
+-    """
+-    a11y の生テキスト（TSVなど）から、ドメイン検出 → 圧縮結果までを一気に行う関数。
+-    run_demo.py からは基本的にこの関数だけ呼べばOK、という想定。
+-    """
+     # 1. パース
+     nodes = parse_raw_a11y(raw_a11y)
+ 
+@@ -51,26 +47,63 @@ def compress_from_raw_a11y(
+     CompressorCls = DOMAIN_COMPRESSORS.get(domain, BaseA11yCompressor)
+     compressor: BaseA11yCompressor = CompressorCls()
+ 
+-    # ドメイン名を埋めておく（ヘッダ出力用）
+     compressor.domain_name = domain
+ 
+-    # 4-1. ドメイン別のフラグ設定
+-    # 背景フィルタ（デスクトップのファイル名など）
++    # 4-1. 背景フィルタ / STATUSBAR フラグ
+     if domain == "os":
+-        # OS/デスクトップ系ではファイルが主役なので削らない
+         compressor.enable_background_filtering = False
+         compressor.use_statusbar = False
++
++    elif domain == "gimp":
++        compressor.enable_background_filtering = True
++        compressor.use_statusbar = True
++
+     elif domain in ("libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
+-        # LibreOffice / VLC では STATUSBAR が意味を持つので利用
+         compressor.enable_background_filtering = True
+         compressor.use_statusbar = True
++
+     else:
+-        # それ以外（chrome, gimp など）は:
+-        # - 背景のデスクトップファイルは削る
+-        # - STATUSBAR セクションは出さない（= デスクトップのゴミなどを表示しない）
++        # それ以外（chrome など）
+         compressor.enable_background_filtering = True
+         compressor.use_statusbar = False
+ 
++    # 4-2. multi-line 正規化 & static 行マージのフラグ
++    if domain in ("gimp", "libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
++        # a11y がガタガタな系
++        compressor.enable_multiline_normalization = True
++        compressor.enable_static_line_merge = True
++
++    elif domain in ("chrome", "os"):
++        # 圧縮しすぎを避けたい系
++        compressor.enable_multiline_normalization = False
++        compressor.enable_static_line_merge = False
++
++    else:
++        # デフォルト
++        compressor.enable_multiline_normalization = True
++        compressor.enable_static_line_merge = True
++
++    # 5. 実行
++    use_instruction = (mode == "instruction")
++
++    if use_instruction and instruction:
++        instruction_keywords = get_instruction_keywords(instruction)
++    else:
++        instruction_keywords = set()
++
++    result = compressor.compress(
++        nodes,
++        screen_w=screen_w,
++        screen_h=screen_h,
++        instruction=instruction or "",
++        instruction_keywords=instruction_keywords,
++        use_instruction=use_instruction,
++    )
++    print("[DEBUG] instruction in compress_from_raw_a11y:", repr(instruction))
++    return result
++
++
++
+     # 5. 実行
+     use_instruction = (mode == "instruction")
+ 
+diff --git a/demo_outputs/chrome_10_chrome_instruction.txt b/demo_outputs/chrome_10_chrome_instruction.txt
+index 67dbd1f..ceb4bb3 100644
+--- a/demo_outputs/chrome_10_chrome_instruction.txt
++++ b/demo_outputs/chrome_10_chrome_instruction.txt
+@@ -60,12 +60,17 @@ BROWSER_UI:
+ [browser-entry] "Address and search bar" @ (1009, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+ MODAL:
+-[label] "helloExtension" @ (1852, 1045)
+-[label] "Home" @ (1721, 1045)
+-[image] "Remove filter" @ (393, 276)
++[document-web] "New INFINITI QX80 for sale near New York, NY | Cars.com" @ (995, 597)
++[link] "Cars.com" @ (452, 142)
++[heading] "New INFINITI QX80 for sale near New York, NY" @ (995, 220)
++[push-button] "New Remove filter" @ (142, 275)
++[push-button] "INFINITI Remove filter" @ (255, 275)
++[image] "Remove filter" @ (284, 276)
++[push-button] "QX80 Remove filter" @ (372, 275)
+ [combo-box] "Sort by" @ (1834, 274)
+ [static] "Sort: Best match" @ (1834, 273)
+ [link] "Skip to Filters" @ (399, 295)
++[section] "4.6Clifton, NJ (13 mi)" @ (599, 551)
+ [toggle-button] "Save" (UNCHECKED) @ (748, 334)
+ [section] "1 of 6" @ (427, 311)
+ [image] "2026 2t Radiant Whit INFINITI QX80" @ (599, 439)
+@@ -74,122 +79,94 @@ MODAL:
+ [paragraph] "MSRP $116,435" @ (716, 595)
+ [push-button] "Est. $2161/mo" @ (483, 625)
+ [link] "New 2026 INFINITI QX80 AUTOGRAPH" @ (576, 652)
++[paragraph] "Fette INFINITI" @ (481, 683)
+ [image] "Review rating" @ (537, 683)
++[static] "4.6" @ (558, 682)
+ [link] "Check Availability" @ (512, 720)
+ [image] "Listing location" @ (442, 773)
+ [static] "Clifton, NJ (13 mi)" @ (506, 772)
+-[toggle-button] "Save" (UNCHECKED) @ (1121, 334)
+-[section] "1 of 6" @ (800, 311)
++[section] "4.7Greenwich, CT (28 mi)" @ (972, 551)
+ [image] "2026 Mineral Black INFINITI QX80" @ (972, 439)
+-[push-button] "Next" @ (1119, 439)
+ [paragraph] "$115,655" @ (858, 595)
+ [push-button] "Est. $2147/mo" @ (856, 625)
+ [link] "New 2026 INFINITI QX80 AUTOGRAPH AWD" @ (968, 652)
+-[image] "Review rating" @ (996, 683)
+-[link] "Check Availability" @ (885, 720)
+-[image] "Listing location" @ (815, 773)
++[paragraph] "DARCARS Greenwich Infiniti" @ (897, 683)
++[static] "4.7" @ (1016, 682)
+ [static] "Greenwich, CT (28 mi)" @ (893, 772)
+-[toggle-button] "Save" (UNCHECKED) @ (1494, 334)
+-[section] "1 of 6" @ (1173, 311)
++[section] "4.4Massapequa, NY (29 mi)" @ (1345, 551)
+ [image] "2026 Anthracite Gray INFINITI QX80" @ (1345, 439)
+-[push-button] "Next" @ (1492, 439)
+ [paragraph] "$93,205" @ (1230, 595)
+ [paragraph] "MSRP $97,850" @ (1463, 595)
+ [push-button] "Est. $1730/mo" @ (1230, 625)
+ [link] "New 2026 INFINITI QX80 Luxe" @ (1292, 652)
+-[image] "Review rating" @ (1360, 683)
+-[link] "Check Availability" @ (1258, 720)
+-[image] "Listing location" @ (1188, 773)
++[paragraph] "Infiniti City of Massapequa" @ (1265, 683)
++[static] "4.4" @ (1381, 682)
+ [static] "Massapequa, NY (29 mi)" @ (1270, 772)
+-[toggle-button] "Save" (UNCHECKED) @ (1867, 334)
+-[section] "1 of 6" @ (1546, 311)
++[section] "Danbury, CT (46 mi)" @ (1718, 551)
+ [image] "2026 Radiant White INFINITI QX80" @ (1718, 439)
+-[push-button] "Next" @ (1865, 439)
+ [paragraph] "$106,525" @ (1608, 595)
+ [paragraph] "MSRP $106,525" @ (1833, 595)
+ [push-button] "Est. $1977/mo" @ (1601, 625)
+ [link] "New 2026 INFINITI QX80 SPORT" @ (1672, 652)
+-[link] "Check Availability" @ (1631, 720)
+-[image] "Listing location" @ (1561, 773)
++[paragraph] "Danbury INFINITI" @ (1610, 683)
+ [static] "Danbury, CT (46 mi)" @ (1632, 772)
++[section] "4.6Clifton, NJ (13 mi)" @ (599, 1066)
+ [toggle-button] "Save" (UNCHECKED) @ (748, 848)
+ [section] "1 of 6" @ (427, 825)
+ [image] "2026 Diamond Black INFINITI QX80" @ (599, 954)
+ [push-button] "Next" @ (746, 954)
+-[toggle-button] "Save" (UNCHECKED) @ (1121, 848)
+-[section] "1 of 6" @ (800, 825)
++[section] "4.7Greenwich, CT (28 mi)" @ (972, 1066)
+ [image] "2026 Radiant White INFINITI QX80" @ (972, 954)
+-[push-button] "Next" @ (1119, 954)
+-[toggle-button] "Save" (UNCHECKED) @ (1494, 848)
+-[section] "1 of 6" @ (1173, 825)
+-[image] "2026 Radiant White INFINITI QX80" @ (1345, 954)
+-[push-button] "Next" @ (1492, 954)
+-[toggle-button] "Save" (UNCHECKED) @ (1867, 848)
+-[push-button] "Next" @ (1865, 954)
++[section] "4.4Massapequa, NY (29 mi)" @ (1345, 1066)
++[section] "4.7Syosset, NY (26 mi)" @ (1718, 1066)
++[section] "1 of 4" @ (1546, 825)
++[link] "Skip to Listings" @ (99, 311)
++[heading] "68 results" @ (164, 348)
++[push-button] "Clear all filters" @ (344, 348)
++[toggle-button] "Savesearch" (UNCHECKED) @ (249, 397)
++[static] "search" @ (276, 396)
++[entry] "Search in your own words" @ (249, 456)
++[heading] "Location" @ (249, 535)
++[combo-box] "Search within" @ (249, 593)
++[menu-item] "50 miles" @ (249, 570)
++[entry] "ZIP code" @ (249, 673)
++[heading] "Basics" @ (249, 755)
++[push-button] "Condition" @ (249, 814)
++[radio-button] "New, used & CPO" @ (365, 868)
++[radio-button] "New & CPO" @ (365, 912)
++[radio-button] "New" @ (365, 956)
++[radio-button] "Used" @ (365, 1000)
++[radio-button] "Certified Pre-Owned" @ (365, 1044)
++[push-button] "Make" @ (249, 1103)
+ [alert] "Privacy" @ (995, 1000)
+ [section] ""This website uses cookies and similar technologies to enable our website functionalities. We also share information about your use of our s..." @ (807, 1008)
+ [static] "This website uses cookies and similar technologies to enable our website functionalities. We also share information about your use of our si..." @ (798, 1007)
+ [push-button] "Cookie preferences" @ (1319, 980)
+ [push-button] "Reject all" @ (1498, 980)
+ [push-button] "Accept all" @ (1319, 1036)
+-[push-button] "Close" @ (1898, 936)
+ [section] "Double-click to edit..." @ (935, 479)
+ [static] "Double-click to edit..." @ (891, 436)
+ [static] "We'd love your feedback!" @ (995, 574)
+ [static] "Please take a couple of minutes to tell us about your experience." @ (995, 633)
+ [static] "You could win $50!" @ (995, 678)
+ [static] "Start Survey" @ (992, 715)
++[push-button] " Close menu" @ (430, 154)
+ CONTENT:
+-[BLOCK "New INFINITI QX80 for sale near New York, NY"]
+-[document-web] "New INFINITI QX80 for sale near New York, NY | Cars.com" @ (995, 597)
+-[push-button] ". Menu" @ (1566, 142)
++[BLOCK]
+ [link] "Skip to main content" @ (86, 130)
+-[link] "Cars.com" @ (452, 142)
+-[push-button] "Sign In" @ (1512, 142)
++[/BLOCK]
++[BLOCK]
+ [link] "Cars for Sale" @ (599, 142)
+ [link] "New Cars" @ (701, 141)
+ [link] "Research & Reviews" @ (823, 141)
+ [link] "News & Videos" @ (960, 141)
+ [link] "Sell Your Car" @ (1075, 141)
+ [link] "Financing" @ (1176, 141)
+-[image] "Menu" @ (1570, 142)
+-[heading] "New INFINITI QX80 for sale near New York, NY" @ (995, 220)
+-[push-button] "New Remove filter" @ (142, 275)
+-[push-button] "INFINITI Remove filter" @ (255, 275)
+-[push-button] "QX80 Remove filter" @ (372, 275)
+-[static] "New / INFINITI / QX80" @ (130, 275)
+-[image] "Remove filter" @ (160, 276)
+-[link] "Skip to Listings" @ (99, 311)
+-[section] "4.6Clifton, NJ (13 mi)" @ (599, 551)
+-[section] "4.7Greenwich, CT (28 mi)" @ (972, 551)
+-[section] "4.4Massapequa, NY (29 mi)" @ (1345, 551)
+-[section] "Danbury, CT (46 mi)" @ (1718, 551)
+-[heading] "68 results" @ (164, 348)
+-[push-button] "Clear all filters" @ (344, 348)
+-[static] "Clear all / filters" @ (344, 348)
+-[toggle-button] "Savesearch" (UNCHECKED) @ (249, 397)
+-[static] "Save / search" @ (237, 396)
+-[entry] "Search in your own words" @ (249, 456)
+-[heading] "Location" @ (249, 535)
+-[combo-box] "Search within" @ (249, 593)
+-[menu-item] "50 miles" @ (249, 570)
+-[entry] "ZIP code" @ (249, 673)
+-[static] "Fette INFINITI / 4.6 / DARCARS Greenwich Infiniti / 4.7 / Infiniti City of Ma..." @ (481, 682)
+-[static] "Check Availability" @ (512, 719)
+ [/BLOCK]
+-[BLOCK "Basics"]
+-[heading] "Basics" @ (249, 755)
+-[push-button] "Condition" @ (249, 814)
+-[section] "4.6Clifton, NJ (13 mi)" @ (599, 1066)
+-[section] "4.7Greenwich, CT (28 mi)" @ (972, 1066)
+-[section] "4.4Massapequa, NY (29 mi)" @ (1345, 1066)
+-[image] "2026 Radiant White INFINITI QX80" @ (1718, 954)
+-[section] "1 of 4" @ (1546, 825)
+-[section] "4.7Syosset, NY (26 mi)" @ (1718, 1066)
+-[radio-button] "New, used & CPO" @ (365, 868)
+-[radio-button] "New & CPO" @ (365, 912)
+-[radio-button] "New" @ (365, 956)
+-[radio-button] "Used" @ (365, 1000)
+-[radio-button] "Certified Pre-Owned" @ (365, 1044)
+-[push-button] "Make" @ (249, 1103)
++[BLOCK]
++[push-button] ". Menu" @ (1566, 142)
++[push-button] "Sign In" @ (1512, 142)
++[/BLOCK]
++[BLOCK]
++[push-button] "Close" @ (1898, 936)
+ [/BLOCK]
+diff --git a/demo_outputs/chrome_1_chrome_instruction.txt b/demo_outputs/chrome_1_chrome_instruction.txt
+index 7211261..e9e1916 100644
+--- a/demo_outputs/chrome_1_chrome_instruction.txt
++++ b/demo_outputs/chrome_1_chrome_instruction.txt
+@@ -62,84 +62,97 @@ BROWSER_UI:
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+ CONTENT:
+ [BLOCK]
+-[document-web] "Natural products database - Search results. Page 1 of about 7586 results" @ (995, 597)
+-[link] "Drugs.com - Go to homepage" @ (473, 163)
+ [entry] "Search Drugs.com" @ (1012, 158)
+ [combo-box] "Select the section you want to search in" @ (1298, 158)
+ [push-button] "All" @ (1298, 158)
+ [push-button] "Search" @ (1352, 158)
+-[link] "Register" @ (1453, 158)
+-[link] "Sign in" @ (1535, 158)
++[static] "Register" @ (1453, 156)
++[static] "Sign in" @ (1535, 156)
+ [static] "Select the section you want to search in" @ (1430, 188)
+ [static] "Browse medications:" @ (706, 187)
+-[link] "A" @ (780, 187)
+-[link] "B" @ (793, 187)
+-[link] "C" @ (806, 187)
+-[link] "D" @ (819, 187)
+-[link] "E" @ (831, 187)
+-[link] "F" @ (843, 187)
+-[link] "G" @ (855, 187)
+-[link] "H" @ (868, 187)
+-[link] "I" @ (880, 187)
+-[link] "J" @ (889, 187)
+-[link] "K" @ (901, 187)
+-[link] "L" @ (913, 187)
+-[link] "M" @ (926, 187)
+-[link] "N" @ (941, 187)
+-[link] "O" @ (955, 187)
+-[link] "P" @ (968, 187)
+-[link] "Q" @ (981, 187)
+-[link] "R" @ (995, 187)
+-[link] "S" @ (1007, 187)
+-[link] "T" @ (1018, 187)
+-[link] "U" @ (1031, 187)
+-[link] "V" @ (1044, 187)
+-[link] "W" @ (1059, 187)
+-[link] "X" @ (1073, 187)
+-[link] "Y" @ (1085, 187)
+-[link] "Z" @ (1097, 187)
+-[link] "0-9" @ (1114, 187)
+-[link] "Advanced Search" @ (1329, 187)
+-[link] "Drugs A-Z" @ (441, 225)
+-[link] "Pill Identifier" @ (562, 225)
+-[link] "Drug Interaction Checker" @ (740, 225)
+-[link] "Compare Drugs" @ (927, 225)
+-[link] "News" @ (1038, 225)
+-[link] "Pro Edition" @ (1134, 225)
+-[link] "More Resources …" @ (1236, 225)
+-[link] "Help & Support" @ (1513, 225)
+-[static] "Resources / More" @ (1286, 223)
++[static] "Advanced Search" @ (1329, 187)
++[static] "A" @ (780, 187)
++[static] "B" @ (793, 187)
++[static] "C" @ (806, 187)
++[static] "D" @ (819, 187)
++[static] "E" @ (831, 187)
++[static] "F" @ (843, 187)
++[static] "G" @ (855, 187)
++[static] "H" @ (868, 187)
++[static] "I" @ (880, 187)
++[static] "J" @ (889, 187)
++[static] "K" @ (901, 187)
++[static] "L" @ (913, 187)
++[static] "M" @ (926, 187)
++[static] "N" @ (941, 187)
++[static] "O" @ (955, 187)
++[static] "P" @ (968, 187)
++[static] "Q" @ (981, 187)
++[static] "R" @ (995, 187)
++[static] "S" @ (1007, 187)
++[static] "T" @ (1018, 187)
++[static] "U" @ (1031, 187)
++[static] "V" @ (1044, 187)
++[static] "W" @ (1059, 187)
++[static] "X" @ (1073, 187)
++[static] "Y" @ (1085, 187)
++[static] "Z" @ (1097, 187)
++[static] "0-9" @ (1114, 187)
++[static] "Resources" @ (1286, 223)
++[static] "Drugs A-Z" @ (441, 224)
++[static] "Pill Identifier" @ (562, 224)
++[static] "Drug Interaction Checker" @ (740, 224)
++[static] "Compare Drugs" @ (927, 224)
++[static] "News" @ (1038, 224)
++[static] "Pro Edition" @ (1134, 224)
++[static] "More" @ (1228, 224)
++[static] "Help & Support" @ (1513, 224)
+ [/BLOCK]
+ [BLOCK "Drugs & Medications A to Z"]
+-[link] "Home" @ (421, 399)
+-[link] "Search" @ (481, 399)
+-[static] "7,586 results" @ (556, 399)
+-[link] "Español" @ (1185, 399)
++[static] "Home" @ (421, 399)
++[static] "Search" @ (481, 399)
++[static] "7,586 results" @ (562, 399)
+ [heading] "Drugs & Medications A to Z" @ (805, 449)
+-[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 525)
+ [static] "/drug_information.html" @ (483, 484)
+-[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 562)
+-[static] "International Drug / Pharma Company Generic Drug Status Veterinary Drugs OTC ..." @ (786, 535)
++[static] "International Drug" @ (786, 535)
++[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 522)
++[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 576)
++[static] "Database" @ (484, 549)
++[static] "Medical Q & A Compare Drugs" @ (642, 549)
++[/BLOCK]
++[BLOCK]
++[static] "Natural" @ (792, 549)
++[static] "Products" @ (863, 549)
++[/BLOCK]
++[BLOCK]
+ [static] "Database" @ (1027, 522)
+-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) ..." @ (801, 576)
++[/BLOCK]
++[BLOCK]
++[static] "Español" @ (1185, 399)
+ [/BLOCK]
+ [BLOCK "Drugs & Medications A to Z"]
+ [heading] "Drugs & Medications A to Z" @ (805, 672)
+-[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 748)
+ [static] "/rootdocs/a-to-z-drug-list.html" @ (506, 707)
+-[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 785)
+-[static] "International Drug / Pharma Company Generic Drug Status Veterinary Drugs OTC ..." @ (786, 758)
++[static] "International Drug" @ (786, 758)
++[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 745)
++[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 799)
++[static] "Database" @ (484, 772)
++[static] "Medical Q & A Compare Drugs" @ (642, 772)
++[/BLOCK]
++[BLOCK]
++[static] "Natural" @ (792, 772)
++[static] "Products" @ (863, 772)
++[/BLOCK]
++[BLOCK]
+ [static] "Database" @ (1027, 745)
+-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) ..." @ (801, 799)
+ [/BLOCK]
+ [BLOCK "Shark Liver Oil Uses, Benefits & Side Effects"]
+ [heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
+-[link] "...ark Liver Oil Uses, Benefits & Side Effects /npc/shark-liver-oil.html Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 944)
+ [static] "/npc/shark-liver-oil.html" @ (484, 930)
+-[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 981)
+-[static] "Products / online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011......" @ (440, 967)
+-[/BLOCK]
+-[BLOCK "Bovine colostrum Uses, Benefits & Side Effects"]
++[static] "Products" @ (440, 967)
++[static] ". Facts & Comparisons [" @ (564, 967)
+ [heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
+-[link] "...cattle have been resolved. References 1. Bovine Colostrum. Review of Natural Products. Facts & Comparisons [database online]. St. Louis, MO: Wolte..." @ (805, 1126)
++[/BLOCK]
++[BLOCK]
++[static] "database" @ (689, 967)
+ [/BLOCK]
+diff --git a/demo_outputs/chrome_2_chrome_instruction.txt b/demo_outputs/chrome_2_chrome_instruction.txt
+index f43c182..d570502 100644
+--- a/demo_outputs/chrome_2_chrome_instruction.txt
++++ b/demo_outputs/chrome_2_chrome_instruction.txt
+@@ -61,18 +61,23 @@ BROWSER_UI:
+ [browser-button] "Chrome" @ (1900, 90)
+ [browser-entry] "Address and search bar" @ (1009, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+-MODAL:
+-[document-web] "New tab" @ (995, 597)
+-[link] "Gmail" @ (1776, 146)
+-[link] "Search for images" @ (1829, 146)
+-[push-button] "Google apps" @ (1886, 146)
++CONTENT:
++[BLOCK]
+ [combo-box] "Search Google or type a URL" @ (995, 400)
+-[push-button] "Search by voice" @ (1302, 400)
+-[push-button] "Search by image" @ (1339, 400)
+-[link] "Web Store" @ (939, 498)
++[/BLOCK]
++[BLOCK]
++[push-button] "Add shortcut" @ (1051, 498)
+ [push-button] "More actions for Web Store shortcut" @ (979, 460)
+ [static] "Web Store" @ (939, 529)
+-[push-button] "Add shortcut" @ (1051, 498)
+ [static] "Add shortcut" @ (1051, 529)
++[/BLOCK]
++[BLOCK]
++[push-button] "Search by voice" @ (1302, 400)
++[push-button] "Search by image" @ (1339, 400)
++[/BLOCK]
++[BLOCK]
++[push-button] "Google apps" @ (1886, 146)
++[static] "Gmail" @ (1776, 145)
++[static] "Images" @ (1829, 145)
+ [toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
+-[push-button] " Close menu" @ (430, 154)
++[/BLOCK]
+diff --git a/demo_outputs/chrome_3_chrome_instruction.txt b/demo_outputs/chrome_3_chrome_instruction.txt
+index 99d4118..d33a45a 100644
+--- a/demo_outputs/chrome_3_chrome_instruction.txt
++++ b/demo_outputs/chrome_3_chrome_instruction.txt
+@@ -59,6 +59,7 @@ BROWSER_UI:
+ [browser-entry] "Address and search bar" @ (1009, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+ MODAL:
++[static] "Customise Chrome" @ (1832, 1047)
+ [menu-item] "New tab Ctrl+T" @ (1737, 134)
+ [menu-item] "New window Ctrl+N" @ (1737, 165)
+ [menu-item] "New Incognito window Ctrl+Shift+N" @ (1737, 196)
+@@ -85,16 +86,13 @@ MODAL:
+ [push-button] " Close menu" @ (430, 154)
+ CONTENT:
+ [BLOCK]
+-[document-web] "New tab" @ (995, 597)
+-[/BLOCK]
+-[BLOCK]
+ [combo-box] "Search Google or type a URL" @ (995, 400)
+ [/BLOCK]
+ [BLOCK]
+-[link] "Web Store" @ (939, 498)
+ [push-button] "Add shortcut" @ (1051, 498)
+ [push-button] "More actions for Web Store shortcut" @ (979, 460)
+-[static] "Web Store / Add shortcut" @ (939, 529)
++[static] "Web Store" @ (939, 529)
++[static] "Add shortcut" @ (1051, 529)
+ [/BLOCK]
+ [BLOCK]
+ [push-button] "Search by voice" @ (1302, 400)
+@@ -102,8 +100,7 @@ CONTENT:
+ [/BLOCK]
+ [BLOCK]
+ [push-button] "Google apps" @ (1886, 146)
+-[link] "Gmail" @ (1776, 146)
+-[link] "Search for images" @ (1829, 146)
++[static] "Gmail" @ (1776, 145)
+ [static] "Images" @ (1829, 145)
+ [toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
+ [/BLOCK]
+diff --git a/demo_outputs/chrome_4_chrome_instruction.txt b/demo_outputs/chrome_4_chrome_instruction.txt
+index 609e724..eda42a6 100644
+--- a/demo_outputs/chrome_4_chrome_instruction.txt
++++ b/demo_outputs/chrome_4_chrome_instruction.txt
+@@ -96,16 +96,13 @@ MODAL:
+ [push-button] " Close menu" @ (430, 154)
+ CONTENT:
+ [BLOCK]
+-[document-web] "New tab" @ (995, 597)
+-[/BLOCK]
+-[BLOCK]
+ [combo-box] "Search Google or type a URL" @ (995, 400)
+ [/BLOCK]
+ [BLOCK]
+-[link] "Web Store" @ (939, 498)
+ [push-button] "Add shortcut" @ (1051, 498)
+ [push-button] "More actions for Web Store shortcut" @ (979, 460)
+-[static] "Web Store / Add shortcut" @ (939, 529)
++[static] "Web Store" @ (939, 529)
++[static] "Add shortcut" @ (1051, 529)
+ [/BLOCK]
+ [BLOCK]
+ [push-button] "Search by voice" @ (1302, 400)
+@@ -113,8 +110,7 @@ CONTENT:
+ [/BLOCK]
+ [BLOCK]
+ [push-button] "Google apps" @ (1886, 146)
+-[link] "Gmail" @ (1776, 146)
+-[link] "Search for images" @ (1829, 146)
++[static] "Gmail" @ (1776, 145)
+ [static] "Images" @ (1829, 145)
+ [toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
+ [/BLOCK]
+diff --git a/demo_outputs/chrome_7_chrome_instruction.txt b/demo_outputs/chrome_7_chrome_instruction.txt
+index d4f54cb..d0042f4 100644
+--- a/demo_outputs/chrome_7_chrome_instruction.txt
++++ b/demo_outputs/chrome_7_chrome_instruction.txt
+@@ -57,21 +57,17 @@ APP_LAUNCHER:
+ ---
+ [launcher-app] "Show Applications" @ (35, 1045)
+ BROWSER_UI:
++[browser-button] "Back" @ (89, 90)
+ [browser-button] "Reload" @ (164, 90)
+ [browser-button] "You" @ (1862, 90)
+ [browser-button] "Chrome" @ (1900, 90)
+ [browser-button] "Chrome" @ (239, 90)
+ [browser-entry] "Address and search bar" @ (1041, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+-CONTENT:
+-[BLOCK]
+-[push-button] "Back" @ (89, 90)
+-[label] "yicun.​raw" @ (1457, 109)
++MODAL:
+ [document-web] "Bookmarks" @ (995, 597)
+-[/BLOCK]
+-[BLOCK "Add folder"]
+ [heading] "Add folder" @ (995, 523)
+ [entry] "Name" @ (995, 591)
+ [push-button] "Cancel" @ (1123, 662)
+ [push-button] "Save" @ (1201, 662)
+-[/BLOCK]
++[push-button] " Close menu" @ (430, 154)
+diff --git a/demo_outputs/chrome_8_chrome_instruction.txt b/demo_outputs/chrome_8_chrome_instruction.txt
+index 777a075..904d39c 100644
+--- a/demo_outputs/chrome_8_chrome_instruction.txt
++++ b/demo_outputs/chrome_8_chrome_instruction.txt
+@@ -21,6 +21,10 @@ WINDOW_CONTROLS:
+ [window-button] "Minimise" @ (1837, 47)
+ [window-button] "Restore" @ (1869, 47)
+ [window-button] "Close" @ (1902, 47)
++BROWSER_TABS:
++[browser-tab-button] "Search tabs" @ (90, 47)
++[browser-tab-button] "New tab" @ (362, 47)
++[browser-tab-button] "Close" @ (326, 47)
+ APP_LAUNCHER:
+ [launcher-app] "Google Chrome" @ (35, 65)
+ [launcher-app] "Thunderbird Mail" @ (35, 133)
+@@ -37,9 +41,6 @@ APP_LAUNCHER:
+ ---
+ [launcher-app] "Show Applications" @ (35, 1045)
+ BROWSER_UI:
+-[browser-button] "Search tabs" @ (90, 47)
+-[browser-button] "New tab" @ (362, 47)
+-[browser-button] "Close" @ (326, 47)
+ [browser-button] "Back" @ (89, 90)
+ [browser-button] "Reload" @ (164, 90)
+ [browser-button] "You" @ (1862, 90)
+@@ -47,13 +48,27 @@ BROWSER_UI:
+ [browser-button] "View site information" @ (207, 90)
+ [browser-entry] "Address and search bar" @ (1009, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+-[browser-button] "Sign In" @ (1505, 142)
+ CONTENT:
+-[BLOCK "Imagine the possibilities"]
++[BLOCK]
+ [document-web] "New Cars, Used Cars, Car Dealers, Prices & Reviews | Cars.com" @ (995, 597)
+-[push-button] "User menu" @ (1558, 142)
++[link] "Skip to main content" @ (86, 130)
+ [link] "Switch Up to the QX80 TodayVisit infinitiusacom" @ (987, 485)
++[/BLOCK]
++[BLOCK "Imagine the possibilities"]
++[link] "Cars dot com logo homepage" @ (445, 142)
++[link] "Cars for Sale" @ (590, 141)
++[link] "New Cars" @ (690, 141)
++[link] "Research & Reviews" @ (812, 141)
++[link] "News & Videos" @ (949, 141)
++[link] "Sell Your Car" @ (1065, 141)
++[link] "Financing" @ (1165, 141)
+ [heading] "Imagine the possibilities" @ (595, 245)
++[/BLOCK]
++[BLOCK]
++[push-button] "User menu" @ (1558, 142)
++[push-button] "Sign In" @ (1505, 142)
++[/BLOCK]
++[BLOCK]
+ [push-button] "Feedback" @ (1889, 271)
+ [/BLOCK]
+ [BLOCK]
+@@ -70,14 +85,20 @@ CONTENT:
+ [menu-item] "50 miles" @ (515, 660)
+ [entry] "ZIP" @ (675, 683)
+ [push-button] "Show 68 matches" @ (595, 740)
++[/BLOCK]
++[BLOCK]
+ [section] "Sponsored: Switch Up to the QX80 Today" @ (1459, 737)
+ [static] "Sponsored: / Switch Up to the QX80 / Today / Visit infinitiusa.com" @ (1405, 727)
+ [/BLOCK]
+ [BLOCK]
+-[section] "Ford Recalls 229,000-Plus Broncos, Bronco Sports for Instrument Panel Failure" @ (1239, 4350)
+ [section] "How Much Is the 2026 Toyota RAV4?" @ (574, 4362)
+ [/BLOCK]
+ [BLOCK]
++[section] "Ford Recalls 229,000-Plus Broncos, Bronco Sports for Instrument Panel Failure" @ (1239, 4350)
++[/BLOCK]
++[BLOCK]
+ [section] "20,000-Plus Ford Escape, Lincoln Corsair PHEVs Recalled for Fire Risk" @ (681, 4687)
++[/BLOCK]
++[BLOCK]
+ [section] "10 Biggest News Stories of the Week: Nissan Sentra Lives Large, Toyota Tacoma Charges Ahead" @ (1279, 4687)
+ [/BLOCK]
+diff --git a/demo_outputs/chrome_9_chrome_instruction.txt b/demo_outputs/chrome_9_chrome_instruction.txt
+index b2a097a..f051b98 100644
+--- a/demo_outputs/chrome_9_chrome_instruction.txt
++++ b/demo_outputs/chrome_9_chrome_instruction.txt
+@@ -59,88 +59,92 @@ BROWSER_UI:
+ [browser-button] "View site information" @ (207, 90)
+ [browser-entry] "Address and search bar" @ (1009, 90)
+ [browser-button] "Bookmark this tab" @ (1812, 90)
+-CONTENT:
+-[BLOCK "New INFINITI QX80 for sale near New York, NY"]
++MODAL:
+ [document-web] "New INFINITI QX80 for sale near New York, NY | Cars.com" @ (995, 597)
+-[push-button] ". Menu" @ (1558, 142)
+-[link] "Skip to main content" @ (86, 130)
+ [link] "Cars.com" @ (445, 142)
+-[link] "Cars for Sale" @ (592, 142)
+-[link] "New Cars" @ (693, 141)
+-[link] "Research & Reviews" @ (815, 141)
+-[link] "News & Videos" @ (952, 141)
+-[link] "Sell Your Car" @ (1068, 141)
+-[link] "Financing" @ (1168, 141)
+-[static] "Sign In" @ (1493, 141)
+-[image] "Menu" @ (1562, 142)
++[section] "Sign In" @ (1505, 142)
+ [heading] "New INFINITI QX80 for sale near New York, NY" @ (987, 220)
+-[/BLOCK]
+-[BLOCK "68 results"]
+-[link] "Skip to Listings" @ (92, 311)
+ [link] "Skip to Filters" @ (392, 311)
+-[image] "2026 2t Radiant Whit INFINITI QX80" @ (592, 414)
+ [section] "4.6Clifton, NJ (13 mi)" @ (592, 551)
+-[image] "2026 Mineral Black INFINITI QX80" @ (965, 414)
++[image] "2026 2t Radiant Whit INFINITI QX80" @ (592, 414)
++[paragraph] "$116,435" @ (477, 545)
++[paragraph] "MSRP $116,435" @ (708, 545)
++[section] "Est. $2161/mo" @ (475, 575)
++[link] "New 2026 INFINITI QX80 AUTOGRAPH" @ (568, 602)
++[paragraph] "Fette INFINITI" @ (473, 683)
++[static] "4.6" @ (550, 682)
++[section] "Check Availability" @ (505, 720)
++[static] "Clifton, NJ (13 mi)" @ (494, 772)
+ [section] "4.7Greenwich, CT (28 mi)" @ (965, 551)
+-[image] "2026 Anthracite Gray INFINITI QX80" @ (1338, 414)
++[image] "2026 Mineral Black INFINITI QX80" @ (965, 414)
++[paragraph] "$115,655" @ (850, 545)
++[section] "Est. $2147/mo" @ (848, 575)
++[link] "New 2026 INFINITI QX80 AUTOGRAPH AWD" @ (960, 602)
++[paragraph] "DARCARS Greenwich Infiniti" @ (889, 683)
++[static] "4.7" @ (1009, 682)
++[static] "Greenwich, CT (28 mi)" @ (881, 772)
+ [section] "4.4Massapequa, NY (29 mi)" @ (1338, 551)
+-[image] "2026 Radiant White INFINITI QX80" @ (1711, 414)
++[image] "2026 Anthracite Gray INFINITI QX80" @ (1338, 414)
++[paragraph] "$93,205" @ (1223, 545)
++[paragraph] "MSRP $97,850" @ (1456, 545)
++[section] "Est. $1730/mo" @ (1222, 575)
++[link] "New 2026 INFINITI QX80 Luxe" @ (1284, 602)
++[paragraph] "Infiniti City of Massapequa" @ (1258, 683)
++[static] "4.4" @ (1373, 682)
++[static] "Massapequa, NY (29 mi)" @ (1258, 772)
+ [section] "Danbury, CT (46 mi)" @ (1711, 551)
++[image] "2026 Radiant White INFINITI QX80" @ (1711, 414)
++[paragraph] "$106,525" @ (1600, 545)
++[paragraph] "MSRP $106,525" @ (1826, 545)
++[section] "Est. $1977/mo" @ (1594, 575)
++[link] "New 2026 INFINITI QX80 SPORT" @ (1664, 602)
++[paragraph] "Danbury INFINITI" @ (1602, 683)
++[static] "Danbury, CT (46 mi)" @ (1620, 772)
++[section] "4.6Clifton, NJ (13 mi)" @ (592, 1066)
++[image] "2026 Diamond Black INFINITI QX80" @ (592, 928)
++[paragraph] "$104,835" @ (482, 1059)
++[paragraph] "MSRP $104,835" @ (707, 1059)
++[section] "Est. $1946/mo" @ (476, 1089)
++[section] "4.7Greenwich, CT (28 mi)" @ (965, 1066)
++[image] "2026 Radiant White INFINITI QX80" @ (965, 928)
++[paragraph] "$106,525" @ (854, 1059)
++[section] "Est. $1977/mo" @ (848, 1089)
++[section] "4.4Massapequa, NY (29 mi)" @ (1338, 1066)
++[paragraph] "$93,401" @ (1220, 1059)
++[paragraph] "MSRP $98,055" @ (1455, 1059)
++[section] "Est. $1734/mo" @ (1222, 1089)
++[section] "4.7Syosset, NY (26 mi)" @ (1711, 1066)
++[section] "1 of 4" @ (1539, 825)
++[link] "Skip to Listings" @ (92, 311)
+ [heading] "68 results" @ (156, 348)
+ [push-button] "Clear all filters" @ (337, 348)
+-[static] "Clear all / filters" @ (337, 348)
+ [entry] "Search in your own words" @ (241, 419)
+ [heading] "Location" @ (241, 498)
+ [combo-box] "Search within" @ (241, 556)
+ [menu-item] "50 miles" @ (241, 533)
+-[static] "$116,435" @ (477, 544)
+-[static] "$115,655" @ (850, 544)
+-[static] "$93,205" @ (1223, 544)
+-[static] "$106,525" @ (1600, 544)
+-[static] "MSRP $116,435" @ (708, 544)
+-[static] "MSRP $97,850" @ (1456, 544)
+-[static] "MSRP $106,525" @ (1826, 544)
+-[static] "Est. $2161/mo" @ (467, 575)
+-[static] "Est. $2147/mo" @ (840, 575)
+-[static] "Est. $1730/mo" @ (1214, 575)
+-[static] "Est. $1977/mo" @ (1586, 575)
+-[heading] "New 2026 INFINITI QX80 AUTOGRAPH" @ (568, 627)
+-[link] "New 2026 INFINITI QX80 AUTOGRAPH" @ (568, 602)
+-[heading] "New 2026 INFINITI QX80 AUTOGRAPH AWD" @ (960, 627)
+-[link] "New 2026 INFINITI QX80 AUTOGRAPH AWD" @ (960, 602)
+-[heading] "New 2026 INFINITI QX80 Luxe" @ (1284, 627)
+-[link] "New 2026 INFINITI QX80 Luxe" @ (1284, 602)
+-[heading] "New 2026 INFINITI QX80 SPORT" @ (1664, 627)
+-[link] "New 2026 INFINITI QX80 SPORT" @ (1664, 602)
+ [entry] "ZIP code" @ (241, 636)
+-[static] "Fette INFINITI / 4.6 / DARCARS Greenwich Infiniti / 4.7 / Infiniti City of Ma..." @ (473, 682)
+ [heading] "Basics" @ (241, 718)
+-[static] "Check Availability" @ (505, 719)
+ [push-button] "Condition" @ (241, 777)
+-[static] "Clifton, NJ (13 mi)" @ (494, 772)
+-[static] "Greenwich, CT (28 mi)" @ (881, 772)
+-[static] "Massapequa, NY (29 mi)" @ (1258, 772)
+-[static] "Danbury, CT (46 mi)" @ (1620, 772)
+ [radio-button] "New, used & CPO" @ (357, 831)
+-[image] "2026 Diamond Black INFINITI QX80" @ (592, 928)
+-[section] "4.6Clifton, NJ (13 mi)" @ (592, 1066)
+-[image] "2026 Radiant White INFINITI QX80" @ (965, 928)
+-[section] "4.7Greenwich, CT (28 mi)" @ (965, 1066)
+-[section] "4.4Massapequa, NY (29 mi)" @ (1338, 1066)
+-[image] "2026 Radiant White INFINITI QX80" @ (1711, 954)
+-[section] "1 of 4" @ (1539, 825)
+-[section] "4.7Syosset, NY (26 mi)" @ (1711, 1066)
+ [radio-button] "New & CPO" @ (357, 875)
+ [radio-button] "New" @ (357, 919)
+ [radio-button] "Used" @ (357, 963)
+ [radio-button] "Certified Pre-Owned" @ (357, 1007)
+ [push-button] "Make" @ (241, 1066)
+-[static] "$104,835" @ (482, 1058)
+-[static] "$106,525" @ (854, 1058)
+-[static] "$93,401" @ (1220, 1058)
+-[static] "MSRP $104,835" @ (707, 1058)
+-[static] "MSRP $98,055" @ (1455, 1058)
+-[section] "Est. $1946/mo" @ (476, 1089)
+-[section] "Est. $1977/mo" @ (848, 1089)
+-[section] "Est. $1734/mo" @ (1222, 1089)
++[static] "https://www.cars.com/vehicledetail/2e0b8c40-e4ec-485c-bc0b-45770577deb5/?openLeadForm" @ (399, 1069)
++[push-button] " Close menu" @ (430, 154)
++CONTENT:
++[BLOCK]
++[link] "Skip to main content" @ (86, 130)
++[/BLOCK]
++[BLOCK]
++[link] "Cars for Sale" @ (592, 142)
++[link] "New Cars" @ (693, 141)
++[link] "Research & Reviews" @ (815, 141)
++[link] "News & Videos" @ (952, 141)
++[link] "Sell Your Car" @ (1068, 141)
++[link] "Financing" @ (1168, 141)
++[/BLOCK]
++[BLOCK]
++[push-button] ". Menu" @ (1558, 142)
+ [/BLOCK]
+diff --git a/demo_outputs/gimp_10_gimp_instruction.txt b/demo_outputs/gimp_10_gimp_instruction.txt
+new file mode 100644
+index 0000000..d49684e
+--- /dev/null
++++ b/demo_outputs/gimp_10_gimp_instruction.txt
+@@ -0,0 +1,84 @@
++============================================================
++SAMPLE: domain=gimp, id=10 (gimp-10), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
++
++INSTRUCTION:
++Help me choose the yellow triangle and positioning it at the center of my picture.
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[label] "Cage Transform" @ (164, 333)
++[radio-button] "Create or adjust the cage" @ (164, 351)
++[/BLOCK]
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[spin-button] "100.0" @ (1726, 508)
++[/BLOCK]
++MODAL:
++[label] "Template:" @ (115, 91)
++[label] "1920 × 1080 pixels" @ (351, 221)
++[label] "300 ppi, RGB color" @ (351, 238)
++[spin-button] "1920" @ (200, 155)
++[spin-button] "1080" @ (200, 191)
++[combo-box] "pixels" @ (286, 191)
++[label] "Height:" @ (118, 191)
++[label] "Width:" @ (118, 155)
++[label] "Image Size" @ (280, 127)
++[toggle-button] "Advanced Options" (UNCHECKED) @ (280, 268)
++[push-button] "OK" @ (435, 319)
++[push-button] "Cancel" @ (344, 319)
++[push-button] "Reset" @ (253, 319)
++[push-button] " Close menu" @ (430, 154)
+diff --git a/demo_outputs/gimp_1_gimp_baseline.txt b/demo_outputs/gimp_1_gimp_baseline.txt
+new file mode 100644
+index 0000000..e9fd022
+--- /dev/null
++++ b/demo_outputs/gimp_1_gimp_baseline.txt
+@@ -0,0 +1,81 @@
++============================================================
++SAMPLE: domain=gimp, id=1 (gimp-1), mode=baseline
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
++label	woman_​sitting_​...
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "Paintbrush: Normal" @ (139, 355)
++[combo-box] "Default" @ (229, 355)
++[spin-button] "100.0" @ (164, 386)
++[text] "Brush: 2. Hardness 050" @ (169, 433)
++[spin-button] "51.00" @ (132, 469)
++[spin-button] "0.00" @ (132, 505)
++[spin-button] "0.00" @ (132, 541)
++[spin-button] "10.0" @ (132, 577)
++[spin-button] "50.0" @ (132, 613)
++[spin-button] "50.0" @ (132, 649)
++[text] "Dynamics: Dynamics Off" @ (169, 700)
++[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
++[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
++[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
++[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
++[check-box] "Incremental" (UNCHECKED) @ (164, 832)
++[/BLOCK]
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic,: 10.0" @ (1726, 378)
++[spin-button] "100.0" @ (1726, 508)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_1_gimp_instruction.txt b/demo_outputs/gimp_1_gimp_instruction.txt
+new file mode 100644
+index 0000000..92c94d3
+--- /dev/null
++++ b/demo_outputs/gimp_1_gimp_instruction.txt
+@@ -0,0 +1,81 @@
++============================================================
++SAMPLE: domain=gimp, id=1 (gimp-1), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
++label	woman_​sitting_​...
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "Paintbrush: Normal" @ (139, 355)
++[combo-box] "Default" @ (229, 355)
++[spin-button] "100.0" @ (164, 386)
++[text] "Brush: 2. Hardness 050" @ (169, 433)
++[spin-button] "51.00" @ (132, 469)
++[spin-button] "0.00" @ (132, 505)
++[spin-button] "0.00" @ (132, 541)
++[spin-button] "10.0" @ (132, 577)
++[spin-button] "50.0" @ (132, 613)
++[spin-button] "50.0" @ (132, 649)
++[text] "Dynamics: Dynamics Off" @ (169, 700)
++[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
++[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
++[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
++[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
++[check-box] "Incremental" (UNCHECKED) @ (164, 832)
++[/BLOCK]
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[spin-button] "100.0" @ (1726, 508)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_2_gimp_instruction.txt b/demo_outputs/gimp_2_gimp_instruction.txt
+new file mode 100644
+index 0000000..80ac178
+--- /dev/null
++++ b/demo_outputs/gimp_2_gimp_instruction.txt
+@@ -0,0 +1,85 @@
++============================================================
++SAMPLE: domain=gimp, id=2 (gimp-2), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
++
++INSTRUCTION:
++Could you help me set the image to Palette-Based?
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[label] "GEGL Operation" @ (164, 333)
++[check-box] "Sample average" (UNCHECKED) @ (164, 351)
++[spin-button] "3" @ (170, 376)
++[check-box] "Sample merged" (UNCHECKED) @ (164, 402)
++[/BLOCK]
++CANVAS (Center):
++[label] "Import the image from a color profile" @ (975, 426)
++[label] "computer.png-1" @ (975, 444)
++[label] "The image 'computer.png' has an embedded color profile" @ (994, 475)
++[toggle-button] "sRGB IEC61966-2.1" (UNCHECKED) @ (1000, 496)
++[label] "Convert the image to the built-in sRGB color profile?" @ (994, 527)
++[toggle-button] "GIMP built-in sRGB" (UNCHECKED) @ (1000, 548)
++[label] "Rendering Intent:" @ (849, 586)
++[combo-box] "Relative colorimetric" @ (1055, 586)
++[check-box] "Black Point Compensation" (UNCHECKED) @ (994, 618)
++[check-box] "Don't ask me again" (UNCHECKED) @ (994, 651)
++[push-button] "Help" @ (834, 702)
++[push-button] "Keep" @ (1063, 702)
++[push-button] "Convert" @ (1154, 702)
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[spin-button] "100.0" @ (1726, 508)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_3_gimp_instruction.txt b/demo_outputs/gimp_3_gimp_instruction.txt
+new file mode 100644
+index 0000000..da8a62c
+--- /dev/null
++++ b/demo_outputs/gimp_3_gimp_instruction.txt
+@@ -0,0 +1,82 @@
++============================================================
++SAMPLE: domain=gimp, id=3 (gimp-3), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
++
++INSTRUCTION:
++Could you help me set the image to Palette-Based?
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[label] "GEGL Operation" @ (164, 333)
++[check-box] "Sample average" (UNCHECKED) @ (164, 351)
++[spin-button] "3" @ (170, 376)
++[check-box] "Sample merged" (UNCHECKED) @ (164, 402)
++[/BLOCK]
++[BLOCK]
++[combo-box] "pixels" @ (402, 1062)
++[/BLOCK]
++CANVAS (Center):
++[table-cell] "computer.png" @ (1708, 569)
++[combo-box] "18.2 %" @ (462, 1062)
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[combo-box] "Normal" @ (1702, 480)
++[spin-button] "100.0" @ (1726, 508)
++[label] "Lock:" @ (1552, 537)
++[/BLOCK]
++[BLOCK]
++[combo-box] "Default" @ (1891, 480)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_4_gimp_instruction.txt b/demo_outputs/gimp_4_gimp_instruction.txt
+new file mode 100644
+index 0000000..23f9c05
+--- /dev/null
++++ b/demo_outputs/gimp_4_gimp_instruction.txt
+@@ -0,0 +1,82 @@
++============================================================
++SAMPLE: domain=gimp, id=4 (gimp-4), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
++
++INSTRUCTION:
++Could you help me set the image to Palette-Based?
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[label] "GEGL Operation" @ (164, 333)
++[check-box] "Sample average" (UNCHECKED) @ (164, 351)
++[spin-button] "3" @ (170, 376)
++[check-box] "Sample merged" (UNCHECKED) @ (164, 402)
++[/BLOCK]
++[BLOCK]
++[combo-box] "pixels" @ (402, 1062)
++[/BLOCK]
++CANVAS (Center):
++[table-cell] "computer.png" @ (1708, 569)
++[combo-box] "18.2 %" @ (462, 1062)
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[combo-box] "Normal" @ (1702, 480)
++[spin-button] "100.0" @ (1726, 508)
++[label] "Lock:" @ (1552, 537)
++[/BLOCK]
++[BLOCK]
++[combo-box] "Default" @ (1891, 480)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_5_gimp_instruction.txt b/demo_outputs/gimp_5_gimp_instruction.txt
+new file mode 100644
+index 0000000..e6e3dbd
+--- /dev/null
++++ b/demo_outputs/gimp_5_gimp_instruction.txt
+@@ -0,0 +1,98 @@
++============================================================
++SAMPLE: domain=gimp, id=5 (gimp-5), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793,...
++
++INSTRUCTION:
++Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "Airbrush: Normal" @ (139, 355)
++[combo-box] "Default" @ (229, 355)
++[spin-button] "100.0" @ (164, 386)
++[text] "Brush: 2. Hardness 050" @ (169, 433)
++[spin-button] "51.00" @ (132, 469)
++[spin-button] "0.00" @ (132, 505)
++[spin-button] "0.00" @ (132, 541)
++[spin-button] "10.0" @ (132, 577)
++[spin-button] "50.0" @ (132, 613)
++[spin-button] "50.0" @ (132, 649)
++[text] "Dynamics: Dynamics Off" @ (169, 700)
++[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
++[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
++[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
++[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
++[check-box] "Motion only" (UNCHECKED) @ (164, 832)
++[spin-button] "50.0" @ (164, 859)
++[spin-button] "10.0" @ (164, 887)
++[/BLOCK]
++[BLOCK]
++[label] "Mode:" @ (415, 135)
++[/BLOCK]
++CANVAS (Center):
++[label] "Core Pointer" @ (632, 92)
++[combo-box] "Screen" @ (490, 135)
++[label] "X Curve" @ (736, 128)
++[label] "The axis 'X' has no curve" @ (742, 291)
++[label] "Axes" @ (481, 165)
++[label] "Keys" @ (481, 330)
++[push-button] "Save" @ (758, 484)
++[push-button] "Close" @ (849, 484)
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[spin-button] "100.0 table-cell Core Pointer Core Pointer (121, 77) (248, 23) table-cell Virtual core XTEST pointer Virtual core XTEST pointer (121, 100) (..." @ (1726, 508)
++[/BLOCK]
++STATUSBAR:
+diff --git a/demo_outputs/gimp_6_gimp_instruction.txt b/demo_outputs/gimp_6_gimp_instruction.txt
+new file mode 100644
+index 0000000..1556269
+--- /dev/null
++++ b/demo_outputs/gimp_6_gimp_instruction.txt
+@@ -0,0 +1,111 @@
++============================================================
++SAMPLE: domain=gimp, id=6 (gimp-6), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++Let’s first execute the mouse-based approach to open the Preferences dialog. If it fails, we will fall back to keyboard shortcuts.
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​b...
++
++INSTRUCTION:
++Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "Airbrush: Normal" @ (139, 355)
++[combo-box] "Default" @ (229, 355)
++[spin-button] "100.0" @ (164, 386)
++[text] "Brush: 2. Hardness 050" @ (169, 433)
++[spin-button] "51.00" @ (132, 469)
++[spin-button] "0.00" @ (132, 505)
++[spin-button] "0.00" @ (132, 541)
++[spin-button] "10.0" @ (132, 577)
++[spin-button] "50.0" @ (132, 613)
++[spin-button] "50.0" @ (132, 649)
++[text] "Dynamics: Dynamics Off" @ (169, 700)
++[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
++[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
++[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
++[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
++[check-box] "Motion only" (UNCHECKED) @ (164, 832)
++[spin-button] "50.0" @ (164, 859)
++[spin-button] "10.0" @ (164, 887)
++[/BLOCK]
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[/BLOCK]
++MODAL:
++[spin-button] "...ell Dialog Defaults Dialog Defaults (155, 330) (176, 23) table-cell Help System Help System (155, 353) (176, 23) table-cell Display Display..." @ (1726, 508)
++[label] "System Resources" @ (407, 92)
++[spin-button] "4" @ (614, 357)
++[label] "Number of threads to use:" @ (455, 357)
++[combo-box] "fast" @ (717, 317)
++[text] "Best performance" @ (705, 317)
++[label] "Swap compression:" @ (455, 317)
++[spin-button] "128" @ (627, 277)
++[combo-box] "Mebibyte" @ (730, 277)
++[label] "Maximum new image size:" @ (455, 277)
++[spin-button] "2000210" @ (627, 237)
++[combo-box] "Kibibyte" @ (730, 237)
++[label] "Tile cache size:" @ (455, 237)
++[spin-button] "500053" @ (627, 197)
++[combo-box] "Kibibyte" @ (730, 197)
++[label] "Maximum undo memory:" @ (455, 197)
++[spin-button] "5" @ (627, 157)
++[label] "Minimal number of undo levels:" @ (455, 157)
++[label] "Resource Consumption" @ (591, 129)
++[combo-box] "Normal (128x128)" @ (717, 420)
++[label] "Size of thumbnails:" @ (455, 420)
++[label] "Image Thumbnails" @ (591, 394)
++[push-button] "OK" @ (828, 464)
++[push-button] "Cancel" @ (737, 464)
++[push-button] "Reset" @ (646, 464)
++[push-button] " Close menu" @ (430, 154)
+diff --git a/demo_outputs/gimp_7_gimp_baseline.txt b/demo_outputs/gimp_7_gimp_baseline.txt
+new file mode 100644
+index 0000000..40e58b7
+--- /dev/null
++++ b/demo_outputs/gimp_7_gimp_baseline.txt
+@@ -0,0 +1,61 @@
++============================================================
++SAMPLE: domain=gimp, id=7 (gimp-7), mode=baseline
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793,...
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "pixels" @ (193, 1064)
++[combo-box] "66.7 %" @ (253, 1064)
++[text] "66.7 %" @ (242, 1064)
++[/BLOCK]
+diff --git a/demo_outputs/gimp_7_gimp_instruction.txt b/demo_outputs/gimp_7_gimp_instruction.txt
+new file mode 100644
+index 0000000..9f826d4
+--- /dev/null
++++ b/demo_outputs/gimp_7_gimp_instruction.txt
+@@ -0,0 +1,66 @@
++============================================================
++SAMPLE: domain=gimp, id=7 (gimp-7), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793,...
++
++INSTRUCTION:
++Please rotate my figure to mirror it horizontally.
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "pixels" @ (193, 1064)
++[combo-box] "66.7 %" @ (253, 1064)
++[text] "66.7 %" @ (242, 1064)
++[/BLOCK]
++STATUSBAR:
++[status] "berry.png (17.0 MB)" @ (1101, 1064)
+diff --git a/demo_outputs/gimp_8_gimp_baseline.txt b/demo_outputs/gimp_8_gimp_baseline.txt
+new file mode 100644
+index 0000000..d82e645
+--- /dev/null
++++ b/demo_outputs/gimp_8_gimp_baseline.txt
+@@ -0,0 +1,71 @@
++============================================================
++SAMPLE: domain=gimp, id=8 (gimp-8), mode=baseline
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793,...
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "pixels" @ (193, 1064)
++[combo-box] "66.7 %" @ (253, 1064)
++[text] "66.7 %" @ (242, 1064)
++[/BLOCK]
++MODAL:
++[label] "berry.png (17.0 MB)" @ (1101, 1064)
++[label] "There is one image with unsaved changes:" @ (1009, 456)
++[table-cell] "[berry] (imported)-1" @ (943, 492)
++[label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
++[label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
++[push-button] "Discard Changes" @ (1135, 681)
++[push-button] "Cancel" @ (995, 681)
++[push-button] "Help" @ (855, 681)
++[push-button] " Close menu" @ (430, 154)
+diff --git a/demo_outputs/gimp_8_gimp_instruction.txt b/demo_outputs/gimp_8_gimp_instruction.txt
+new file mode 100644
+index 0000000..5382ad5
+--- /dev/null
++++ b/demo_outputs/gimp_8_gimp_instruction.txt
+@@ -0,0 +1,74 @@
++============================================================
++SAMPLE: domain=gimp, id=8 (gimp-8), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793,...
++
++INSTRUCTION:
++Please rotate my figure to mirror it horizontally.
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[combo-box] "pixels" @ (193, 1064)
++[combo-box] "66.7 %" @ (253, 1064)
++[text] "66.7 %" @ (242, 1064)
++[/BLOCK]
++STATUSBAR:
++[status] "berry.png (17.0 MB)" @ (1101, 1064)
++MODAL:
++[label] "There is one image with unsaved changes:" @ (1009, 456)
++[label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
++[label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
++[push-button] "Discard Changes" @ (1135, 681)
++[push-button] "Cancel" @ (995, 681)
++[push-button] "Help" @ (855, 681)
++[push-button] " Close menu" @ (430, 154)
+diff --git a/demo_outputs/gimp_9_gimp_instruction.txt b/demo_outputs/gimp_9_gimp_instruction.txt
+new file mode 100644
+index 0000000..82a40da
+--- /dev/null
++++ b/demo_outputs/gimp_9_gimp_instruction.txt
+@@ -0,0 +1,70 @@
++============================================================
++SAMPLE: domain=gimp, id=9 (gimp-9), mode=instruction
++============================================================
++
++ORIGINAL LINEAR A11Y (Head 500 chars):
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
++
++INSTRUCTION:
++Help me choose the yellow triangle and positioning it at the center of my picture.
++
++DETECTED DOMAIN: gimp
++
++=== COMPRESSED A11Y ===
++APP_LAUNCHER:
++[launcher-app] "Google Chrome" @ (35, 65)
++---
++[launcher-app] "Thunderbird Mail" @ (35, 133)
++---
++[launcher-app] "Visual Studio Code" @ (35, 201)
++---
++[launcher-app] "VLC media player" @ (35, 269)
++---
++[launcher-app] "LibreOffice Writer" @ (35, 337)
++---
++[launcher-app] "LibreOffice Calc" @ (35, 405)
++---
++[launcher-app] "LibreOffice Impress" @ (35, 473)
++---
++[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
++---
++[launcher-app] "Files" @ (35, 609)
++---
++[launcher-app] "Ubuntu Software" @ (35, 677)
++---
++[launcher-app] "Help" @ (35, 745)
++---
++[launcher-app] "Trash" @ (35, 816)
++---
++[launcher-app] "Show Applications" @ (35, 1045)
++MENUBAR:
++[menu] "GNU Image Manipulation Program" @ (242, 13)
++---
++[menu] "File" @ (88, 76)
++[menu] "Edit" @ (125, 76)
++[menu] "Select" @ (171, 76)
++[menu] "View" @ (220, 76)
++[menu] "Image" @ (269, 76)
++[menu] "Layer" @ (320, 76)
++[menu] "Colors" @ (372, 76)
++[menu] "Tools" @ (424, 76)
++[menu] "Filters" @ (475, 76)
++[menu] "Windows" @ (539, 76)
++[menu] "Help" @ (597, 76)
++TOOLBOX (Left Panel):
++[BLOCK]
++[label] "Cage Transform" @ (164, 333)
++[radio-button] "Create or adjust the cage" @ (164, 351)
++[/BLOCK]
++DOCKS (Right Panel):
++[BLOCK]
++[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
++[spin-button] "Basic: 10.0" @ (1726, 378)
++[spin-button] "100.0" @ (1726, 508)
++[/BLOCK]
++STATUSBAR:
+diff --git a/demo_samples/extract_steps.py b/demo_samples/extract_steps.py
+index 55504d9..01aaa5c 100644
+--- a/demo_samples/extract_steps.py
++++ b/demo_samples/extract_steps.py
+@@ -6,14 +6,14 @@ import glob
+ # ================= CONFIGuration =================
+ # 抽出元のフォルダ（ログと画像がある場所）
+ # 例: .../vllm-qwen3vl32b/chrome/0d8b7de3-e8de-4d86-b9fd-dd2dce58a217
+-SOURCE_DIR = "/home/cassidy/AI_Agent/OSWorld_new/results/pyautogui/a11y_tree/vllm-qwen3vl32b/chrome/82bc8d6a-36eb-4d2d-8801-ef714fb1e55a" 
++SOURCE_DIR = "/home/cassidy/AI_Agent/OSWorld_new/results/pyautogui/a11y_tree/vllm-qwen3vl32b/gimp/f4aec372-4fb0-4df5-a52b-79e0e2a5d6ce" 
+ 
+ # 出力先の親ディレクトリ
+-DEST_DIR = "/home/cassidy/a11y-tree/demo_samples/chrome"
++DEST_DIR = "/home/cassidy/a11y-tree/demo_samples/gimp"
+ 
+ # 抽出したいステップの範囲 (N ~ M)
+-STEP_START = 1
+-STEP_END = 1
++STEP_START = 2
++STEP_END = 3
+ 
+ # Instructionが入っているJSONがあるルートディレクトリ
+ EXAMPLES_ROOT_PATH = "/home/cassidy/AI_Agent/OSWorld_new/evaluation_examples/examples"
+diff --git a/demo_samples/gimp/10/a11y.txt b/demo_samples/gimp/10/a11y.txt
+new file mode 100644
+index 0000000..7483eb2
+--- /dev/null
++++ b/demo_samples/gimp/10/a11y.txt
+@@ -0,0 +1,97 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048.​desktop	chrome-​Play_​Puzzle_​Game_​2048.​desktop			(1265, 686)	(120, 34)
++label	export.​jpg	export.​jpg			(1818, 452)	(70, 17)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	enhanced_​low_​resolution.​jpeg.​xcf	enhanced_​low_​resolution.​jpeg.​xcf			(1265, 803)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	Cage Transform	Cage Transform			(76, 326)	(176, 15)
++radio-button	Create or adjust the cage	Create or adjust the cage			(76, 341)	(176, 21)
++radio-button	Deform the cage
++to deform the image	Deform the cage
++to deform the image			(76, 363)	(176, 32)
++check-box	Fill the original position
++of the cage with a color	Fill the original position
++of the cage with a color			(76, 399)	(176, 32)
++label	 	 			(268, 1050)	(1015, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++spin-button		100.0			(1538, 496)	(376, 24)
++label	Template:	Template:			(82, 76)	(67, 31)
++label	1920 × 1080 pixels	1920 × 1080 pixels			(224, 214)	(254, 15)
++label	300 ppi, RGB color	300 ppi, RGB color			(224, 231)	(254, 15)
++spin-button		1920			(148, 138)	(104, 34)
++spin-button		1080			(148, 174)	(104, 34)
++combo-box	pixels	""			(258, 174)	(57, 34)
++label	Height:	Height:			(94, 174)	(48, 34)
++label	Width:	Width:			(94, 138)	(48, 34)
++label	Image Size	Image Size			(82, 119)	(396, 17)
++toggle-button	Advanced Options	Advanced Options			(82, 258)	(396, 21)
++push-button	OK	OK			(393, 303)	(85, 33)
++push-button	Cancel	Cancel			(302, 303)	(85, 33)
++push-button	Reset	Reset			(211, 303)	(85, 33)
++push-button	Help	Help			(82, 303)	(85, 33)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/10/image.png b/demo_samples/gimp/10/image.png
+new file mode 100644
+index 0000000..314fc7a
+Binary files /dev/null and b/demo_samples/gimp/10/image.png differ
+diff --git a/demo_samples/gimp/10/instruction.txt b/demo_samples/gimp/10/instruction.txt
+new file mode 100644
+index 0000000..df48350
+--- /dev/null
++++ b/demo_samples/gimp/10/instruction.txt
+@@ -0,0 +1 @@
++Help me choose the yellow triangle and positioning it at the center of my picture.
+\ No newline at end of file
+diff --git a/demo_samples/gimp/2/a11y.txt b/demo_samples/gimp/2/a11y.txt
+new file mode 100644
+index 0000000..670e6f7
+--- /dev/null
++++ b/demo_samples/gimp/2/a11y.txt
+@@ -0,0 +1,92 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048.​desktop	chrome-​Play_​Puzzle_​Game_​2048.​desktop			(1265, 686)	(120, 34)
++label	export.​jpg	export.​jpg			(1818, 452)	(70, 17)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	enhanced_​low_​resolution.​jpeg.​xcf	enhanced_​low_​resolution.​jpeg.​xcf			(1265, 803)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	GEGL Operation	GEGL Operation			(76, 326)	(176, 15)
++spin-button		3			(88, 364)	(164, 24)
++check-box	Sample average	Sample average			(76, 341)	(176, 21)
++check-box	Sample merged	Sample merged			(76, 392)	(176, 21)
++label	 	 			(268, 1050)	(1015, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++spin-button		100.0			(1538, 496)	(376, 24)
++label	Import the image from a color profile	Import the image from a color profile			(789, 416)	(373, 21)
++label	computer.png-1	computer.png-1			(789, 437)	(373, 15)
++toggle-button	sRGB IEC61966-2.1	sRGB IEC61966-2.1			(804, 486)	(393, 21)
++label	The image 'computer.png' has an embedded color profile	The image 'computer.png' has an embedded color profile			(792, 467)	(405, 17)
++toggle-button	GIMP built-in sRGB	GIMP built-in sRGB			(804, 538)	(393, 21)
++label	Convert the image to the built-in sRGB color profile?	Convert the image to the built-in sRGB color profile?			(792, 519)	(405, 17)
++label	Rendering Intent:	Rendering Intent:			(792, 571)	(115, 31)
++combo-box	Relative colorimetric	""			(913, 571)	(284, 31)
++check-box	Black Point Compensation	Black Point Compensation			(792, 608)	(405, 21)
++check-box	Don't ask me again	Don't ask me again			(792, 641)	(405, 21)
++push-button	Convert	Convert			(1112, 686)	(85, 33)
++push-button	Keep	Keep			(1021, 686)	(85, 33)
++push-button	Help	Help			(792, 686)	(85, 33)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/2/image.png b/demo_samples/gimp/2/image.png
+new file mode 100644
+index 0000000..9a33e57
+Binary files /dev/null and b/demo_samples/gimp/2/image.png differ
+diff --git a/demo_samples/gimp/2/instruction.txt b/demo_samples/gimp/2/instruction.txt
+new file mode 100644
+index 0000000..e7198b0
+--- /dev/null
++++ b/demo_samples/gimp/2/instruction.txt
+@@ -0,0 +1 @@
++Could you help me set the image to Palette-Based?
+\ No newline at end of file
+diff --git a/demo_samples/gimp/3/a11y.txt b/demo_samples/gimp/3/a11y.txt
+new file mode 100644
+index 0000000..fd359ee
+--- /dev/null
++++ b/demo_samples/gimp/3/a11y.txt
+@@ -0,0 +1,86 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048.​desktop	chrome-​Play_​Puzzle_​Game_​2048.​desktop			(1265, 686)	(120, 34)
++label	export.​jpg	export.​jpg			(1818, 452)	(70, 17)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	enhanced_​low_​resolution.​jpeg.​xcf	enhanced_​low_​resolution.​jpeg.​xcf			(1265, 803)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	GEGL Operation	GEGL Operation			(76, 326)	(176, 15)
++spin-button		3			(88, 364)	(164, 24)
++check-box	Sample average	Sample average			(76, 341)	(176, 21)
++check-box	Sample merged	Sample merged			(76, 392)	(176, 21)
++combo-box	pixels	""			(376, 1048)	(53, 29)
++combo-box	18.2 %	""			(430, 1048)	(64, 29)
++text		18.2 %			(430, 1048)	(43, 29)
++label	computer.png (187.9 MB)	computer.png (187.9 MB)			(496, 1048)	(1018, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++combo-box	Normal	""			(1538, 466)	(329, 29)
++combo-box	Default	""			(1868, 466)	(46, 29)
++spin-button		100.0			(1538, 496)	(376, 24)
++label	Lock:	Lock:			(1538, 521)	(28, 32)
++table-cell	computer.png	computer.png			(1666, 554)	(84, 30)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/3/image.png b/demo_samples/gimp/3/image.png
+new file mode 100644
+index 0000000..2d3fb2e
+Binary files /dev/null and b/demo_samples/gimp/3/image.png differ
+diff --git a/demo_samples/gimp/3/instruction.txt b/demo_samples/gimp/3/instruction.txt
+new file mode 100644
+index 0000000..e7198b0
+--- /dev/null
++++ b/demo_samples/gimp/3/instruction.txt
+@@ -0,0 +1 @@
++Could you help me set the image to Palette-Based?
+\ No newline at end of file
+diff --git a/demo_samples/gimp/4/a11y.txt b/demo_samples/gimp/4/a11y.txt
+new file mode 100644
+index 0000000..fd359ee
+--- /dev/null
++++ b/demo_samples/gimp/4/a11y.txt
+@@ -0,0 +1,86 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048.​desktop	chrome-​Play_​Puzzle_​Game_​2048.​desktop			(1265, 686)	(120, 34)
++label	export.​jpg	export.​jpg			(1818, 452)	(70, 17)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	enhanced_​low_​resolution.​jpeg.​xcf	enhanced_​low_​resolution.​jpeg.​xcf			(1265, 803)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	GEGL Operation	GEGL Operation			(76, 326)	(176, 15)
++spin-button		3			(88, 364)	(164, 24)
++check-box	Sample average	Sample average			(76, 341)	(176, 21)
++check-box	Sample merged	Sample merged			(76, 392)	(176, 21)
++combo-box	pixels	""			(376, 1048)	(53, 29)
++combo-box	18.2 %	""			(430, 1048)	(64, 29)
++text		18.2 %			(430, 1048)	(43, 29)
++label	computer.png (187.9 MB)	computer.png (187.9 MB)			(496, 1048)	(1018, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++combo-box	Normal	""			(1538, 466)	(329, 29)
++combo-box	Default	""			(1868, 466)	(46, 29)
++spin-button		100.0			(1538, 496)	(376, 24)
++label	Lock:	Lock:			(1538, 521)	(28, 32)
++table-cell	computer.png	computer.png			(1666, 554)	(84, 30)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/4/image.png b/demo_samples/gimp/4/image.png
+new file mode 100644
+index 0000000..0fe3212
+Binary files /dev/null and b/demo_samples/gimp/4/image.png differ
+diff --git a/demo_samples/gimp/4/instruction.txt b/demo_samples/gimp/4/instruction.txt
+new file mode 100644
+index 0000000..e7198b0
+--- /dev/null
++++ b/demo_samples/gimp/4/instruction.txt
+@@ -0,0 +1 @@
++Could you help me set the image to Palette-Based?
+\ No newline at end of file
+diff --git a/demo_samples/gimp/5/a11y.txt b/demo_samples/gimp/5/a11y.txt
+new file mode 100644
+index 0000000..a5cec20
+--- /dev/null
++++ b/demo_samples/gimp/5/a11y.txt
+@@ -0,0 +1,118 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	The_​Lost_​River_​Of_​Dreams.​jpg	The_​Lost_​River_​Of_​Dreams.​jpg			(1793, 452)	(120, 34)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	Airbrush	Airbrush			(76, 326)	(176, 15)
++combo-box	Normal	""			(76, 341)	(126, 29)
++combo-box	Default	""			(206, 341)	(46, 29)
++spin-button		100.0			(76, 374)	(176, 24)
++label	Brush	Brush			(120, 402)	(98, 15)
++text		2. Hardness 050			(120, 417)	(98, 32)
++spin-button		51.00			(76, 453)	(112, 32)
++spin-button		0.00			(76, 489)	(112, 32)
++spin-button		0.00			(76, 525)	(112, 32)
++spin-button		10.0			(76, 561)	(112, 32)
++spin-button		50.0			(76, 597)	(112, 32)
++spin-button		50.0			(76, 633)	(112, 32)
++label	Dynamics	Dynamics			(120, 669)	(98, 15)
++text		Dynamics Off			(120, 684)	(98, 32)
++toggle-button	Dynamics Options	Dynamics Options			(76, 720)	(176, 19)
++check-box	Apply Jitter	Apply Jitter			(76, 743)	(176, 21)
++check-box	Smooth stroke	Smooth stroke			(76, 770)	(176, 21)
++check-box	Lock brush to view	Lock brush to view			(76, 797)	(176, 21)
++check-box	Motion only	Motion only			(76, 822)	(176, 21)
++spin-button		50.0			(76, 847)	(176, 24)
++spin-button		10.0			(76, 875)	(176, 24)
++label	 	 			(268, 1050)	(1015, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++spin-button		100.0			(1538, 496)	(376, 24)
++table-cell	Core Pointer	Core Pointer			(121, 77)	(248, 23)
++table-cell	Virtual core XTEST pointer	Virtual core XTEST pointer			(121, 100)	(248, 23)
++table-cell	VirtualPS/2 VMware VMMouse	VirtualPS/2 VMware VMMouse			(121, 123)	(248, 23)
++table-cell	VMware VMware Virtual USB Mouse	VMware VMware Virtual USB Mouse			(121, 146)	(248, 23)
++label	Core Pointer	Core Pointer			(398, 80)	(468, 24)
++label	Mode:	Mode:			(394, 120)	(43, 31)
++combo-box	Screen	""			(443, 120)	(94, 31)
++table-cell	X	X			(410, 177)	(111, 23)
++table-cell	1	1			(527, 177)	(37, 23)
++table-cell	Y	Y			(410, 200)	(111, 23)
++table-cell	2	2			(527, 200)	(37, 23)
++table-cell	Pressure	Pressure			(410, 223)	(111, 23)
++table-cell	none	none			(527, 223)	(37, 23)
++table-cell	X tilt	X tilt			(410, 246)	(111, 23)
++table-cell	none	none			(527, 246)	(37, 23)
++table-cell	Y tilt	Y tilt			(410, 269)	(111, 23)
++table-cell	none	none			(527, 269)	(37, 23)
++table-cell	Wheel/Rotation	Wheel/Rotation			(410, 292)	(111, 23)
++table-cell	none	none			(527, 292)	(37, 23)
++label	Axes	Axes			(394, 157)	(174, 17)
++label	Keys	Keys			(394, 322)	(174, 17)
++label	The axis 'X' has no curve	The axis 'X' has no curve			(592, 139)	(300, 305)
++label	X Curve	X Curve			(580, 120)	(312, 17)
++push-button	Close	Close			(807, 468)	(85, 33)
++push-button	Save	Save			(716, 468)	(85, 33)
++push-button	Help	Help			(82, 468)	(85, 33)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/5/image.png b/demo_samples/gimp/5/image.png
+new file mode 100644
+index 0000000..305ac5a
+Binary files /dev/null and b/demo_samples/gimp/5/image.png differ
+diff --git a/demo_samples/gimp/5/instruction.txt b/demo_samples/gimp/5/instruction.txt
+new file mode 100644
+index 0000000..88485d1
+--- /dev/null
++++ b/demo_samples/gimp/5/instruction.txt
+@@ -0,0 +1 @@
++Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
+\ No newline at end of file
+diff --git a/demo_samples/gimp/6/a11y.txt b/demo_samples/gimp/6/a11y.txt
+new file mode 100644
+index 0000000..cc9d012
+--- /dev/null
++++ b/demo_samples/gimp/6/a11y.txt
+@@ -0,0 +1,134 @@
++Let’s first execute the mouse-based approach to open the Preferences dialog. If it fails, we will fall back to keyboard shortcuts.
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	The_​Lost_​River_​Of_​Dreams.​jpg	The_​Lost_​River_​Of_​Dreams.​jpg			(1793, 452)	(120, 34)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	Airbrush	Airbrush			(76, 326)	(176, 15)
++combo-box	Normal	""			(76, 341)	(126, 29)
++combo-box	Default	""			(206, 341)	(46, 29)
++spin-button		100.0			(76, 374)	(176, 24)
++label	Brush	Brush			(120, 402)	(98, 15)
++text		2. Hardness 050			(120, 417)	(98, 32)
++spin-button		51.00			(76, 453)	(112, 32)
++spin-button		0.00			(76, 489)	(112, 32)
++spin-button		0.00			(76, 525)	(112, 32)
++spin-button		10.0			(76, 561)	(112, 32)
++spin-button		50.0			(76, 597)	(112, 32)
++spin-button		50.0			(76, 633)	(112, 32)
++label	Dynamics	Dynamics			(120, 669)	(98, 15)
++text		Dynamics Off			(120, 684)	(98, 32)
++toggle-button	Dynamics Options	Dynamics Options			(76, 720)	(176, 19)
++check-box	Apply Jitter	Apply Jitter			(76, 743)	(176, 21)
++check-box	Smooth stroke	Smooth stroke			(76, 770)	(176, 21)
++check-box	Lock brush to view	Lock brush to view			(76, 797)	(176, 21)
++check-box	Motion only	Motion only			(76, 822)	(176, 21)
++spin-button		50.0			(76, 847)	(176, 24)
++spin-button		10.0			(76, 875)	(176, 24)
++label	 	 			(268, 1050)	(1015, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++spin-button		100.0			(1538, 496)	(376, 24)
++table-cell	System Resources	System Resources			(138, 77)	(176, 23)
++table-cell	Debugging	Debugging			(138, 100)	(176, 23)
++table-cell	Color Management	Color Management			(138, 123)	(176, 23)
++table-cell	Image Import & Export	Image Import & Export			(138, 146)	(176, 23)
++table-cell	Tool Options	Tool Options			(138, 169)	(176, 23)
++table-cell	Default Image	Default Image			(138, 192)	(176, 23)
++table-cell	Interface	Interface			(138, 238)	(176, 23)
++table-cell	Image Windows	Image Windows			(138, 422)	(176, 23)
++table-cell	Default Grid	Default Grid			(155, 215)	(176, 23)
++table-cell	Theme	Theme			(155, 261)	(176, 23)
++table-cell	Icon Theme	Icon Theme			(155, 284)	(176, 23)
++table-cell	Toolbox	Toolbox			(155, 307)	(176, 23)
++table-cell	Dialog Defaults	Dialog Defaults			(155, 330)	(176, 23)
++table-cell	Help System	Help System			(155, 353)	(176, 23)
++table-cell	Display	Display			(155, 376)	(176, 23)
++table-cell	Window Management	Window Management			(155, 399)	(176, 23)
++label	System Resources	System Resources			(332, 82)	(150, 21)
++spin-button		4			(579, 340)	(70, 34)
++label	Number of threads to use:	Number of threads to use:			(338, 340)	(235, 34)
++combo-box	fast	""			(579, 300)	(277, 34)
++text		Best performance			(579, 300)	(252, 34)
++label	Swap compression:	Swap compression:			(338, 300)	(235, 34)
++spin-button		128			(579, 260)	(96, 34)
++combo-box	Mebibyte	""			(679, 260)	(103, 34)
++label	Maximum new image size:	Maximum new image size:			(338, 260)	(235, 34)
++spin-button		2000210			(579, 220)	(96, 34)
++combo-box	Kibibyte	""			(679, 220)	(103, 34)
++label	Tile cache size:	Tile cache size:			(338, 220)	(235, 34)
++spin-button		500053			(579, 180)	(96, 34)
++combo-box	Kibibyte	""			(679, 180)	(103, 34)
++label	Maximum undo memory:	Maximum undo memory:			(338, 180)	(235, 34)
++spin-button		5			(579, 140)	(96, 34)
++label	Minimal number of undo levels:	Minimal number of undo levels:			(338, 140)	(235, 34)
++label	Resource Consumption	Resource Consumption			(326, 121)	(530, 17)
++combo-box	Normal (128x128)	""			(579, 405)	(277, 31)
++label	Size of thumbnails:	Size of thumbnails:			(338, 405)	(235, 31)
++label	Image Thumbnails	Image Thumbnails			(326, 386)	(530, 17)
++push-button	OK	OK			(786, 448)	(85, 33)
++push-button	Cancel	Cancel			(695, 448)	(85, 33)
++push-button	Reset	Reset			(604, 448)	(85, 33)
++push-button	Help	Help			(82, 448)	(85, 33)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/6/image.png b/demo_samples/gimp/6/image.png
+new file mode 100644
+index 0000000..a0c4e8c
+Binary files /dev/null and b/demo_samples/gimp/6/image.png differ
+diff --git a/demo_samples/gimp/6/instruction.txt b/demo_samples/gimp/6/instruction.txt
+new file mode 100644
+index 0000000..88485d1
+--- /dev/null
++++ b/demo_samples/gimp/6/instruction.txt
+@@ -0,0 +1 @@
++Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
+\ No newline at end of file
+diff --git a/demo_samples/gimp/7/a11y.txt b/demo_samples/gimp/7/a11y.txt
+new file mode 100644
+index 0000000..78a2b2b
+--- /dev/null
++++ b/demo_samples/gimp/7/a11y.txt
+@@ -0,0 +1,70 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	The_​Lost_​River_​Of_​Dreams.​jpg	The_​Lost_​River_​Of_​Dreams.​jpg			(1793, 452)	(120, 34)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++combo-box	pixels	""			(167, 1050)	(53, 29)
++combo-box	66.7 %	""			(221, 1050)	(64, 29)
++text		66.7 %			(221, 1050)	(43, 29)
++label	berry.png (17.0 MB)	berry.png (17.0 MB)			(287, 1050)	(1628, 29)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/7/image.png b/demo_samples/gimp/7/image.png
+new file mode 100644
+index 0000000..449ed70
+Binary files /dev/null and b/demo_samples/gimp/7/image.png differ
+diff --git a/demo_samples/gimp/7/instruction.txt b/demo_samples/gimp/7/instruction.txt
+new file mode 100644
+index 0000000..7583baa
+--- /dev/null
++++ b/demo_samples/gimp/7/instruction.txt
+@@ -0,0 +1 @@
++Please rotate my figure to mirror it horizontally.
+\ No newline at end of file
+diff --git a/demo_samples/gimp/8/a11y.txt b/demo_samples/gimp/8/a11y.txt
+new file mode 100644
+index 0000000..fb4f667
+--- /dev/null
++++ b/demo_samples/gimp/8/a11y.txt
+@@ -0,0 +1,77 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	The_​Lost_​River_​Of_​Dreams.​jpg	The_​Lost_​River_​Of_​Dreams.​jpg			(1793, 452)	(120, 34)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++combo-box	pixels	""			(167, 1050)	(53, 29)
++combo-box	66.7 %	""			(221, 1050)	(64, 29)
++text		66.7 %			(221, 1050)	(43, 29)
++label	berry.png (17.0 MB)	berry.png (17.0 MB)			(287, 1050)	(1628, 29)
++label	There is one image with unsaved changes:	There is one image with unsaved changes:			(816, 446)	(386, 21)
++table-cell	[berry] (imported)-1	[berry] (imported)-1			(873, 480)	(141, 25)
++label	If you quit GIMP now, these changes will be lost.	If you quit GIMP now, these changes will be lost.			(816, 597)	(386, 17)
++label	Press Ctrl+D to discard all changes and quit.	Press Ctrl+D to discard all changes and quit.			(816, 626)	(386, 15)
++push-button	Discard Changes	Discard Changes			(1068, 665)	(134, 33)
++push-button	Cancel	Cancel			(928, 665)	(134, 33)
++push-button	Help	Help			(788, 665)	(134, 33)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/8/image.png b/demo_samples/gimp/8/image.png
+new file mode 100644
+index 0000000..08eabfa
+Binary files /dev/null and b/demo_samples/gimp/8/image.png differ
+diff --git a/demo_samples/gimp/8/instruction.txt b/demo_samples/gimp/8/instruction.txt
+new file mode 100644
+index 0000000..7583baa
+--- /dev/null
++++ b/demo_samples/gimp/8/instruction.txt
+@@ -0,0 +1 @@
++Please rotate my figure to mirror it horizontally.
+\ No newline at end of file
+diff --git a/demo_samples/gimp/9/a11y.txt b/demo_samples/gimp/9/a11y.txt
+new file mode 100644
+index 0000000..0bae3f1
+--- /dev/null
++++ b/demo_samples/gimp/9/a11y.txt
+@@ -0,0 +1,83 @@
++LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
++label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
++label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
++label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
++label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
++label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
++label	helloExtension.​zip	helloExtension.​zip			(1793, 920)	(120, 34)
++label	chrome-​Play_​Puzzle_​Game_​2048.​desktop	chrome-​Play_​Puzzle_​Game_​2048.​desktop			(1265, 686)	(120, 34)
++label	export.​jpg	export.​jpg			(1818, 452)	(70, 17)
++label	leftside_​textbox.​png	leftside_​textbox.​png			(1265, 1037)	(120, 34)
++label	helloExtension	helloExtension			(1803, 1037)	(99, 17)
++label	_​_​MACOSX	_​_​MACOSX			(1816, 803)	(73, 17)
++label	Triangle_​On_​The_​Side.​xcf	Triangle_​On_​The_​Side.​xcf			(1793, 218)	(120, 34)
++label	New Folder 1	New Folder 1			(224, 569)	(88, 17)
++label	New Folder 2	New Folder 2			(356, 686)	(88, 17)
++label	Triangle_​In_​The_​Middle.​png	Triangle_​In_​The_​Middle.​png			(1661, 569)	(120, 34)
++label	New Folder	New Folder			(1814, 101)	(77, 17)
++label	edited_​darker.​png	edited_​darker.​png			(1661, 920)	(120, 34)
++label	enhanced_​low_​resolution.​jpeg.​xcf	enhanced_​low_​resolution.​jpeg.​xcf			(1265, 803)	(120, 34)
++label	dog_​with_​background.​png	dog_​with_​background.​png			(1661, 452)	(120, 34)
++label	berry.​png	berry.​png			(1556, 218)	(65, 17)
++label	white_​background_​with_​object.​xcf	white_​background_​with_​object.​xcf			(1397, 1037)	(120, 34)
++label	white_​background.​xcf	white_​background.​xcf			(1661, 101)	(120, 34)
++label	edited_​colorful.​png	edited_​colorful.​png			(1661, 686)	(120, 34)
++label	vibrant_​photo.​xcf	vibrant_​photo.​xcf			(1661, 803)	(120, 17)
++label	dog_​with_​background_​two_​layers.​xcf	dog_​with_​background_​two_​layers.​xcf			(1529, 1037)	(120, 34)
++label	computer.​png	computer.​png			(1542, 803)	(94, 17)
++label	yicun.​raw	yicun.​raw			(1426, 101)	(62, 17)
++label	heron.​jpeg	heron.​jpeg			(1421, 569)	(72, 17)
++label	berries.​png	berries.​png			(1550, 452)	(77, 17)
++label	dog_​cutout_​gold.​png	dog_​cutout_​gold.​png			(1661, 335)	(120, 34)
++label	squirrel.​jpeg	squirrel.​jpeg			(1414, 452)	(85, 17)
++label	gate.​jpeg	gate.​jpeg			(1425, 218)	(63, 17)
++label	resized.​png	resized.​png			(1550, 920)	(78, 17)
++label	dog_​without_​background.​png	dog_​without_​background.​png			(1661, 218)	(120, 34)
++label	low_​resolution.​jpeg	low_​resolution.​jpeg			(1397, 686)	(120, 34)
++label	berries_​contrast.​png	berries_​contrast.​png			(1529, 335)	(120, 34)
++label	berry_​mirror.​png	berry_​mirror.​png			(1531, 101)	(115, 17)
++label	palette_​computer.​png	palette_​computer.​png			(1529, 686)	(120, 34)
++label	green_​background_​with_​object.​png	green_​background_​with_​object.​png			(1397, 803)	(120, 34)
++label	white_​background_​with_​object.​png	white_​background_​with_​object.​png			(1397, 920)	(120, 34)
++label	panda.​jpeg	panda.​jpeg			(1419, 335)	(75, 17)
++label	Home	Home			(1701, 1037)	(40, 17)
++menu	GNU Image Manipulation Program	""			(99, 0)	(287, 27)
++menu	System	""			(1814, 0)	(106, 27)
++push-button	Google Chrome	""			(0, 33)	(70, 64)
++push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
++push-button	Visual Studio Code	""			(0, 169)	(70, 64)
++push-button	VLC media player	""			(0, 237)	(70, 64)
++push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
++push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
++push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
++push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
++push-button	Files	""			(0, 577)	(70, 64)
++push-button	Ubuntu Software	""			(0, 645)	(70, 64)
++push-button	Help	""			(0, 713)	(70, 64)
++push-button	Trash	""			(0, 784)	(70, 64)
++toggle-button	Show Applications	""			(0, 1010)	(70, 70)
++menu	File	File			(70, 64)	(36, 25)
++menu	Edit	Edit			(106, 64)	(39, 25)
++menu	Select	Select			(145, 64)	(53, 25)
++menu	View	View			(198, 64)	(45, 25)
++menu	Image	Image			(243, 64)	(53, 25)
++menu	Layer	Layer			(296, 64)	(48, 25)
++menu	Colors	Colors			(344, 64)	(56, 25)
++menu	Tools	Tools			(400, 64)	(48, 25)
++menu	Filters	Filters			(448, 64)	(55, 25)
++menu	Windows	Windows			(503, 64)	(73, 25)
++menu	Help	Help			(576, 64)	(43, 25)
++label	Cage Transform	Cage Transform			(76, 326)	(176, 15)
++radio-button	Create or adjust the cage	Create or adjust the cage			(76, 341)	(176, 21)
++radio-button	Deform the cage
++to deform the image	Deform the cage
++to deform the image			(76, 363)	(176, 32)
++check-box	Fill the original position
++of the cage with a color	Fill the original position
++of the cage with a color			(76, 399)	(176, 32)
++label	 	 			(268, 1050)	(1015, 29)
++label	2. Hardness 050 (51 × 51)	2. Hardness 050 (51 × 51)			(1538, 154)	(376, 15)
++text		Basic, 			(1538, 334)	(376, 32)
++spin-button		10.0			(1538, 366)	(376, 24)
++spin-button		100.0			(1538, 496)	(376, 24)
+\ No newline at end of file
+diff --git a/demo_samples/gimp/9/image.png b/demo_samples/gimp/9/image.png
+new file mode 100644
+index 0000000..70356df
+Binary files /dev/null and b/demo_samples/gimp/9/image.png differ
+diff --git a/demo_samples/gimp/9/instruction.txt b/demo_samples/gimp/9/instruction.txt
+new file mode 100644
+index 0000000..df48350
+--- /dev/null
++++ b/demo_samples/gimp/9/instruction.txt
+@@ -0,0 +1 @@
++Help me choose the yellow triangle and positioning it at the center of my picture.
+\ No newline at end of file

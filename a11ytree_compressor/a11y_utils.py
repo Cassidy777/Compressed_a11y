@@ -16,6 +16,7 @@ KNOWN_TAGS = {
     "entry",
     "heading",
     "toggle-button",
+    "link",
     # 必要になったらここに追加していく
 }
 
