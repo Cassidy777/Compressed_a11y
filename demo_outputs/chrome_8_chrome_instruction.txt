@@ -21,6 +21,10 @@ WINDOW_CONTROLS:
 [window-button] "Minimise" @ (1837, 47)
 [window-button] "Restore" @ (1869, 47)
 [window-button] "Close" @ (1902, 47)
+BROWSER_TABS:
+[browser-tab-button] "Search tabs" @ (90, 47)
+[browser-tab-button] "New tab" @ (362, 47)
+[browser-tab-button] "Close" @ (326, 47)
 APP_LAUNCHER:
 [launcher-app] "Google Chrome" @ (35, 65)
 [launcher-app] "Thunderbird Mail" @ (35, 133)
@@ -37,9 +41,6 @@ APP_LAUNCHER:
 ---
 [launcher-app] "Show Applications" @ (35, 1045)
 BROWSER_UI:
-[browser-button] "Search tabs" @ (90, 47)
-[browser-button] "New tab" @ (362, 47)
-[browser-button] "Close" @ (326, 47)
 [browser-button] "Back" @ (89, 90)
 [browser-button] "Reload" @ (164, 90)
 [browser-button] "You" @ (1862, 90)
@@ -47,13 +48,27 @@ BROWSER_UI:
 [browser-button] "View site information" @ (207, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
-[browser-button] "Sign In" @ (1505, 142)
 CONTENT:
-[BLOCK "Imagine the possibilities"]
+[BLOCK]
 [document-web] "New Cars, Used Cars, Car Dealers, Prices & Reviews | Cars.com" @ (995, 597)
-[push-button] "User menu" @ (1558, 142)
+[link] "Skip to main content" @ (86, 130)
 [link] "Switch Up to the QX80 TodayVisit infinitiusacom" @ (987, 485)
+[/BLOCK]
+[BLOCK "Imagine the possibilities"]
+[link] "Cars dot com logo homepage" @ (445, 142)
+[link] "Cars for Sale" @ (590, 141)
+[link] "New Cars" @ (690, 141)
+[link] "Research & Reviews" @ (812, 141)
+[link] "News & Videos" @ (949, 141)
+[link] "Sell Your Car" @ (1065, 141)
+[link] "Financing" @ (1165, 141)
 [heading] "Imagine the possibilities" @ (595, 245)
+[/BLOCK]
+[BLOCK]
+[push-button] "User menu" @ (1558, 142)
+[push-button] "Sign In" @ (1505, 142)
+[/BLOCK]
+[BLOCK]
 [push-button] "Feedback" @ (1889, 271)
 [/BLOCK]
 [BLOCK]
@@ -70,14 +85,20 @@ CONTENT:
 [menu-item] "50 miles" @ (515, 660)
 [entry] "ZIP" @ (675, 683)
 [push-button] "Show 68 matches" @ (595, 740)
+[/BLOCK]
+[BLOCK]
 [section] "Sponsored: Switch Up to the QX80 Today" @ (1459, 737)
 [static] "Sponsored: / Switch Up to the QX80 / Today / Visit infinitiusa.com" @ (1405, 727)
 [/BLOCK]
 [BLOCK]
-[section] "Ford Recalls 229,000-Plus Broncos, Bronco Sports for Instrument Panel Failure" @ (1239, 4350)
 [section] "How Much Is the 2026 Toyota RAV4?" @ (574, 4362)
 [/BLOCK]
 [BLOCK]
+[section] "Ford Recalls 229,000-Plus Broncos, Bronco Sports for Instrument Panel Failure" @ (1239, 4350)
+[/BLOCK]
+[BLOCK]
 [section] "20,000-Plus Ford Escape, Lincoln Corsair PHEVs Recalled for Fire Risk" @ (681, 4687)
+[/BLOCK]
+[BLOCK]
 [section] "10 Biggest News Stories of the Week: Nissan Sentra Lives Large, Toyota Tacoma Charges Ahead" @ (1279, 4687)
 [/BLOCK]

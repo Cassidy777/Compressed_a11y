@@ -96,16 +96,13 @@ MODAL:
 [push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
-[document-web] "New tab" @ (995, 597)
-[/BLOCK]
-[BLOCK]
 [combo-box] "Search Google or type a URL" @ (995, 400)
 [/BLOCK]
 [BLOCK]
-[link] "Web Store" @ (939, 498)
 [push-button] "Add shortcut" @ (1051, 498)
 [push-button] "More actions for Web Store shortcut" @ (979, 460)
-[static] "Web Store / Add shortcut" @ (939, 529)
+[static] "Web Store" @ (939, 529)
+[static] "Add shortcut" @ (1051, 529)
 [/BLOCK]
 [BLOCK]
 [push-button] "Search by voice" @ (1302, 400)
@@ -113,8 +110,7 @@ CONTENT:
 [/BLOCK]
 [BLOCK]
 [push-button] "Google apps" @ (1886, 146)
-[link] "Gmail" @ (1776, 146)
-[link] "Search for images" @ (1829, 146)
+[static] "Gmail" @ (1776, 145)
 [static] "Images" @ (1829, 145)
 [toggle-button] "Customise Chrome" (UNCHECKED) @ (1820, 1048)
 [/BLOCK]

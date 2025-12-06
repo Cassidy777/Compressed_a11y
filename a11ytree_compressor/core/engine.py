@@ -5,6 +5,7 @@ from ..a11y_instruction_utils import get_instruction_keywords, smart_truncate
 from .common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
     dedup_same_label_same_pos, extract_launcher_and_status,
+    normalize_multiline_fields,
     spatially_group_lines, merge_fragmented_static_lines,
     truncate_label, build_state_suffix, clean_modal_nodes,
     dedup_similar_nodes_by_priority, dedup_heading_and_static
@@ -14,6 +15,7 @@ from .modal_strategies import DiffModalDetector, ClusterModalDetector, ModalDete
 
 class BaseA11yCompressor:
     domain_name = "generic"
+    
     
     # ★ 追加: 背景ノイズ（デスクトップアイコン等）を除去するかどうかのフラグ
     # OSドメインなど、ファイル自体が主役の場合は False にオーバーライドする
@@ -25,6 +27,12 @@ class BaseA11yCompressor:
 
     # 必要なドメイン（GIMPなど）でのみ True にオーバーライドする
     enable_cluster_fallback: bool = False
+
+    # name/text/description の multi-line 正規化を行うかどうか
+    enable_multiline_normalization: bool = True
+
+    # 追加：近接 static 行のマージ（"A / B / C" みたいにまとめるか）
+    enable_static_line_merge: bool = True
 
     def __init__(self):
         self.diff_detector = DiffModalDetector()
@@ -130,40 +138,64 @@ class BaseA11yCompressor:
     ) -> List[Node]:
         """
         ノードのクリーニング:
+        0. name/text/description の改行・不可視文字の正規化
         1. 完全重複ノードの除去
         2. OSトップバー由来のノイズ(UI)の除去
-        3. （必要なら）背景ノイズとなるファイル名ラベルの除去
-       """
-       # 1. 同じラベル・同じ座標の重複をまとめる
+        3. OSファイル由来のノイズラベル(__MACOSX, .DS_Storeなど)の除去
+        4. （必要なら）背景ノイズとなるファイル名ラベルの除去
+        """
+        # 0. マルチラインラベルを1行に統一（共通処理）
+        if self.enable_multiline_normalization:
+            nodes = normalize_multiline_fields(nodes)
+
+        # 1. タグ・ラベル・座標が完全一致する重複ノードをまとめる
         nodes = dedup_same_label_same_pos(nodes)
 
-        # 2. OS UI（GNOMEトップバーなど）の共通ノイズを除外
-        #    → どのアプリでも共通して「アプリの一部ではない」もの
+        # 2. OSメニュー用ブラックリスト（menuタグ専用）
         os_menu_blacklist = {
             "system",
             "google chrome",
-            "_​_​MACOSX",
-           # 必要ならここに "network", "volume", "battery", "settings" などを足していける
+            "__macosx",
+        }
+
+        # 3. OSノイズラベル（タグに依存しない）
+        OS_NOISE_LABELS = {
+            "__macosx",
+            ".ds_store",
         }
 
         filtered: List[Node] = []
         for n in nodes:
             tag = (n.get("tag") or "").lower()
-            name = (n.get("name") or "").strip().lower()
+            name = (n.get("name") or "") or ""
+            text = (n.get("text") or "") or ""
 
-            # GNOMEのSystemメニューなど、OSトップバー由来のmenuは完全スキップ
-            if tag == "menu" and name in os_menu_blacklist:
+            # name/text をまとめてラベルっぽく扱う
+            label = (name or text).strip().lower()
+
+            # ゼロ幅スペースなどを削除（_​_​MACOSX 対策）
+            for ch in ("\u200b", "\u200e", "\u200f"):
+                label = label.replace(ch, "")
+
+            # 2-a) GNOMEのSystemメニューなど、OSトップバー由来のmenu
+            if tag == "menu" and label in os_menu_blacklist:
+                continue
+
+            # 3-a) __MACOSX, .DS_Store など、OSファイル由来のラベルはタグに関係なく弾く
+            if label in OS_NOISE_LABELS:
                 continue
 
             filtered.append(n)
 
         nodes = filtered
 
-        # 3. 背景ファイル除去（例: Chrome でデスクトップが映り込むケース）
+        # 4. 背景ファイル除去（enable_background_filtering=True のときのみ）
         if self.enable_background_filtering:
             nodes = self._filter_background_noise(nodes)
 
         return nodes
+
+
 
 
     def _detect_modals(self, nodes, w, h, instruction) -> Tuple[List[Node], List[Node], str]:
@@ -446,6 +478,7 @@ class BaseA11yCompressor:
         コンテンツ領域の圧縮パイプライン。
         Instruction-Awareな整形を行う前に、ノードの冗長性を排除する。
         """
+        print("[DEBUG] process_content_lines:", self.domain_name, "static_merge=", self.enable_static_line_merge)
         # 1. Content固有のフィルタリング
         #    (ドメイン固有の _should_skip_for_content など)
         filtered_nodes = [n for n in nodes if not self._should_skip_for_content(n)]
@@ -463,7 +496,8 @@ class BaseA11yCompressor:
         tuples.sort()
         y_tol = int(h * 0.03)
         x_tol = int(w * 0.15)
-        tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
+        if self.enable_static_line_merge:
+            tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
         return [t[2] for t in tuples]
 
     def process_modal_nodes(self, nodes: List[Node]) -> List[str]:

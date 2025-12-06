@@ -34,10 +34,6 @@ def compress_from_raw_a11y(
     mode: Literal["instruction", "observation"] = "instruction",
     compressor: Optional[BaseA11yCompressor] = None,
 ) -> Dict[str, Any]:
-    """
-    a11y の生テキスト（TSVなど）から、ドメイン検出 → 圧縮結果までを一気に行う関数。
-    run_demo.py からは基本的にこの関数だけ呼べばOK、という想定。
-    """
     # 1. パース
     nodes = parse_raw_a11y(raw_a11y)
 
@@ -51,31 +47,62 @@ def compress_from_raw_a11y(
     CompressorCls = DOMAIN_COMPRESSORS.get(domain, BaseA11yCompressor)
     compressor: BaseA11yCompressor = CompressorCls()
 
-    # ドメイン名を埋めておく（ヘッダ出力用）
     compressor.domain_name = domain
 
-    # 4-1. ドメイン別のフラグ設定
-    # 背景フィルタ（デスクトップのファイル名など）
+    # 4-1. 背景フィルタ / STATUSBAR フラグ
     if domain == "os":
-        # OS/デスクトップ系ではファイルが主役なので削らない
         compressor.enable_background_filtering = False
         compressor.use_statusbar = False
 
-    if domain == "gimp":
+    elif domain == "gimp":
         compressor.enable_background_filtering = True
         compressor.use_statusbar = True
-
 
     elif domain in ("libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
-        # LibreOffice / VLC では STATUSBAR が意味を持つので利用
         compressor.enable_background_filtering = True
         compressor.use_statusbar = True
+
     else:
-        # それ以外（chrome, gimp など）は:
-        # - 背景のデスクトップファイルは削る
-        # - STATUSBAR セクションは出さない（= デスクトップのゴミなどを表示しない）
+        # それ以外（chrome など）
         compressor.enable_background_filtering = True
         compressor.use_statusbar = False
+
+    # 4-2. multi-line 正規化 & static 行マージのフラグ
+    if domain in ("gimp", "libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
+        # a11y がガタガタな系
+        compressor.enable_multiline_normalization = True
+        compressor.enable_static_line_merge = True
+
+    elif domain in ("chrome", "os"):
+        # 圧縮しすぎを避けたい系
+        compressor.enable_multiline_normalization = False
+        compressor.enable_static_line_merge = False
+
+    else:
+        # デフォルト
+        compressor.enable_multiline_normalization = True
+        compressor.enable_static_line_merge = True
+
+    # 5. 実行
+    use_instruction = (mode == "instruction")
+
+    if use_instruction and instruction:
+        instruction_keywords = get_instruction_keywords(instruction)
+    else:
+        instruction_keywords = set()
+
+    result = compressor.compress(
+        nodes,
+        screen_w=screen_w,
+        screen_h=screen_h,
+        instruction=instruction or "",
+        instruction_keywords=instruction_keywords,
+        use_instruction=use_instruction,
+    )
+    print("[DEBUG] instruction in compress_from_raw_a11y:", repr(instruction))
+    return result
+
+
 
     # 5. 実行
     use_instruction = (mode == "instruction")

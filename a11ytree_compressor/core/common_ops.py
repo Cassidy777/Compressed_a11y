@@ -6,6 +6,49 @@ from typing import Dict, Any, List, Optional, Tuple, Set
 Node = Dict[str, Any]
 
 
+# マルチラインの name/text/description を 1 行に正規化するヘルパー
+def flatten_multiline_label(s: Optional[str]) -> Optional[str]:
+    """
+    改行を含むラベル文字列を「1 行」に潰す。
+    - 各行を strip() してからスペースで連結
+    - ゼロ幅スペースなどの不可視文字も簡易的に除去
+    """
+    if s is None:
+        return None
+    if not isinstance(s, str):
+        return s
+
+    # ゼロ幅スペース系を一応削除（GIMPの変な文字対策）
+    for ch in ("\u200b", "\u200e", "\u200f"):
+        s = s.replace(ch, "")
+
+    # 改行(\r\n, \n, \r)で分割して、空行を落としてから結合
+    parts = re.split(r'[\r\n]+', s)
+    parts = [p.strip() for p in parts if p.strip()]
+
+    if not parts:
+        return ""
+
+    return " ".join(parts)
+
+
+def normalize_multiline_fields(
+    nodes: List[Node],
+    keys: Tuple[str, ...] = ("name", "text", "description"),
+) -> List[Node]:
+    """
+    各ノードについて、指定されたキー（デフォルト: name/text/description）に
+    改行が含まれていれば 1 行に潰して上書きする。
+    """
+    for n in nodes:
+        for key in keys:
+            val = n.get(key)
+            if isinstance(val, str) and ("\n" in val or "\r" in val):
+                n[key] = flatten_multiline_label(val)
+    return nodes
+
+
+
 # 座標、サイズの文字列を str → int へ
 def parse_xy(raw: str) -> Optional[Tuple[int, int]]:
     if not raw: return None

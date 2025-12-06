@@ -57,21 +57,17 @@ APP_LAUNCHER:
 ---
 [launcher-app] "Show Applications" @ (35, 1045)
 BROWSER_UI:
+[browser-button] "Back" @ (89, 90)
 [browser-button] "Reload" @ (164, 90)
 [browser-button] "You" @ (1862, 90)
 [browser-button] "Chrome" @ (1900, 90)
 [browser-button] "Chrome" @ (239, 90)
 [browser-entry] "Address and search bar" @ (1041, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
-CONTENT:
-[BLOCK]
-[push-button] "Back" @ (89, 90)
-[label] "yicun.​raw" @ (1457, 109)
+MODAL:
 [document-web] "Bookmarks" @ (995, 597)
-[/BLOCK]
-[BLOCK "Add folder"]
 [heading] "Add folder" @ (995, 523)
 [entry] "Name" @ (995, 591)
 [push-button] "Cancel" @ (1123, 662)
 [push-button] "Save" @ (1201, 662)
-[/BLOCK]
+[push-button] " Close menu" @ (430, 154)

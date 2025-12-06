@@ -1,17 +1,17 @@
 ============================================================
-SAMPLE: domain=gimp, id=8 (gimp-8), mode=instruction
+SAMPLE: domain=gimp, id=10 (gimp-10), mode=instruction
 ============================================================
 
 ORIGINAL LINEAR A11Y (Head 500 chars):
 LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
 label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
 label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
-label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
-label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
-label	helloExtension.​zip	helloExtension.​zip			(1793,...
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
 
 INSTRUCTION:
-Please rotate my figure to mirror it horizontally.
+Help me choose the yellow triangle and positioning it at the center of my picture.
 
 DETECTED DOMAIN: gimp
 
@@ -58,17 +58,27 @@ MENUBAR:
 [menu] "Help" @ (597, 76)
 TOOLBOX (Left Panel):
 [BLOCK]
-[combo-box] "pixels" @ (193, 1064)
-[combo-box] "66.7 %" @ (253, 1064)
-[text] "66.7 %" @ (242, 1064)
+[label] "Cage Transform" @ (164, 333)
+[radio-button] "Create or adjust the cage" @ (164, 351)
 [/BLOCK]
-STATUSBAR:
-[status] "berry.png (17.0 MB)" @ (1101, 1064)
+DOCKS (Right Panel):
+[BLOCK]
+[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
+[spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
+[/BLOCK]
 MODAL:
-[label] "There is one image with unsaved changes:" @ (1009, 456)
-[label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
-[label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
-[push-button] "Discard Changes" @ (1135, 681)
-[push-button] "Cancel" @ (995, 681)
-[push-button] "Help" @ (855, 681)
+[label] "Template:" @ (115, 91)
+[label] "1920 × 1080 pixels" @ (351, 221)
+[label] "300 ppi, RGB color" @ (351, 238)
+[spin-button] "1920" @ (200, 155)
+[spin-button] "1080" @ (200, 191)
+[combo-box] "pixels" @ (286, 191)
+[label] "Height:" @ (118, 191)
+[label] "Width:" @ (118, 155)
+[label] "Image Size" @ (280, 127)
+[toggle-button] "Advanced Options" (UNCHECKED) @ (280, 268)
+[push-button] "OK" @ (435, 319)
+[push-button] "Cancel" @ (344, 319)
+[push-button] "Reset" @ (253, 319)
 [push-button] " Close menu" @ (430, 154)
