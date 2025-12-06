@@ -9,8 +9,8 @@ from ..a11y_instruction_utils import get_instruction_keywords
 # 新しいアーキテクチャのインポート
 from ..core.engine import BaseA11yCompressor
 from ..domains.chrome import ChromeCompressor
+from ..domains.gimp import GimpCompressor
 # 他ドメインは後で増やす:
-# from ..domains.gimp import GimpCompressor
 # from ..domains.libreoffice_calc import LibreOfficeCalcCompressor
 # from ..domains.libreoffice_writer import LibreOfficeWriterCompressor
 # from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
@@ -20,7 +20,7 @@ from ..domains.chrome import ChromeCompressor
 # 1) domain → Compressor クラスのマッピング
 DOMAIN_COMPRESSORS = {
     "chrome": ChromeCompressor,
-    # "gimp": GimpCompressor,
+    "gimp": GimpCompressor,
     # "libreoffice_calc": LibreOfficeCalcCompressor,
     # "libreoffice_writer": LibreOfficeWriterCompressor,
     # "libreoffice_impress": LibreOfficeImpressCompressor,

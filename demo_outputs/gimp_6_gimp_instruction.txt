@@ -1,0 +1,126 @@
+============================================================
+SAMPLE: domain=gimp, id=6 (gimp-6), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+Let’s first execute the mouse-based approach to open the Preferences dialog. If it fails, we will fall back to keyboard shortcuts.
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
+label	woman_​sitting_​b...
+
+INSTRUCTION:
+Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
+
+DETECTED DOMAIN: gimp
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "GNU Image Manipulation Program" @ (242, 13)
+---
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Select" @ (171, 76)
+[menu] "View" @ (220, 76)
+[menu] "Image" @ (269, 76)
+[menu] "Layer" @ (320, 76)
+[menu] "Colors" @ (372, 76)
+[menu] "Tools" @ (424, 76)
+[menu] "Filters" @ (475, 76)
+[menu] "Windows" @ (539, 76)
+[menu] "Help" @ (597, 76)
+TOOLBOX (Left Panel):
+[BLOCK]
+[combo-box] "Airbrush: Normal" @ (139, 355)
+[combo-box] "Default" @ (229, 355)
+[spin-button] "100.0" @ (164, 386)
+[text] "Brush: 2. Hardness 050" @ (169, 433)
+[spin-button] "51.00" @ (132, 469)
+[spin-button] "0.00" @ (132, 505)
+[spin-button] "0.00" @ (132, 541)
+[spin-button] "10.0" @ (132, 577)
+[spin-button] "50.0" @ (132, 613)
+[spin-button] "50.0" @ (132, 649)
+[text] "Dynamics: Dynamics Off" @ (169, 700)
+[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
+[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
+[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
+[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
+[check-box] "Motion only" (UNCHECKED) @ (164, 832)
+[spin-button] "50.0" @ (164, 859)
+[spin-button] "10.0" @ (164, 887)
+[/BLOCK]
+DOCKS (Right Panel):
+[BLOCK]
+[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
+[spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
+[/BLOCK]
+MODAL:
+[table-cell] "System Resources" @ (226, 88)
+[table-cell] "Debugging" @ (226, 111)
+[table-cell] "Color Management" @ (226, 134)
+[table-cell] "Image Import & Export" @ (226, 157)
+[table-cell] "Tool Options" @ (226, 180)
+[table-cell] "Default Image" @ (226, 203)
+[table-cell] "Interface" @ (226, 249)
+[table-cell] "Image Windows" @ (226, 433)
+[table-cell] "Default Grid" @ (243, 226)
+[table-cell] "Theme" @ (243, 272)
+[table-cell] "Icon Theme" @ (243, 295)
+[table-cell] "Toolbox" @ (243, 318)
+[table-cell] "Dialog Defaults" @ (243, 341)
+[table-cell] "Help System" @ (243, 364)
+[table-cell] "Display" @ (243, 387)
+[table-cell] "Window Management" @ (243, 410)
+[spin-button] "4" @ (614, 357)
+[label] "Number of threads to use:" @ (455, 357)
+[combo-box] "fast" @ (717, 317)
+[text] "Best performance" @ (705, 317)
+[label] "Swap compression:" @ (455, 317)
+[spin-button] "128" @ (627, 277)
+[combo-box] "Mebibyte" @ (730, 277)
+[label] "Maximum new image size:" @ (455, 277)
+[spin-button] "2000210" @ (627, 237)
+[combo-box] "Kibibyte" @ (730, 237)
+[label] "Tile cache size:" @ (455, 237)
+[spin-button] "500053" @ (627, 197)
+[combo-box] "Kibibyte" @ (730, 197)
+[label] "Maximum undo memory:" @ (455, 197)
+[spin-button] "5" @ (627, 157)
+[label] "Minimal number of undo levels:" @ (455, 157)
+[label] "Resource Consumption" @ (591, 129)
+[combo-box] "Normal (128x128)" @ (717, 420)
+[label] "Size of thumbnails:" @ (455, 420)
+[label] "Image Thumbnails" @ (591, 394)
+[push-button] "OK" @ (828, 464)
+[push-button] "Cancel" @ (737, 464)
+[push-button] "Reset" @ (646, 464)
+[push-button] " Close menu" @ (430, 154)
