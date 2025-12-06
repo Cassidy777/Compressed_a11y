@@ -60,6 +60,12 @@ def compress_from_raw_a11y(
         # OS/デスクトップ系ではファイルが主役なので削らない
         compressor.enable_background_filtering = False
         compressor.use_statusbar = False
+
+    if domain == "gimp":
+        compressor.enable_background_filtering = True
+        compressor.use_statusbar = True
+
+
     elif domain in ("libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
         # LibreOffice / VLC では STATUSBAR が意味を持つので利用
         compressor.enable_background_filtering = True

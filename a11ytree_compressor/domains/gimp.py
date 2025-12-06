@@ -8,18 +8,28 @@ from ..core.common_ops import (
 class GimpCompressor(BaseA11yCompressor):
     domain_name = "gimp"
     
-    # 【修正1】背景フィルタリングを無効化
-    # 理由: berry.png (幅1628px) が「背景画像」と誤判定されて消えるのを防ぐため
+    # 背景フィルタリングを無効化 (berry.pngを残すため)
     enable_background_filtering = False
     
-    # 【修正2】ステータスバー自動抽出を無効化
-    # 理由: id=7とid=8でタグが label <-> status で揺らぎ、MODAL誤検知の原因になるのを防ぐため
-    use_statusbar = False
+    # ステータスバーは自前で制御するためTrueにしておくが、
+    # extract_system_ui をオーバーライドして自動吸い上げは防ぐ
+    use_statusbar = True
 
     MENU_KEYWORDS: Set[str] = {
         "file", "edit", "select", "view", "image", "layer", 
         "colors", "tools", "filters", "windows", "help"
     }
+
+    def extract_system_ui(self, nodes: List[Node], w: int, h: int) -> Tuple[List[Node], List[Node], List[Node]]:
+        """
+        親クラスの自動抽出を無効化する。
+        GIMPでは画面下部の要素(ファイル名など)がコンテンツとして重要なため、
+        勝手に status_nodes に吸い上げられて main_nodes から消えるのを防ぐ。
+        """
+        # launcher, status, main
+        # ランチャーだけは親クラスのロジックで分離しても良いが、
+        # ここではget_semantic_regionsで一括管理するため、すべてmainとして返す
+        return [], [], nodes
 
     def split_static_ui(self, nodes: List[Node], w: int, h: int) -> Tuple[List[Node], List[Node]]:
         regions = self.get_semantic_regions(nodes, w, h, dry_run=True)
@@ -27,7 +37,9 @@ class GimpCompressor(BaseA11yCompressor):
         static_nodes = []
         dynamic_nodes = [] 
         
-        static_groups = ["MENUBAR", "APP_LAUNCHER"]
+        # 【修正】静的グループに TOOLBOX, DOCKS, STATUSBAR を追加
+        # これにより、これらの領域にある berry.png 等が MODAL 候補になるのを防ぐ
+        static_groups = ["MENUBAR", "APP_LAUNCHER", "TOOLBOX", "DOCKS", "STATUSBAR"]
         static_ids = set()
         for group in static_groups:
             for n in regions.get(group, []):
@@ -39,14 +51,13 @@ class GimpCompressor(BaseA11yCompressor):
             else:
                 dynamic_nodes.append(n)
         
-        # --- DEBUG TRACE: split_static_ui ---
-        # berry.png が「動的(Dynamic)」として扱われているか確認
-        # (動的であればDiff検出の対象になり、前画面と同じなら背景として扱われる)
+        # --- DEBUG TRACE ---
         for n in nodes:
-            if "berry" in (n.get("name") or n.get("text") or "").lower():
+            name = (n.get("name") or n.get("text") or "").lower()
+            if "berry" in name:
                 status = "STATIC" if n in static_nodes else "DYNAMIC"
-                print(f"[DEBUG TRACE] split_static_ui: 'berry' node classified as -> {status}")
-        # ------------------------------------
+                # print(f"[DEBUG TRACE] split_static_ui: '{name}' classified as -> {status}")
+        # -------------------
 
         return dynamic_nodes, static_nodes
 
@@ -59,6 +70,7 @@ class GimpCompressor(BaseA11yCompressor):
             "TOOLBOX": [],
             "DOCKS": [],
             "CANVAS": [],
+            "STATUSBAR": [], # 追加
             "MODAL": [],
         }
 
@@ -66,6 +78,8 @@ class GimpCompressor(BaseA11yCompressor):
         MENU_Y_LIMIT = h * 0.10
         LEFT_PANEL_LIMIT = w * 0.22
         RIGHT_PANEL_START = w * 0.78
+        # ステータスバー判定用 (画面下部5%程度)
+        STATUS_Y_START = h * 0.95 
 
         for n in nodes:
             bbox = node_bbox_from_raw(n)
@@ -77,59 +91,52 @@ class GimpCompressor(BaseA11yCompressor):
             name = (n.get("name") or n.get("text") or "").strip()
             name_lower = name.lower()
 
-            # --- DEBUG TRACE: 領域判定の追跡 ---
-            is_target = "berry" in name_lower
-            if is_target:
-                print(f"[DEBUG TRACE] Processing 'berry': Pos=({x},{y}) Size=({bw}x{bh}) Center=({cx},{cy}) Tag={tag}")
-            # ----------------------------------
-
-            # 1. APP_LAUNCHER
+            # 1. APP_LAUNCHER (左端)
             if x < LAUNCHER_X_LIMIT and bw < w * 0.06 and bh > 30:
                 if tag in ("push-button", "toggle-button"):
                     regions["APP_LAUNCHER"].append(n)
-                    if is_target: print("  -> Assigned to APP_LAUNCHER")
                     continue
             if tag == "launcher-app":
                 regions["APP_LAUNCHER"].append(n)
-                if is_target: print("  -> Assigned to APP_LAUNCHER")
                 continue
 
-            # 2. MENUBAR
+            # 2. MENUBAR (上部)
             if cy < MENU_Y_LIMIT:
                 if tag == "menu" or name_lower in self.MENU_KEYWORDS:
                     regions["MENUBAR"].append(n)
-                    if is_target: print("  -> Assigned to MENUBAR")
                     continue
 
-            # 3. 浮動コンテナ (CANVASへ)
+            # 3. 浮動コンテナ (CANVASへ優先配置)
+            # ダイアログなどは位置に関わらず CANVAS (MODAL候補) 扱いにする
+            is_dialog = False
             if role in ("dialog", "alert", "window") or tag in ("window", "dialog"):
+                is_dialog = True
+            elif tag == "push-button" and name_lower in ("ok", "cancel", "reset", "close", "help", "discard changes"):
+                # ダイアログボタンっぽいものはパネル内であってもCanvas(Modal候補)として扱う
+                is_dialog = True
+            
+            if is_dialog:
                 regions["CANVAS"].append(n)
-                if is_target: print("  -> Assigned to CANVAS (Rule: Role/Tag)")
-                continue
-            if tag in ("list-item", "table-cell", "menu-item"):
-                regions["CANVAS"].append(n)
-                if is_target: print("  -> Assigned to CANVAS (Rule: List/Table Item)")
-                continue
-            if tag == "push-button" and name_lower in ("ok", "cancel", "reset", "close", "help", "discard changes"):
-                regions["CANVAS"].append(n)
-                if is_target: print("  -> Assigned to CANVAS (Rule: Dialog Button)")
                 continue
 
-            # 4. TOOLBOX
+            # 4. STATUSBAR (下部)
+            # berry.png (ファイル名) はここに配置されることが多い
+            if cy > STATUS_Y_START:
+                regions["STATUSBAR"].append(n)
+                continue
+
+            # 5. TOOLBOX (左パネル)
             if cx < LEFT_PANEL_LIMIT:
                 regions["TOOLBOX"].append(n)
-                if is_target: print("  -> Assigned to TOOLBOX")
                 continue
 
-            # 5. DOCKS
+            # 6. DOCKS (右パネル)
             if cx > RIGHT_PANEL_START:
                 regions["DOCKS"].append(n)
-                if is_target: print("  -> Assigned to DOCKS")
                 continue
 
-            # 6. CANVAS
+            # 7. CANVAS (中央)
             regions["CANVAS"].append(n)
-            if is_target: print("  -> Assigned to CANVAS (Rule: Default/Center)")
 
         return regions
 
@@ -139,17 +146,8 @@ class GimpCompressor(BaseA11yCompressor):
         
         modal_ids = {id(n) for n in modal_nodes} if modal_nodes else set()
 
-        def filter_modal(nodes, region_name="Unknown"):
-            filtered = []
-            for n in nodes:
-                if id(n) not in modal_ids:
-                    filtered.append(n)
-                else:
-                    # --- DEBUG TRACE: MODAL化の確認 ---
-                    if "berry" in (n.get("name") or "").lower():
-                        print(f"[DEBUG TRACE] 'berry' was DETECTED AS MODAL (Removed from {region_name})")
-                    # ----------------------------------
-            return filtered
+        def filter_modal(nodes):
+            return [n for n in nodes if id(n) not in modal_ids]
 
         if "WINDOW_CONTROLS" in regions:
             lines.append("WINDOW_CONTROLS:")
@@ -163,26 +161,26 @@ class GimpCompressor(BaseA11yCompressor):
             lines.append("MENUBAR:")
             lines.extend(self.process_region_lines(filter_modal(regions["MENUBAR"]), w, h))
 
-        toolbox_nodes = filter_modal(regions["TOOLBOX"], "TOOLBOX")
+        toolbox_nodes = filter_modal(regions["TOOLBOX"])
         if toolbox_nodes:
             lines.append("TOOLBOX (Left Panel):")
             lines.extend(self.process_panel_lines(toolbox_nodes, w, h))
 
-        # --- CANVAS (原因究明と出力) ---
-        canvas_nodes = filter_modal(regions["CANVAS"], "CANVAS")
+        canvas_nodes = filter_modal(regions["CANVAS"])
         if canvas_nodes:
-            # ★DEBUG: 犯人捜しコード
-            # もし背景フィルタがONだったら、berry.pngは消えていたか？をチェック
-            self.check_background_filter_behavior(canvas_nodes, w, h)
-            
             lines.append("CANVAS (Center):")
-            # 修正済み(enable_background_filtering=False)なので、ここでは消えないはず
             lines.extend(self.process_content_lines(canvas_nodes, w, h))
 
-        docks_nodes = filter_modal(regions["DOCKS"], "DOCKS")
+        docks_nodes = filter_modal(regions["DOCKS"])
         if docks_nodes:
             lines.append("DOCKS (Right Panel):")
             lines.extend(self.process_panel_lines(docks_nodes, w, h))
+
+        # 【修正】STATUSBAR の出力を追加
+        statusbar_nodes = filter_modal(regions["STATUSBAR"])
+        if statusbar_nodes:
+            lines.append("STATUSBAR:")
+            lines.extend(self.process_region_lines(statusbar_nodes, w, h))
 
         if modal_nodes:
             lines.append("MODAL:")
@@ -190,26 +188,7 @@ class GimpCompressor(BaseA11yCompressor):
             
         return lines
 
-    def check_background_filter_behavior(self, nodes: List[Node], w: int, h: int):
-        """
-        デバッグ用: 背景フィルタが有効だった場合の挙動をシミュレートしてログに出す。
-        """
-        target = next((n for n in nodes if "berry" in (n.get("name") or n.get("text") or "").lower()), None)
-        
-        if target:
-            # 強制的にフィルタONの状態でテスト
-            filtered_result = self.filter_background_nodes([target], w, h)
-            
-            print(f"[DEBUG INVESTIGATION] Target 'berry' found in CANVAS nodes.")
-            if not filtered_result:
-                print(f"  -> [ROOT CAUSE CONFIRMED] With 'enable_background_filtering=True', this node WOULD BE DELETED.")
-                print(f"  -> Reason: Node is too large/wide (treated as background image).")
-                print(f"  -> Fix: 'enable_background_filtering=False' is now applied.")
-            else:
-                print(f"  -> This node passes the background filter (Issue might be elsewhere).")
-
     def process_panel_lines(self, nodes: List[Node], w: int, h: int) -> List[str]:
-        # (変更なし)
         import re
         tuples = self._nodes_to_tuples(nodes)
         tuples.sort()

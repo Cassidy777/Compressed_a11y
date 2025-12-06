@@ -16,32 +16,6 @@ Please rotate my figure to mirror it horizontally.
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
-APP_LAUNCHER:
-[launcher-app] "Google Chrome" @ (35, 65)
----
-[launcher-app] "Thunderbird Mail" @ (35, 133)
----
-[launcher-app] "Visual Studio Code" @ (35, 201)
----
-[launcher-app] "VLC media player" @ (35, 269)
----
-[launcher-app] "LibreOffice Writer" @ (35, 337)
----
-[launcher-app] "LibreOffice Calc" @ (35, 405)
----
-[launcher-app] "LibreOffice Impress" @ (35, 473)
----
-[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
----
-[launcher-app] "Files" @ (35, 609)
----
-[launcher-app] "Ubuntu Software" @ (35, 677)
----
-[launcher-app] "Help" @ (35, 745)
----
-[launcher-app] "Trash" @ (35, 816)
----
-[launcher-app] "Show Applications" @ (35, 1045)
 MENUBAR:
 [menu] "GNU Image Manipulation Program" @ (242, 13)
 ---
@@ -56,9 +30,12 @@ MENUBAR:
 [menu] "Filters" @ (475, 76)
 [menu] "Windows" @ (539, 76)
 [menu] "Help" @ (597, 76)
-TOOLBOX (Left Panel):
+DOCKS (Right Panel):
 [BLOCK]
+[label] "_​_​MACOSX" @ (1852, 811)
+[/BLOCK]
+STATUSBAR:
 [combo-box] "pixels" @ (193, 1064)
 [combo-box] "66.7 %" @ (253, 1064)
 [text] "66.7 %" @ (242, 1064)
-[/BLOCK]
+[label] "berry.png (17.0 MB)" @ (1101, 1064)
