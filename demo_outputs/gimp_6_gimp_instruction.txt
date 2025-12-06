@@ -83,7 +83,7 @@ DOCKS (Right Panel):
 [spin-button] "Basic: 10.0" @ (1726, 378)
 [/BLOCK]
 MODAL:
-[spin-button] "...able-cell Default Grid Default Grid (155, 215) (176, 23) table-cell Theme Theme (155, 261) (176, 23) table-cell Icon Theme Icon Theme (155,..." @ (1726, 508)
+[spin-button] "...23) table-cell Debugging Debugging (138, 100) (176, 23) table-cell Color Management Color Management (138, 123) (176, 23) table-cell Image I..." @ (1726, 508)
 [label] "System Resources" @ (407, 92)
 [spin-button] "4" @ (614, 357)
 [label] "Number of threads to use:" @ (455, 357)

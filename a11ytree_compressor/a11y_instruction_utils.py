@@ -1,6 +1,6 @@
 # a11y_instruction_utils.py
 import re
-from typing import Set
+from typing import List, Dict, Set, Tuple, Optional
 
 # GUI操作において「意味の薄い」単語リスト
 STOP_WORDS: Set[str] = {
@@ -91,3 +91,139 @@ def smart_truncate(
         return clean_text[:max_len] + "..."
     
     return clean_text
+
+
+# ============================================================
+# LibreOffice Calc 向けヘルパー
+# ============================================================
+_CELL_REF_RE = re.compile(r"\b([A-Z]{1,3}[0-9]{1,7})\b")
+_RANGE_RE = re.compile(
+    r"\b([A-Z]{1,3}[0-9]{1,7})\s*[:\-]\s*([A-Z]{1,3}[0-9]{1,7})\b"
+)
+
+
+def extract_calc_quoted_terms(instruction: str) -> List[str]:
+    """
+    Calc タスク向け:
+    'Old ID', "Sheet2" など、クォートで囲まれたフレーズをすべて取得する。
+    例:
+      "copy 'Old ID' to 'New 7 Digit Id'" -> ["Old ID", "New 7 Digit Id"]
+    """
+    if not instruction:
+        return []
+    # '...' と "..." の両方を対象にする
+    single = re.findall(r"'([^']+)'", instruction)
+    double = re.findall(r'"([^"]+)"', instruction)
+    return single + double
+
+
+def extract_calc_cell_ranges(instruction: str) -> List[Tuple[str, str]]:
+    """
+    Calc タスク向け:
+    "B1:E30", "A1:B1", "B2:F5" などのセル範囲を (start, end) で返す。
+    """
+    if not instruction:
+        return []
+    return _RANGE_RE.findall(instruction)
+
+
+def extract_calc_cell_refs(instruction: str) -> List[str]:
+    """
+    Calc タスク向け:
+    単一セル参照 "B1", "C5" などをすべて拾う。
+    範囲の一部としても出現するが、重複はそのまま返す。
+    """
+    if not instruction:
+        return []
+    return _CELL_REF_RE.findall(instruction)
+
+
+def extract_calc_column_hints(instruction: str) -> Dict[str, Set[str]]:
+    """
+    Calc タスク向け:
+    Instruction から「列」を指していそうなヒントを抽出する。
+
+    例:
+      - "the 'Old ID' column"
+      - "in the Gross profit column"
+      - "column A"
+      - "columns B to E"
+
+    戻り値:
+      {
+        "header_terms": {"old id", "new 7 digit id", "gross profit", ...},
+        "letters": {"A", "B", "C"},
+      }
+    """
+    header_terms: Set[str] = set()
+    letters: Set[str] = set()
+
+    if not instruction:
+        return {"header_terms": header_terms, "letters": letters}
+
+    text = instruction
+
+    # 1) 'Old ID' column / column 'Old ID' / column named 'Old ID'
+    #    → クォート内＋"column" 付近のものだけ header 候補にする
+    for m in re.finditer(
+        r"(?:column|columns)\s+(?:named\s+)?'([^']+)'", text, flags=re.IGNORECASE
+    ):
+        header_terms.add(m.group(1).strip().lower())
+
+    for m in re.finditer(
+        r"'([^']+)'\s+(?:column|columns)", text, flags=re.IGNORECASE
+    ):
+        header_terms.add(m.group(1).strip().lower())
+
+    # 2) "the Gross profit column" のようにクォートなしで出るパターン
+    for m in re.finditer(
+        r"(?:the\s+)?([A-Za-z0-9 _]+?)\s+column", text, flags=re.IGNORECASE
+    ):
+        phrase = m.group(1).strip()
+        # 短すぎる or 汎用的ワードは無視（"this", "that" など）
+        if not phrase:
+            continue
+        lower = phrase.lower()
+        if lower in STOP_WORDS:
+            continue
+        header_terms.add(lower)
+
+    # 3) "column A", "columns B to E"
+    for m in re.finditer(
+        r"(?:column|columns)\s+([A-Z])\b", text, flags=re.IGNORECASE
+    ):
+        letters.add(m.group(1).upper())
+
+    # "columns B to E" の B, E だけでも拾う（間の展開は呼び出し側でやっても良い）
+    for m in re.finditer(
+        r"(?:column|columns)\s+([A-Z])\s+(?:to|-)\s+([A-Z])",
+        text,
+        flags=re.IGNORECASE,
+    ):
+        start, end = m.group(1).upper(), m.group(2).upper()
+        letters.add(start)
+        letters.add(end)
+
+    return {
+        "header_terms": header_terms,
+        "letters": letters,
+    }
+
+
+def summarize_calc_instruction(instruction: str) -> Dict[str, object]:
+    """
+    LibreOffice Calc 専用の「Instruction 要約」ヘルパー。
+    - クォート内の用語（列名・シート名候補など）
+    - セル範囲
+    - セル参照
+    - 列ヒント（ヘッダ名候補 & 列文字）
+
+    例: LibreOfficeCalcCompressor から呼び出して、
+        relevant columns / ranges を決める材料にする。
+    """
+    return {
+        "quoted_terms": extract_calc_quoted_terms(instruction),
+        "cell_ranges": extract_calc_cell_ranges(instruction),
+        "cell_refs": extract_calc_cell_refs(instruction),
+        "column_hints": extract_calc_column_hints(instruction),
+    }

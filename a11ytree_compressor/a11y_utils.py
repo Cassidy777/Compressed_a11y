@@ -17,6 +17,7 @@ KNOWN_TAGS = {
     "heading",
     "toggle-button",
     "link",
+    "table-cell",
     # 必要になったらここに追加していく
 }
 

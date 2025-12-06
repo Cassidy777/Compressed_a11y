@@ -1,0 +1,154 @@
+============================================================
+SAMPLE: domain=libreoffice_calc, id=2 (libreoffice_calc-2), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	berry.​png	berry.​png			(1556, 218)	(65, 17)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
+label	woman...
+
+INSTRUCTION:
+I would like to copy all the numbers in the 'Old ID' column to the 'New 7 Digit Id' column, and pad them with zeros in front, to fill them up to seven digits.
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Soffice" @ (35, 816)
+---
+[launcher-app] "Trash" @ (35, 884)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+TOOLBAR:
+[push-button] "Open" @ (140, 108)
+[push-button] "Save" @ (184, 108)
+[push-button] "Export Directly as PDF" @ (230, 108)
+[push-button] "Print" @ (263, 108)
+[toggle-button] "Print Preview" (UNCHECKED) @ (296, 108)
+[push-button] "Cut" @ (337, 108)
+[push-button] "Copy" @ (370, 108)
+[push-button] "Clone" @ (455, 108)
+[push-button] "Clear" @ (488, 108)
+[push-button] "Undo" @ (535, 108)
+[toggle-button] "Find and Replace" (UNCHECKED) @ (625, 108)
+[push-button] "Spelling" @ (658, 108)
+[push-button] "Row" @ (705, 108)
+[push-button] "Column" @ (749, 108)
+[push-button] "Sort" @ (795, 108)
+[push-button] "Sort Ascending" @ (828, 108)
+[push-button] "Sort Descending" @ (861, 108)
+[push-button] "AutoFilter" @ (894, 108)
+[push-button] "Image" @ (935, 108)
+[push-button] "Chart" @ (968, 108)
+[push-button] "Pivot Table" @ (1001, 108)
+[push-button] "Symbol" @ (1048, 108)
+[toggle-button] "Hyperlink" (UNCHECKED) @ (1086, 108)
+[push-button] "Comment" @ (1119, 108)
+[push-button] "Print Area" @ (1193, 108)
+[push-button] "Freeze Rows and Columns" @ (1232, 108)
+[push-button] "Split Window" @ (1270, 108)
+[toggle-button] "Draw Functions" (UNCHECKED) @ (1311, 108)
+[text] "Söhne" @ (166, 147)
+[text] "11 pt" @ (335, 147)
+[toggle-button] "Bold" (UNCHECKED) @ (428, 147)
+[toggle-button] "Italic" (UNCHECKED) @ (461, 147)
+[push-button] "Underline" @ (500, 147)
+[push-button] "Font Color" @ (552, 147)
+[push-button] "Background Color" @ (596, 147)
+[push-button] "Align Left" @ (642, 147)
+[push-button] "Align Center" @ (675, 147)
+[push-button] "Align Right" @ (708, 147)
+[push-button] "Align Top" @ (749, 147)
+[push-button] "Center Vertically" @ (782, 147)
+[push-button] "Align Bottom" @ (815, 147)
+[push-button] "Wrap Text" @ (856, 147)
+[push-button] "Currency" @ (1010, 147)
+[push-button] "Percent" @ (1048, 147)
+[push-button] "Number" @ (1081, 147)
+[push-button] "Date" @ (1114, 147)
+[push-button] "Add Decimal Place" @ (1155, 147)
+[push-button] "Delete Decimal Place" @ (1188, 147)
+[push-button] "Increase" @ (1229, 147)
+[push-button] "Decrease" @ (1262, 147)
+[push-button] "Borders (Shift to overwrite)" @ (1309, 147)
+[push-button] "Border Style" @ (1353, 147)
+[push-button] "Border Color" @ (1397, 147)
+[push-button] "Conditional" @ (1449, 147)
+[text] "D15" @ (142, 186)
+[toggle-button] "Menu" (UNCHECKED) @ (1892, 188)
+[push-button] "Function Wizard" @ (267, 186)
+[push-button] "Select Function" @ (298, 186)
+[push-button] "Formula" @ (328, 186)
+SHEET:
+[table-cell] "C1 : Old ID" @ (336, 236)
+[table-cell] "C2 : 76" @ (336, 257)
+[table-cell] "C3 : 112" @ (336, 278)
+[table-cell] "C4 : 3604" @ (336, 299)
+[table-cell] "C5 : 6" @ (336, 320)
+[table-cell] "C6 : 51" @ (336, 341)
+[table-cell] "C7 : 912" @ (336, 362)
+[table-cell] "C8 : 6540" @ (336, 383)
+[table-cell] "C9 : 36" @ (336, 404)
+[table-cell] "C10 : 6603" @ (336, 425)
+[table-cell] "C11 : 730" @ (336, 446)
+[table-cell] "C12 : 13500" @ (336, 467)
+[table-cell] "C13 : 8" @ (336, 488)
+[table-cell] "C14 : 54" @ (336, 509)
+[table-cell] "C15 : 21540" @ (336, 530)
+[table-cell] "C16 : 2" @ (336, 551)
+[table-cell] "C17 : 11" @ (336, 572)
+[table-cell] "C18 : 897" @ (336, 593)
+[table-cell] "C19 : 38" @ (336, 614)
+[table-cell] "C20 : 288" @ (336, 635)
+[table-cell] "C21 : 1716" @ (336, 656)
+[table-cell] "C22 : 4" @ (336, 677)
+[table-cell] "C23 : 81" @ (336, 698)
+[table-cell] "C24 : 383" @ (336, 719)
+[table-cell] "C25 : 66" @ (336, 740)
+[table-cell] "C26 : 5606" @ (336, 761)
+[table-cell] "C27 : 3209" @ (336, 782)
+[table-cell] "C28 : 51" @ (336, 803)
+[table-cell] "C29 : 183" @ (336, 824)
+[table-cell] "C30 : 2420" @ (336, 845)
+[table-cell] "C31 : """ @ (336, 866)
+[table-cell] "C32 : """ @ (336, 887)
+[table-cell] "C33 : """ @ (336, 908)
+[table-cell] "C34 : """ @ (336, 929)
+[table-cell] "C35 : """ @ (336, 950)
+[table-cell] "C36 : """ @ (336, 971)
+[table-cell] "C37 : """ @ (336, 992)
+[table-cell] "C38 : """ @ (336, 1012)
+SHEET_TABS:
+[push-button] "Add" @ (194, 1046)
+STATUSBAR:
+[status] "Sheet 1 of 1" @ (211, 1070)
+[status] "PageStyle_Sheet1" @ (786, 1070)
+[status] "English (Hong Kong)" @ (1104, 1070)
+[status] "Average: ; Sum: 0" @ (1574, 1070)
+[status] "100%" @ (1895, 1070)
