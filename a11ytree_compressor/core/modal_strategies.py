@@ -793,12 +793,44 @@ def detect_modal_from_diff(
 
     if not candidate_indices:
         # デバッグ用
-        print(f"[DEBUG STEP 3] -> ABORT: No new nodes found.")
+        print(f"[DEBUG STEP 3] After Left-Side(Launcher) Filter: {len(candidate_indices)} nodes remain.")
+        print(f"[DEBUG STEP 3] -> No new nodes found.")
+
+        # ★★ ここから追加: 前回モーダルがまだ画面上に残っている場合は「継続モーダル」として扱う ★★
+        if persistent_modal_nodes:
+            # いちおうクリーニングしておく（重複やノイズ除去）
+            modal_nodes = clean_modal_nodes(list(persistent_modal_nodes))
+
+            if not modal_nodes:
+                # クリーニングで全部消えた場合は、本当にモーダル終了として扱う
+                _modal_diff_cache["instruction"] = instruction
+                _modal_diff_cache["base_nodes"] = curr_nodes
+                _modal_diff_cache["modal_nodes"] = []
+                print("[DEBUG STEP 3] persistent_modal_nodes existed but cleaned to empty -> treat as none")
+                return [], curr_nodes, "none"
+
+            # 今フレームの背景 = curr_nodes から modal_nodes を引いたもの
+            modal_id_set = {id(n) for n in modal_nodes}
+            background_nodes = [n for n in curr_nodes if id(n) not in modal_id_set]
+
+            # キャッシュ更新：base は「背景」、modal は「継続モーダル」
+            _modal_diff_cache["instruction"] = instruction
+            _modal_diff_cache["base_nodes"] = background_nodes
+            _modal_diff_cache["modal_nodes"] = modal_nodes
+
+            print(
+                "[DEBUG STEP 3] -> REUSE persistent modal (no new nodes). "
+                f"modal_nodes={len(modal_nodes)}, background_nodes={len(background_nodes)}"
+            )
+
+            return modal_nodes, background_nodes, "diff"
+
+        # ★ persistent_modal_nodes が空の場合だけ、従来通り「モーダル無し」にフォールバック
         _modal_diff_cache["instruction"] = instruction
         _modal_diff_cache["base_nodes"] = curr_nodes
-        _modal_diff_cache["modal_nodes"] = persistent_modal_nodes
+        _modal_diff_cache["modal_nodes"] = []
+        print("[DEBUG STEP 3] -> No new nodes & no persistent modal -> treat as none")
         return [], curr_nodes, "none"
-
 
     # # --------------------------------------------------------
     # # 3) 新規ノード群を空間クラスタリング

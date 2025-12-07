@@ -80,6 +80,28 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
             "cell_refs": [],
             "column_hints": {"header_terms": set(), "letters": set()},
         }
+         # 前回ステップのモーダルノードを保持
+        self._prev_modal_nodes_for_persist: List[Node] = []
+
+        # ★ デバッグ用フラグ（必要に応じて False にすれば静かになる）
+        self.debug_modal: bool = True
+
+        # フレームカウンタ（どのステップかをざっくり追うため）
+        self._frame_idx_for_debug: int = 0
+
+    # --- デバッグ用の小さいヘルパー ---
+
+    def _dbg_modal(self, msg: str) -> None:
+        """Calc 用モーダルデバッグ出力"""
+        if getattr(self, "debug_modal", False):
+            print(f"[DEBUG CALC MODAL] {msg}")
+
+    def _format_node_short(self, n: Node) -> str:
+        tag = (n.get("tag") or "").lower()
+        name = (n.get("name") or n.get("text") or "").strip()
+        bbox = node_bbox_from_raw(n)
+        return f"{tag}:'{name}'@({bbox['x']},{bbox['y']})"
+
 
     def compress(self, nodes, instruction=None, **kwargs):
         """
@@ -427,6 +449,85 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
             filtered.append(n)
 
         return filtered
+
+    def _restore_persistent_modal(
+        self,
+        regions: Dict[str, List[Node]],
+        modal_nodes: List[Node],
+        w: int,
+        h: int,
+    ) -> Tuple[Dict[str, List[Node]], List[Node]]:
+        """
+        前回モーダルが存在していて、今回 DiffModalDetector からはモーダルが検出されなかった場合に、
+        「前回モーダルに含まれていたノードが依然として画面上に存在するか」を確認し、
+        十分残っていればそれらを再度 MODAL として扱う。
+
+        戻り値: (更新後 regions, 更新後 modal_nodes)
+        """
+        # すでに今回モーダルが検出されているなら何もしない
+        if modal_nodes:
+            return regions, modal_nodes
+
+        prev_modals = getattr(self, "_prev_modal_nodes_for_persist", []) or []
+        if not prev_modals:
+            return regions, modal_nodes
+
+        # -----------------------------
+        # 1) 現在の全ノードをまとめる
+        # -----------------------------
+        all_curr_nodes: List[Node] = []
+        for key in ("MENUBAR", "APP_LAUNCHER", "TOOLBAR", "SHEET", "SHEET_TABS", "STATUSBAR", "MODAL"):
+            all_curr_nodes.extend(regions.get(key, []))
+
+        def key_of(n: Node) -> Tuple[str, str]:
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or n.get("text") or "").strip().lower()
+            return tag, name
+
+        prev_key_set: Set[Tuple[str, str]] = {key_of(n) for n in prev_modals}
+
+        # -----------------------------
+        # 2) 前回モーダルと同じ (tag, name) を持つノードを今の画面から探す
+        # -----------------------------
+        persisting_modal: List[Node] = []
+        for n in all_curr_nodes:
+            if key_of(n) in prev_key_set:
+                persisting_modal.append(n)
+
+        if not persisting_modal:
+            # まったく残っていない → モーダルは閉じたとみなす
+            self._prev_modal_nodes_for_persist = []
+            return regions, modal_nodes
+
+        # 一致率がある程度高いときだけ、継続するモーダルとみなす
+        ratio = len(persisting_modal) / max(len(prev_modals), 1)
+        MIN_RATIO = 0.5   # 例えば 50%以上残っていればモーダル継続
+        MIN_COUNT = 3     # ノード数があまりに少ない場合は無視
+
+        if ratio < MIN_RATIO or len(persisting_modal) < MIN_COUNT:
+            # 一部しか残っていない → 画面遷移とみなしてリセット
+            self._prev_modal_nodes_for_persist = []
+            return regions, modal_nodes
+
+        # -----------------------------
+        # 3) 残っているノードを modal_nodes として再設定し、
+        #    背景側 (regions) からは取り除く
+        # -----------------------------
+        modal_nodes = persisting_modal
+        modal_ids = {id(n) for n in modal_nodes}
+
+        new_regions: Dict[str, List[Node]] = {}
+        for key, lst in regions.items():
+            new_regions[key] = [n for n in lst if id(n) not in modal_ids]
+
+        if self.debug_modal:
+            print(f"[DEBUG PERSIST MODAL] Restored {len(modal_nodes)} nodes as MODAL "
+                  f"(ratio={ratio:.2f})")
+
+        # ★ 前回モーダルも更新（次のステップ用）
+        self._prev_modal_nodes_for_persist = list(modal_nodes)
+        return new_regions, modal_nodes
+
     
     def _is_sheet_like_cell(self, node: Node, h: int) -> bool:
         """
@@ -469,9 +570,18 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         """
         LibreOffice Calc 用の出力構築ロジック。
         """
+        
         lines = []
         lines.extend(self.get_meta_header(regions))
 
+        # -----------------------------------------------------
+        # Step 0: 前回モーダルが継続していないかを確認し、必要なら復元
+        # -----------------------------------------------------
+        regions, modal_nodes = self._restore_persistent_modal(regions, modal_nodes, w, h)
+
+        # -----------------------------------------------------
+        # Step 1: MODAL に紛れ込んだ「シートセル」を SHEET に救済
+        # -----------------------------------------------------
         if modal_nodes and regions.get("SHEET") is not None:
             rescued_cells: List[Node] = []
             kept_modal: List[Node] = []
@@ -483,12 +593,10 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
                     kept_modal.append(n)
 
             if rescued_cells:
-                # 既存の SHEET ノードの末尾にくっつける
                 regions["SHEET"] = list(regions.get("SHEET") or []) + rescued_cells
 
-            modal_nodes = kept_modal  # MODAL からは取り除く
+            modal_nodes = kept_modal
 
-        # MODAL ノードの ID セット
         modal_ids = {id(n) for n in modal_nodes} if modal_nodes else set()
 
         def filter_modal(nodes, region_name="Unknown"):
@@ -630,4 +738,5 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         if modal_nodes:
             lines.append("MODAL:")
             lines.extend(self.process_modal_nodes(modal_nodes))
+        self._prev_modal_nodes_for_persist = list(modal_nodes) if modal_nodes else []
         return lines

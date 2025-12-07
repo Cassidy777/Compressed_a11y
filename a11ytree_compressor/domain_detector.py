@@ -1,7 +1,7 @@
 # domain_detector.py
 from typing import List, Dict, Any, Tuple
 
-DEBUG_DOMAIN_SCORE = True   # 必要に応じて True/False 切り替え
+DEBUG_DOMAIN_SCORE = False   # 必要に応じて True/False 切り替え
 
 def _dbg(domain: str, delta: int, score: int, reason: str, node: Dict[str, Any]) -> None:
     """

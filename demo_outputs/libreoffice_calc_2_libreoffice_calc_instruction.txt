@@ -14,6 +14,14 @@ label	woman...
 INSTRUCTION:
 I would like to copy all the numbers in the 'Old ID' column to the 'New 7 Digit Id' column, and pad them with zeros in front, to fill them up to seven digits.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 312 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 30
+
 DETECTED DOMAIN: libreoffice_calc
 
 === COMPRESSED A11Y ===
@@ -190,17 +198,3 @@ STATUSBAR:
 [status] "English (Hong Kong)" @ (1069, 1070)
 [status] "Average: 3604; Sum: 3604" @ (1554, 1070)
 [status] "100%" @ (1895, 1070)
-MODAL:
-[check-box] "Delete all" (UNCHECKED) @ (1001, 501)
-[check-box] "Objects" (UNCHECKED) @ (934, 619)
-[check-box] "Formats" (UNCHECKED) @ (1067, 591)
-[check-box] "Comments" (UNCHECKED) @ (934, 591)
-[check-box] "Formulas" (UNCHECKED) @ (1067, 563)
-[check-box] "Date & time" (UNCHECKED) @ (934, 563)
-[check-box] "Numbers" (UNCHECKED) @ (1067, 535)
-[check-box] "Text" (UNCHECKED) @ (934, 535)
-[label] "Selection" @ (896, 475)
-[push-button] "Help" @ (905, 659)
-[push-button] "Cancel" @ (995, 659)
-[push-button] "OK" @ (1085, 659)
-[push-button] " Close menu" @ (430, 154)
