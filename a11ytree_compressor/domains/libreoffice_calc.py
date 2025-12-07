@@ -1,10 +1,9 @@
 import re
 from typing import List, Dict, Tuple, Set, Optional  # ★Optionalを追加
-
 from ..core.engine import BaseA11yCompressor
 from ..core.common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
-    build_hierarchical_content_lines
+    build_hierarchical_content_lines, dedup_horizontal_menu_nodes
 )
 from ..a11y_instruction_utils import summarize_calc_instruction
 
@@ -129,7 +128,7 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         }
 
         LAUNCHER_X_LIMIT = w * 0.05
-        MENU_Y_LIMIT = h * 0.07
+        MENU_Y_LIMIT = h * 0.09
 
         for n in nodes:
             bbox = node_bbox_from_raw(n)
@@ -214,83 +213,47 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         return regions
 
 
-    def _select_sheet_nodes_relevant_to_instruction(
-        self,
-        sheet_nodes: List[Node],
-    ) -> List[Node]:
+    def _estimate_target_cols(self, cells: List[Dict], header_row: int) -> Set[str]:
         """
-        SHEET 領域のノードから、
-        - Instruction に出てきたヘッダ名（'Old ID' など）
-        - 「xxx column」表現（Gross profit column 等）
-        - セル範囲（B1:E30 等）
-        を手がかりに、関連列・範囲に属するセルだけを返す。
-
-        何も手がかりがない / マッチしない場合は、
-        - 非空セルだけ返す（完全に空の行・列は削る）
+        Instruction とセル情報から「ターゲットとなる列（Source & Destination）」を推定する。
         """
-        if not sheet_nodes:
-            return []
+        target_cols = set()
 
-        # table-cell だけ抜き出し & インデックス化
-        cells = []
-        for n in sheet_nodes:
-            tag = (n.get("tag") or "").lower()
-            if tag != "table-cell":
-                continue
-
-            # 圧縮時に付けた cell_addr があれば優先
-            addr = (n.get("cell_addr") or n.get("name") or "").strip()
-
-            # "C1 : Old ID" 形式の場合、左側だけ番地として使う
-            if ":" in addr:
-                addr = addr.split(":", 1)[0].strip()
-
-            col, row = parse_cell_addr(addr)
-            if col is None:
-                continue
-
-            text = (n.get("text") or "").strip()
-            cells.append({"node": n, "col": col, "row": row, "text": text})
-
-        if not cells:
-            # まともなセル番地が取れなければ、そのまま返す
-            return sheet_nodes
-
-        # 最上段をヘッダ行とみなす（通常は row=1）
-        header_row = min(c["row"] for c in cells)
-
-        # 列ごとのヘッダ文字列を構築（"Old ID" 等）
+        # 1. 列ごとのヘッダ文字列を構築
         headers: Dict[str, str] = {}
         for c in cells:
             if c["row"] != header_row:
                 continue
-            node = c["node"]
-            name = (node.get("name") or "").strip()
-            header_text = ""
-
-            # "C1 : Old ID" -> "Old ID"
-            if ":" in name:
-                header_text = name.split(":", 1)[1].strip()
+            
+            node_name = (c["node"].get("name") or "").strip()
+            if ":" in node_name:
+                header_text = node_name.split(":", 1)[1].strip()
             else:
-                header_text = (node.get("text") or "").strip()
-
+                header_text = c["text"]
+            
             if header_text:
                 headers[c["col"]] = header_text.lower()
 
-        # --- Instruction から列ヒントを集める ---
+        # 2. Instruction からヒントを取得
         summary = self.instruction_summary or {}
         col_hints = summary.get("column_hints") or {}
+        
+        # 検索語リスト: hintのheader_terms + quoted_terms
         header_terms: Set[str] = set(
             t.lower() for t in col_hints.get("header_terms", set())
         )
-
-        # 'Old ID' などクォート内の語も header 候補に追加
         for qt in summary.get("quoted_terms") or []:
             header_terms.add(qt.lower())
 
-        target_cols: Set[str] = set()
+        # ★追加修正: コンテキストとして重要な列（Customers, Name等）は
+        # 指示になくても常に target_cols に含めるための「デフォルトキーワード」
+        # これにより "Customers" 列などが自動的に残るようになる
+        default_context_keywords = {"customer", "name", "id", "label"}
+        header_terms.update(default_context_keywords)
 
-        # 1) ヘッダ名でマッチする列
+        # 3. マッチング処理
+        
+        # A) ヘッダ名マッチ
         for col, htext in headers.items():
             for term in header_terms:
                 if not term:
@@ -298,15 +261,14 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
                 if term in htext or htext in term:
                     target_cols.add(col)
                     break
-
-        # 2) "column A", "columns B to E" などの明示列
+        
+        # B) 明示的な列指定
         letters = col_hints.get("letters") or set()
         for L in letters:
             target_cols.add(L.upper())
 
-        # 3) B1:E30 などの範囲から列を推定
+        # C) 範囲指定からの推定
         for start, end in summary.get("cell_ranges") or []:
-            # ★修正: クラスメソッドではなくグローバル関数を使うため self. を削除
             scol, _ = parse_cell_addr(start)
             ecol, _ = parse_cell_addr(end)
             if not scol or not ecol:
@@ -314,36 +276,192 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
             for col in iter_col_range(scol, ecol):
                 target_cols.add(col)
 
-        # --- ターゲット列がわかっている場合 ---
-        if target_cols:
-            # 「ターゲット列の中で、一番下まで実データがある行」を求める
-            max_nonempty_row = header_row
-            for c in cells:
-                if c["col"] in target_cols:
-                    content = (c["text"] or "").strip()
-                    if content and c["row"] > max_nonempty_row:
-                        max_nonempty_row = c["row"]
+        return target_cols
 
-            selected_nodes: List[Node] = []
-            for c in cells:
-                if c["col"] in target_cols and c["row"] <= max_nonempty_row:
+
+    def _select_sheet_nodes_relevant_to_instruction(
+        self,
+        sheet_nodes: List[Node],
+    ) -> List[Node]:
+        """
+        【改善版戦略 v2】
+        1. 「完全に空の列（A列など）」は除外。
+           ※ textが `""` や `"` だけの場合も「空」とみなす厳格なチェックを導入。
+        2. 「データが存在する最終行」を特定し、それより下の無駄な空行をカット。
+        """
+        if not sheet_nodes:
+            return []
+
+        # 1. table-cell のみを抽出してメタデータ化
+        cells = []
+        for n in sheet_nodes:
+            tag = (n.get("tag") or "").lower()
+            if tag != "table-cell":
+                continue
+            
+            addr = (n.get("cell_addr") or n.get("name") or "").strip()
+            if ":" in addr: 
+                addr = addr.split(":", 1)[0].strip()
+            
+            col, row = parse_cell_addr(addr)
+            if col is None or row is None:
+                continue
+            
+            # テキストのクリーニング
+            raw_text = (n.get("text") or "").strip()
+            cells.append({
+                "node": n, 
+                "col": col, 
+                "row": row, 
+                "text": raw_text
+            })
+
+        if not cells:
+            return sheet_nodes
+
+        # 2. ヘッダ行の特定
+        header_row = min(c["row"] for c in cells)
+
+        # 3. valid_cols & max_content_row の特定（厳格モード）
+        valid_cols = set()
+        max_content_row = header_row
+
+        for c in cells:
+            text = c["text"]
+            name = (c["node"].get("name") or "").strip()
+            
+            # ヘッダ名抽出 ("C1 : Old ID" -> "Old ID")
+            header_from_name = ""
+            if ":" in name:
+                parts = name.split(":", 1)
+                if len(parts) > 1:
+                    header_from_name = parts[1].strip()
+            
+            # ★修正: 「ゴミ」テキストを無視する判定関数
+            # text が空文字、または `""` という記号のみの場合は「データなし」とみなす
+            def is_meaningful(t):
+                if not t: return False
+                if t == '""' or t == '"': return False
+                return True
+
+            # テキスト または ヘッダ名 が「意味のある内容」なら有効
+            has_content = is_meaningful(text) or is_meaningful(header_from_name)
+
+            if has_content:
+                valid_cols.add(c["col"])
+                if c["row"] > max_content_row:
+                    max_content_row = c["row"]
+
+        # データがある最終行 + 1行（予備）までを残す
+        cutoff_row = max_content_row + 1
+
+        # 4. 関連列 (target_cols) を推定
+        target_cols = self._estimate_target_cols(cells, header_row)
+
+        # 5. ノードのフィルタリング
+        selected_nodes = []
+        
+        for c in cells:
+            # Rule 0: 無効な列（A列/E〜T列）ならスキップ
+            if c["col"] not in valid_cols:
+                continue
+
+            # Rule X: データ終了行より下の無駄な空行はスキップ
+            if c["row"] > cutoff_row:
+                continue
+
+            # Rule A: ヘッダ行なら無条件で残す
+            if c["row"] == header_row:
+                selected_nodes.append(c["node"])
+                continue
+
+            # Rule B: データ行の選定
+            if target_cols:
+                if c["col"] in target_cols:
+                    selected_nodes.append(c["node"])
+            else:
+                # フォールバック: 非空セル (意味のあるテキスト) は全部残す
+                # ※ここでは `text` そのもので判定（空欄でもtarget_colsなら上で拾われているため）
+                if c["text"] and c["text"] != '""':
                     selected_nodes.append(c["node"])
 
-            if selected_nodes:
-                return selected_nodes
+        # 保険
+        if not selected_nodes:
+            return [c["node"] for c in cells if c["row"] == header_row and c["col"] in valid_cols]
 
-        # --- ターゲット列が特定できない場合: 非空セルのみ残す ---
-        non_empty_nodes: List[Node] = []
-        for c in cells:
-            content = (c["text"] or "").strip()
-            if content:
-                non_empty_nodes.append(c["node"])
+        return selected_nodes
 
-        if non_empty_nodes:
-            return non_empty_nodes
 
-        # それでも何もなければ元のノードをそのまま返す
-        return sheet_nodes
+
+
+    def _filter_modal_nodes(self, modal_nodes: List[Node], w: int, h: int) -> List[Node]:
+        """
+        Calc 用:
+        Delete Contents ダイアログ表示時などに、
+        メニューバーとほぼ同じ menu ノードが MODAL 側にも複製される。
+
+        - 画面上部 (y が小さい)
+        - tag == "menu"
+        - ラベルが File/Edit/View/... などメニューバー項目
+        というノードは、MODAL 内容には不要なので除外する。
+        """
+        filtered: List[Node] = []
+        TOP_LIMIT = h * 0.20  # 画面上部 20% くらいまでを「メニューバー領域」とみなす
+
+        for n in modal_nodes:
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or n.get("text") or "").strip()
+            name_lower = name.lower()
+
+            bbox = node_bbox_from_raw(n)
+            y = bbox["y"]
+
+            # 上部に並んだ File/Edit/... の menu は、MODAL からは除外
+            if (
+                tag == "menu"
+                and name_lower in self.MENU_KEYWORDS
+                and y < TOP_LIMIT
+            ):
+                continue
+
+            filtered.append(n)
+
+        return filtered
+    
+    def _is_sheet_like_cell(self, node: Node, h: int) -> bool:
+        """
+        MODAL に入ってしまった Node のうち、
+        本来は SHEET に属していそうな「セルっぽい」ものかどうかを判定する。
+
+        - tag == "table-cell"
+        - name/cell_addr が A1, B12 などのセル番地
+        を SHEET 寄りとして扱う。
+        """
+        tag = (node.get("tag") or "").lower()
+        if tag != "table-cell":
+            return False
+
+        # 上の方にあるツールバーや見出し行を誤って拾いすぎないための軽いガード
+        bbox = node_bbox_from_raw(node)
+        y = bbox["y"]
+        if y < h * 0.15:
+            # 画面のかなり上にあるものは SHEET ではなくヘッダ系の可能性が高いので除外
+            return False
+
+        # ★重要: セル番地は text ではなく name / cell_addr に入っている
+        addr = (node.get("cell_addr") or node.get("name") or "").strip()
+        if not addr:
+            return False
+
+        # 念のため "A1: something" みたいな状態なら ":" までで切る
+        if ":" in addr:
+            addr = addr.split(":", 1)[0].strip()
+
+        col, row = parse_cell_addr(addr)
+        if col is not None and row is not None:
+            return True
+
+        return False
 
 
 
@@ -353,6 +471,22 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         """
         lines = []
         lines.extend(self.get_meta_header(regions))
+
+        if modal_nodes and regions.get("SHEET") is not None:
+            rescued_cells: List[Node] = []
+            kept_modal: List[Node] = []
+
+            for n in modal_nodes:
+                if self._is_sheet_like_cell(n, h):
+                    rescued_cells.append(n)
+                else:
+                    kept_modal.append(n)
+
+            if rescued_cells:
+                # 既存の SHEET ノードの末尾にくっつける
+                regions["SHEET"] = list(regions.get("SHEET") or []) + rescued_cells
+
+            modal_nodes = kept_modal  # MODAL からは取り除く
 
         # MODAL ノードの ID セット
         modal_ids = {id(n) for n in modal_nodes} if modal_nodes else set()
@@ -378,12 +512,13 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         # =====================================================
         # MENUBAR
         # =====================================================
-        if regions.get("MENUBAR"):
+        menubar_nodes = filter_modal(regions.get("MENUBAR", []), "MENUBAR")
+        if menubar_nodes:
+            # 共通の「横並びメニュー dedup」処理を適用
+            menubar_nodes = dedup_horizontal_menu_nodes(menubar_nodes)
+
             lines.append("MENUBAR:")
-            lines.extend(self.process_region_lines(
-                filter_modal(regions["MENUBAR"], "MENUBAR"),
-                w, h
-            ))
+            lines.extend(self.process_region_lines(menubar_nodes, w, h))
 
         # =====================================================
         # TOOLBAR
@@ -488,7 +623,11 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
         # MODAL
         # =====================================================
         if modal_nodes:
+            # Calc 用フィルタで「メニューバーのコピー」を除外
+            modal_nodes = self._filter_modal_nodes(modal_nodes, w, h)
+
+        # もしメニューバー以外何も残らなかったら MODAL セクション自体を出さない
+        if modal_nodes:
             lines.append("MODAL:")
             lines.extend(self.process_modal_nodes(modal_nodes))
-
         return lines

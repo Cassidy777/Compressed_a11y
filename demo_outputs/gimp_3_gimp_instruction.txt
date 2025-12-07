@@ -13,6 +13,14 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Could you help me set the image to Palette-Based?
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 102 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 31
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -68,7 +76,6 @@ TOOLBOX (Left Panel):
 [/BLOCK]
 CANVAS (Center):
 [table-cell] "computer.png" @ (1708, 569)
-[combo-box] "18.2 %" @ (462, 1062)
 DOCKS (Right Panel):
 [BLOCK]
 [label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
@@ -80,3 +87,7 @@ DOCKS (Right Panel):
 [BLOCK]
 [combo-box] "Default" @ (1891, 480)
 [/BLOCK]
+STATUSBAR:
+[combo-box] "18.2 %" @ (462, 1062)
+[text] "18.2 %" @ (451, 1062)
+[status] "computer.png (187.9 MB)" @ (1005, 1062)

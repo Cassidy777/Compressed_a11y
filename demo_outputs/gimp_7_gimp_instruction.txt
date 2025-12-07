@@ -13,6 +13,14 @@ label	helloExtension.​zip	helloExtension.​zip			(1793,...
 INSTRUCTION:
 Please rotate my figure to mirror it horizontally.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===

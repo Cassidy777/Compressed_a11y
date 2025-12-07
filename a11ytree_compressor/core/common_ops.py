@@ -796,3 +796,64 @@ def dedup_heading_and_static(
         result_nodes.append(n)
         
     return result_nodes
+
+
+def dedup_horizontal_menu_nodes(nodes: List[Node], eps_x: int = 20, eps_y: int = 20) -> List[Node]:
+    """
+    MENUBAR などの「横一列に並んだ menu 要素」で、
+    - ラベルが同じ
+    - 位置がほぼ同じ (x, y の差が小さい)
+    ノードを 1 つにマージする。
+
+    例:
+        [menu] "File" @ (90, 74)
+        [menu] "File" @ (90, 76)
+    → どちらか 1 つだけ残す。
+
+    eps_x, eps_y は「同じ要素とみなす許容範囲（px）」。
+    """
+    from .common_ops import node_bbox_from_raw  # 既に同ファイルにあれば不要
+
+    items = []
+    for n in nodes:
+        bbox = node_bbox_from_raw(n)
+        x, y = bbox["x"], bbox["y"]
+        name = (n.get("name") or n.get("text") or "").strip()
+        items.append((x, y, name, n))
+
+    # 左 → 右、上 → 下 の順に並べる
+    items.sort(key=lambda t: (t[0], t[1]))
+
+    deduped: List[Node] = []
+    last = None
+
+    for x, y, name, node in items:
+        if last is None:
+            last = (x, y, name, node)
+            continue
+
+        lx, ly, lname, lnode = last
+
+        # ラベルが同じ かつ 位置がほぼ同じ → 同じメニュー項目とみなす
+        if name == lname and abs(x - lx) <= eps_x and abs(y - ly) <= eps_y:
+            # どちらを残すか:
+            last_text = (lnode.get("name") or lnode.get("text") or "").strip()
+            curr_text = (node.get("name") or node.get("text") or "").strip()
+
+            # 「中身がある方」を優先
+            if curr_text and not last_text:
+                last = (x, y, name, node)
+            elif curr_text and last_text and y < ly:
+                # 両方中身ありなら、より上にある方
+                last = (x, y, name, node)
+            # それ以外は last を維持（= 今の node は捨てる）
+        else:
+            # ここまでの last を確定
+            deduped.append(lnode)
+            last = (x, y, name, node)
+
+    # 最後の1個を追加
+    if last is not None:
+        deduped.append(last[3])
+
+    return deduped

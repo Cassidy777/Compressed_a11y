@@ -13,6 +13,14 @@ label	helloExtension.​zip	helloExtension.​zip			(1793,...
 INSTRUCTION:
 Please rotate my figure to mirror it horizontally.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 31
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -66,6 +74,7 @@ STATUSBAR:
 [status] "berry.png (17.0 MB)" @ (1101, 1064)
 MODAL:
 [label] "There is one image with unsaved changes:" @ (1009, 456)
+[table-cell] "[berry] (imported)-1" @ (943, 492)
 [label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
 [label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
 [push-button] "Discard Changes" @ (1135, 681)

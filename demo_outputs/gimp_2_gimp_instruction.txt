@@ -13,6 +13,14 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Could you help me set the image to Palette-Based?
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -83,3 +91,4 @@ DOCKS (Right Panel):
 [spin-button] "Basic: 10.0" @ (1726, 378)
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
+STATUSBAR:

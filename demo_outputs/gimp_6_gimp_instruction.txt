@@ -13,6 +13,14 @@ label	woman_​sitting_​b...
 INSTRUCTION:
 Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 46
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -81,10 +89,25 @@ DOCKS (Right Panel):
 [BLOCK]
 [label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
 [spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
 MODAL:
-[spin-button] "...23) table-cell Debugging Debugging (138, 100) (176, 23) table-cell Color Management Color Management (138, 123) (176, 23) table-cell Image I..." @ (1726, 508)
-[label] "System Resources" @ (407, 92)
+[table-cell] "System Resources" @ (226, 88)
+[table-cell] "Debugging" @ (226, 111)
+[table-cell] "Color Management" @ (226, 134)
+[table-cell] "Image Import & Export" @ (226, 157)
+[table-cell] "Tool Options" @ (226, 180)
+[table-cell] "Default Image" @ (226, 203)
+[table-cell] "Interface" @ (226, 249)
+[table-cell] "Image Windows" @ (226, 433)
+[table-cell] "Default Grid" @ (243, 226)
+[table-cell] "Theme" @ (243, 272)
+[table-cell] "Icon Theme" @ (243, 295)
+[table-cell] "Toolbox" @ (243, 318)
+[table-cell] "Dialog Defaults" @ (243, 341)
+[table-cell] "Help System" @ (243, 364)
+[table-cell] "Display" @ (243, 387)
+[table-cell] "Window Management" @ (243, 410)
 [spin-button] "4" @ (614, 357)
 [label] "Number of threads to use:" @ (455, 357)
 [combo-box] "fast" @ (717, 317)

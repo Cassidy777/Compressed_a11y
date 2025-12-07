@@ -13,6 +13,14 @@ label	helloExtension.​zip	helloExtension.​zip			(1793,...
 INSTRUCTION:
 Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 46
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -81,11 +89,24 @@ TOOLBOX (Left Panel):
 [label] "Mode:" @ (415, 135)
 [/BLOCK]
 CANVAS (Center):
-[label] "Core Pointer" @ (632, 92)
+[table-cell] "Core Pointer" @ (245, 88)
+[table-cell] "Virtual core XTEST pointer" @ (245, 111)
 [combo-box] "Screen" @ (490, 135)
 [label] "X Curve" @ (736, 128)
+[table-cell] "VirtualPS/2 VMware VMMouse" @ (245, 134)
 [label] "The axis 'X' has no curve" @ (742, 291)
+[table-cell] "VMware VMware Virtual USB Mouse" @ (245, 157)
 [label] "Axes" @ (481, 165)
+[table-cell] "X" @ (465, 188)
+[table-cell] "1" @ (545, 188)
+[table-cell] "Y" @ (465, 211)
+[table-cell] "2" @ (545, 211)
+[table-cell] "Pressure" @ (465, 234)
+[table-cell] "none" @ (545, 234)
+[table-cell] "X tilt" @ (465, 257)
+[table-cell] "Y tilt" @ (465, 280)
+[table-cell] "none" @ (545, 280)
+[table-cell] "Wheel/Rotation" @ (465, 303)
 [label] "Keys" @ (481, 330)
 [push-button] "Save" @ (758, 484)
 [push-button] "Close" @ (849, 484)
@@ -93,6 +114,6 @@ DOCKS (Right Panel):
 [BLOCK]
 [label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
 [spin-button] "Basic: 10.0" @ (1726, 378)
-[spin-button] "100.0 table-cell Core Pointer Core Pointer (121, 77) (248, 23) table-cell Virtual core XTEST pointer Virtual core XTEST pointer (121, 100) (..." @ (1726, 508)
+[spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
 STATUSBAR:

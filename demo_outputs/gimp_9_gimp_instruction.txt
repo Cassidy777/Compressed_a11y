@@ -13,6 +13,14 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Help me choose the yellow triangle and positioning it at the center of my picture.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
