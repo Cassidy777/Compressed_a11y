@@ -109,6 +109,80 @@ def calculate_modal_score(
 
     return score
 
+def _rough_key(n: Node) -> Tuple[str, str]:
+    """ノードの「中身」に基づく粗いキー: (tag, name_or_text)"""
+    tag = (n.get("tag") or "").lower()
+    name = (n.get("name") or n.get("text") or "").strip()
+    return (tag, name)
+
+def _estimate_global_shift(
+    prev_nodes: List[Node],
+    curr_nodes: List[Node],
+    max_shift: int = 120,
+    cluster_tol: int = 10,
+    min_pairs: int = 5,
+) -> Tuple[Tuple[int, int], bool]:
+    """
+    prev/curr から「同じ中身のノード」を探して、その座標差(dx, dy) の多数派を
+    グローバルシフトとみなす。
+    """
+    # 1) curr をキーごとにバケツ分け
+    key_to_curr: dict[tuple[str, str], list[Node]] = {}
+    for c in curr_nodes:
+        key = _rough_key(c)
+        key_to_curr.setdefault(key, []).append(c)
+
+    deltas: list[tuple[int, int]] = []
+
+    # 2) prev のそれぞれについて、同じキーを持つ curr を探し、座標差を記録
+    for p in prev_nodes:
+        key = _rough_key(p)
+        candidates = key_to_curr.get(key)
+        if not candidates:
+            continue
+
+        bx = node_bbox_from_raw(p)
+        best = None
+
+        # 最初の候補を採用
+        for c in candidates:
+            by = node_bbox_from_raw(c)
+            dx = by["x"] - bx["x"]
+            dy = by["y"] - bx["y"]
+
+            # max_shift くらいまでのずれだけを候補として扱う
+            if abs(dx) <= max_shift and abs(dy) <= max_shift:
+                best = (dx, dy)
+                break
+
+        if best is not None:
+            deltas.append(best)
+
+    if len(deltas) < min_pairs:
+        return (0, 0), False
+
+    # 3) dx, dy の中央値をグローバルシフト候補とする
+    dxs = sorted(d[0] for d in deltas)
+    dys = sorted(d[1] for d in deltas)
+    mid = len(deltas) // 2
+    dx0 = dxs[mid]
+    dy0 = dys[mid]
+
+    # 4) その周りにどれくらい集中しているかを見る
+    cluster_count = sum(
+        1 for dx, dy in deltas
+        if abs(dx - dx0) <= cluster_tol and abs(dy - dy0) <= cluster_tol
+    )
+
+    if cluster_count / len(deltas) < 0.6:
+        # 「同じ差分を持つペア」が6割未満なら、グローバル移動とはみなさない
+        return (0, 0), False
+
+    # デバッグ出力
+    print(f"[DiffModal] estimated global shift dx={dx0}, dy={dy0}, pairs={cluster_count}/{len(deltas)}")
+    return (dx0, dy0), True
+
+
 # ============================================================
 # 「同じノードか？」の判定（グローバル関数）
 # ============================================================
@@ -130,6 +204,44 @@ def same_node(a: Node, b: Node, tol_x: float = 25.0, tol_y: float = 25.0) -> boo
     bbox_b = node_bbox_from_raw(b)
     cx_a, cy_a = bbox_to_center_tuple(bbox_a)
     cx_b, cy_b = bbox_to_center_tuple(bbox_b)
+    return abs(cx_a - cx_b) <= tol_x and abs(cy_a - cy_b) <= tol_y
+
+# ============================================================
+# シフト込みの一致判定
+# ============================================================
+def same_node_with_shift(
+    a: Node,
+    b: Node,
+    dx0: int,
+    dy0: int,
+    has_shift: bool,
+    tol_x: float = 25.0,
+    tol_y: float = 25.0,
+) -> bool:
+    """
+    グローバルシフト(dx0, dy0)を考慮して
+    2つのノードが「同じUI要素」とみなせるかどうかを判定する。
+    """
+    # 1) tag が違ったら別物
+    if (a.get("tag") or "").lower() != (b.get("tag") or "").lower():
+        return False
+
+    # 2) name / text が違ったら別物
+    la = (a.get("name") or a.get("text") or "").strip()
+    lb = (b.get("name") or b.get("text") or "").strip()
+    if la != lb:
+        return False
+
+    # 3) 座標（中心）を比較。必要なら prev 側にシフトを足す
+    bbox_a = node_bbox_from_raw(a)
+    bbox_b = node_bbox_from_raw(b)
+    cx_a, cy_a = bbox_to_center_tuple(bbox_a)
+    cx_b, cy_b = bbox_to_center_tuple(bbox_b)
+
+    if has_shift:
+        cx_a += dx0
+        cy_a += dy0
+
     return abs(cx_a - cx_b) <= tol_x and abs(cy_a - cy_b) <= tol_y
 
 
@@ -639,6 +751,9 @@ def detect_modal_from_diff(
         (modal_nodes, background_nodes, mode)
         mode は "diff" or "none"
     """
+    dx0 = 0
+    dy0 = 0
+    has_shift = False
     
     # Instruction が無い場合は diff ベース検出は使わない
     if instruction is None:
@@ -681,12 +796,22 @@ def detect_modal_from_diff(
         for j, cn in enumerate(curr_nodes):
             if j in persistent_modal_indices:
                 continue
-            if same_node(pm, cn):
+            if same_node_with_shift(pm, cn, dx0, dy0, has_shift):
                 persistent_modal_nodes.append(cn)
                 persistent_modal_indices.add(j)
                 break
     # デバッグ用
     print(f"[DEBUG STEP 1] Persistent modal nodes: {len(persistent_modal_nodes)}")
+
+    # --------------------------------------------------------
+    # 0.5) グローバルシフトの推定 (追加)
+    # --------------------------------------------------------
+    if len(prev_nodes) > 0 and len(curr_nodes) > 0:
+        (dx0, dy0), has_shift = _estimate_global_shift(prev_nodes, curr_nodes)
+    else:
+        (dx0, dy0), has_shift = (0, 0), False
+
+
     # --------------------------------------------------------
     # 1) prev_base / curr の対応付け
     #    （persistent_modal_indices は最初から「埋まっている」とみなす）
@@ -702,7 +827,7 @@ def detect_modal_from_diff(
         for j, cn in enumerate(curr_nodes):
             if matched_curr[j]:
                 continue
-            if same_node(pn, cn):
+            if same_node_with_shift(pn, cn, dx0, dy0, has_shift):
                 matched_prev[i] = True
                 matched_curr[j] = True
                 break

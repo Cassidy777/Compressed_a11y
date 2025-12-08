@@ -185,15 +185,17 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
             # ===========================
             # 4. SHEET（表のセル・行・列）
             # ===========================
-            # Calc の UI では、"table-cell", "list-item" などが SHEET 内に来る
-            if tag in ("table-cell", "list-item", "listitem", "table"):
+            # 「番地付きセル(table-cell)」だけを SHEET に入れる
+            if self._is_sheet_like_cell(n, h):
                 regions["SHEET"].append(n)
                 continue
 
             # 数字だけのセル（例: "12345"）や ID らしきものも SHEET 側へ
-            if tag == "text" and name.isdigit():
-                regions["SHEET"].append(n)
-                continue
+            if tag == "text":
+                name = (n.get("name") or n.get("text") or "").strip()
+                if name.isdigit():
+                    regions["SHEET"].append(n)
+                    continue
 
             # ===========================
             # 5. SHEET_TABS（Calc の下部）
@@ -304,6 +306,7 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
     def _select_sheet_nodes_relevant_to_instruction(
         self,
         sheet_nodes: List[Node],
+        instruction: Optional[str] = None,
     ) -> List[Node]:
         """
         【改善版戦略 v2】
@@ -399,11 +402,15 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
 
             # Rule B: データ行の選定
             if target_cols:
+                # ★ target_cols を“優先して含める”だけにする
                 if c["col"] in target_cols:
                     selected_nodes.append(c["node"])
+                else:
+                    # ★ valid_cols に入っていれば残す
+                    if c["col"] in valid_cols:
+                        selected_nodes.append(c["node"])
             else:
-                # フォールバック: 非空セル (意味のあるテキスト) は全部残す
-                # ※ここでは `text` そのもので判定（空欄でもtarget_colsなら上で拾われているため）
+                # target_cols が無いときは従来の fallback
                 if c["text"] and c["text"] != '""':
                     selected_nodes.append(c["node"])
 
