@@ -94,6 +94,8 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
             name = (n.get("name") or n.get("text") or "").strip()
             name_lower = name.lower()
 
+            pending_para_line: str | None = None 
+
             # 1. APP_LAUNCHER (左端のランチャーアイコン)
             if x < LAUNCHER_X_LIMIT and bw < w * 0.06 and bh > 30:
                 if tag in ("push-button", "toggle-button", "launcher-app"):
@@ -124,10 +126,10 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
                         continue
 
             # 5. メインエリア → SLIDE_LIST / CONTENT / PROPERTIES
-                if MAIN_TOP <= cy <= MAIN_BOTTOM:
-                    if cx < SLIDE_LIST_RIGHT:
-                        regions["SLIDE_LIST"].append(n)
-                        continue
+            if MAIN_TOP <= cy <= MAIN_BOTTOM:
+                if cx < SLIDE_LIST_RIGHT:
+                    regions["SLIDE_LIST"].append(n)
+                    continue
 
                 if cx > PROPERTIES_LEFT:
                     regions["PROPERTIES"].append(n)
@@ -242,14 +244,19 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
             
             bbox = node_bbox_from_raw(n)
             cx, cy = bbox_to_center_tuple(bbox)
+
+            prefix = tag if tag else "content"
             
-            prefix = "content"
-            if "title" in role or "heading" in role:
-                prefix = "slide-title"
-            elif role == "presentation_shape" or tag == "shape":
-                prefix = "shape"
-            elif tag == "image":
-                prefix = "image"
+            # if "title" in role or "heading" in role:
+            #     prefix = "slide-title"
+            # elif role == "presentation_shape" or tag == "shape":
+            #     prefix = "shape"
+            # elif tag == "image":
+            #     prefix = "image"
+            # elif tag == "paragraph":  # ★ この条件を追加
+            #     prefix = "paragraph"
+            # else:
+            #     prefix = "content"
             
             lines.append(f"[{prefix}] \"{name}\" @ ({cx}, {cy})")
             
@@ -257,6 +264,32 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
 
     def _compress_modal(self, nodes: List[Node], w: int, h: int) -> List[str]:
         return self.process_region_lines(nodes, w, h)
+
+    
+    def _filter_modal_nodes(self, modal_nodes: List[Node], w: int, h: int) -> List[Node]:
+        """
+        Impress 用:
+        ダイアログ内に複製されているメニューバー (File/Edit/...) を
+        MODAL から除外する。
+        """
+        filtered: List[Node] = []
+        TOP_LIMIT = h * 0.20  # 画面上部 20% くらいまで
+
+        for n in modal_nodes:
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or n.get("text") or "").strip()
+            name_lower = name.lower()
+            bbox = node_bbox_from_raw(n)
+            y = bbox["y"]
+
+            # 上部にあるメニューバー項目は MODAL から除外する
+            if tag == "menu" and name_lower in self.MENU_KEYWORDS and y < TOP_LIMIT:
+                continue
+
+            filtered.append(n)
+
+        return filtered
+
 
     def _build_output(
         self,
@@ -313,7 +346,9 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
 
         # 8. MODAL
         if modal_nodes:
-            lines.append("MODAL:")
-            lines.extend(self._compress_modal(modal_nodes, screen_w, screen_h))
+            modal_nodes = self._filter_modal_nodes(modal_nodes, screen_w, screen_h)
+            if modal_nodes:
+                lines.append("MODAL:")
+                lines.extend(self._compress_modal(modal_nodes, screen_w, screen_h))
 
         return lines

@@ -1,0 +1,161 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=8 (libreoffice_impress-8), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	multimedia_​classroom_​podium-​2020.​pptx	multimedia_​classroom_​podium-​2020.​pptx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#			(1793, 803)	(120, 34)
+menu	LibreOffice Impress	""			(99, 0)	(191, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+p...
+
+INSTRUCTION:
+On it Whenever I launch a LibreOffice Impress, it uses both screens, one for current slide and next slide and another for actual presentation. What I want is to use only one monitor which shows presentation. I dont want the screen with Current slide and Next slide so that it can be used for other purposes. How should I achieve this?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 100 <-- selected
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: libreoffice_impress
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+STATUSBAR:
+[status] Home @ (1853, 1045)
+[status] Slide 1 of 23 @ (113, 1045)
+[status] Title and Content @ (854, 1045)
+[status] 24.96 / 4.04 0.00 x 0.00 @ (1166, 1045)
+[status] English (USA) @ (1516, 1045)
+[status] 118% @ (1895, 1045)
+MENUBAR:
+[menu] File @ (90, 76)
+[menu] Edit @ (131, 76)
+[menu] View @ (177, 76)
+[menu] Insert @ (229, 76)
+[menu] Format @ (290, 76)
+[menu] Slide @ (347, 76)
+[menu] Slide Show @ (415, 76)
+[menu] Tools @ (485, 76)
+[menu] Window @ (546, 76)
+[menu] Help @ (604, 76)
+TOOLBAR:
+[toolbar] Close Pane @ (252, 161)
+[toolbar] Menu @ (1892, 188)
+[toolbar] Zoom & Pan @ (123, 122)
+[toolbar] Line Color @ (170, 122)
+[toolbar] Fill Color @ (214, 122)
+[toolbar] Line @ (260, 122)
+[toolbar] Rectangle @ (293, 122)
+[toolbar] Ellipse @ (326, 122)
+[toolbar] Lines and Arrows @ (373, 122)
+[toolbar] Curves and Polygons @ (417, 122)
+[toolbar] Connectors @ (461, 122)
+[toolbar] Basic Shapes @ (513, 122)
+[toolbar] Symbol Shapes @ (557, 122)
+[toolbar] Arrow Shapes @ (601, 122)
+[toolbar] Flowchart Shapes @ (645, 122)
+[toolbar] Callout Shapes @ (689, 122)
+[toolbar] Star Shapes @ (733, 122)
+[toolbar] 3D Objects @ (777, 122)
+[toolbar] Rotate @ (823, 122)
+[toolbar] Shadow @ (996, 122)
+[toolbar] Edit Points @ (1114, 122)
+[toolbar] Gluepoints @ (1147, 122)
+SLIDE_LIST:
+[slide-list] USB @ (357, 679)
+[slide-list] Document Camera @ (379, 734)
+[slide-list] Slides View @ (160, 604)
+[slide-list] Vertical scroll bar @ (253, 604)
+PROPERTIES:
+[property] Master View @ (1739, 469)
+[property] Orientation: @ (1613, 271)
+[property] Master Background @ (1739, 413)
+[property] Insert Image... @ (1739, 345)
+[property] Master Slide: @ (1610, 382)
+[property] Master Objects @ (1739, 438)
+[property] Background: @ (1612, 308)
+[property] Format: @ (1627, 234)
+CONTENT:
+[menu] "LibreOffice Impress" @ (194, 13)
+[document-presentation] "multimedia_classroom_podium-2020 - LibreOffice Presentation" @ (885, 581)
+[paragraph] "Button Style Podium" @ (654, 407)
+[paragraph] "Multimedia Classroom Podium Tutorial and User Guide" @ (325, 77)
+[paragraph] "Button Style Podium" @ (444, 326)
+[paragraph] "On/Off Button" @ (390, 375)
+[paragraph] "Volume Control" @ (394, 395)
+[paragraph] "Display Mute/Unmute             Lectern Computer" @ (420, 445)
+[paragraph] "Laptop Image" @ (391, 494)
+[paragraph] "Doc. Camera Image" @ (414, 514)
+[paragraph] "HDMI Laptop" @ (388, 535)
+[paragraph] "USB Connection" @ (402, 556)
+[paragraph] "SuperPlate Panel" @ (410, 599)
+[paragraph] "HDMI Laptop" @ (391, 620)
+[paragraph] "VGA Laptop" @ (387, 639)
+[paragraph] "VGA /Audio" @ (385, 659)
+[paragraph] "Power Button" @ (393, 767)
+[paragraph] "Freeze Image" @ (393, 786)
+[paragraph] "Zoom In/Out" @ (390, 806)
+[paragraph] "Rotate Image" @ (393, 826)
+[paragraph] "Lamp Options" @ (395, 846)
+[paragraph] "Iris (Brightness)" @ (402, 866)
+[paragraph] "Adjustments" @ (389, 885)
+[paragraph] "Tips and Help Line" @ (407, 925)
+[image] "Picture 15" @ (412, 227)
+[paragraph] "Currently, Information Technology Services (ITS) manages approximately 200 Multimedia Classrooms. Of these, most have the  button style control panels. The remaining are large auditoriums with “touch” style podium controls." @ (730, 595)
+[paragraph] "These controllers are IP based and can be controlled and monitored from our Himes locations." @ (971, 712)
+[paragraph] "This feature is used for support and maintenance of the classroom devices that they control." @ (981, 765)
+[image] "Picture 5" @ (1180, 537)
+[scroll-bar] "Horizontal scroll bar" @ (886, 1028)
+[scroll-bar] "Vertical scroll bar" @ (1505, 582)
+[push-button] "Export Directly as PDF" @ (230, 83)
+[toggle-button] "Find and Replace" @ (559, 83)
+[push-button] "Spelling" @ (592, 83)
+[toggle-button] "Grid" @ (633, 83)
+[push-button] "Display Views" @ (676, 83)
+[push-button] "Master Slide" @ (718, 83)
+[push-button] "Start from First Slide" @ (759, 83)
+[push-button] "Start from Current Slide" @ (792, 83)
+[push-button] "Table" @ (839, 83)
+[push-button] "Image" @ (877, 83)
+[push-button] "Media" @ (910, 83)
+[push-button] "Chart" @ (943, 83)
+[push-button] "Text Box" @ (984, 83)
+[toggle-button] "Insert Fontwork" @ (1061, 83)
+[toggle-button] "Hyperlink" @ (1094, 83)
+[toggle-button] "Draw Functions" @ (1127, 83)
+[push-button] "New Slide" @ (1174, 83)
+[push-button] "Duplicate Slide" @ (1212, 83)
+[push-button] "Delete Slide" @ (1245, 83)
+[push-button] "Slide Layout" @ (1292, 83)

@@ -1,0 +1,32 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=9 (libreoffice_impress-9), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+label	multimedia_​classroom_​podium-​2020.​pptx	multimedia_​classroom_​podium-​2020.​pptx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#			(1793, 803)	(120, 34)
+menu	File	""			(70, 64)	(40, 25)
+menu	Edit	""			(110, 64)	(43, 25)
+menu	View	""			(153, 64)	(49, 25)
+menu	Insert	""			(202, 64)	(55, 25)
+menu	Format	""			(257, 64)	(66, 25)
+menu	Slide	""			(323, 64)	(49, 25)
+menu...
+
+INSTRUCTION:
+On it Whenever I launch a LibreOffice Impress, it uses both screens, one for current slide and next slide and another for actual presentation. What I want is to use only one monitor which shows presentation. I dont want the screen with Current slide and Next slide so that it can be used for other purposes. How should I achieve this?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 0
+  - vsc: 0
+  - libreoffice_calc: 0
+  - libreoffice_impress: 0
+  - libreoffice_writer: 0
+
+DETECTED DOMAIN: generic
+
+=== COMPRESSED A11Y ===
+CONTENT:
+[image] "Picture 10" @ (1722, 871)

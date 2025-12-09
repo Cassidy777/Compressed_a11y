@@ -348,7 +348,7 @@ class BaseA11yCompressor:
         zero_width_chars = re.compile(r'[\u200b\u200c\u200d\ufeff]')
 
         # 2. 特定のデスクトップアイコン名を除外するセットを定義
-        ignored_names = {"home", "helloextension", "trash"}
+        ignored_names = {"helloextension"}
 
         for n in nodes:
             tag = (n.get("tag") or "").lower()

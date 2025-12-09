@@ -553,7 +553,6 @@ def clean_modal_nodes(nodes: List[Node]) -> List[Node]:
         "_​_​macosx",  # ゼロ幅スペース入り
         "__macosx",   # 通常
         ".ds_store",
-        "desktop",
     }
 
     cleaned_phase1 = []

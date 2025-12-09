@@ -1,23 +1,24 @@
 ============================================================
-SAMPLE: domain=gimp, id=5 (gimp-5), mode=instruction
+SAMPLE: domain=gimp, id=12 (gimp-12), mode=instruction
 ============================================================
 
 ORIGINAL LINEAR A11Y (Head 500 chars):
 LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	berry.​png	berry.​png			(1556, 218)	(65, 17)
 label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
-label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
-label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
-label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
-label	helloExtension.​zip	helloExtension.​zip			(1793,...
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
+label	woman...
 
 INSTRUCTION:
-Blue is my favorite color, so could you help me change the color theme of GIMP to "Blue"?
+Could you turn my image into CYMK mode within GIMP ?
 
 DOMAIN SCORES (from domain_detector):
   - gimp: 100 <-- selected
   - chrome: 15
   - vsc: 20
-  - libreoffice_calc: 46
+  - libreoffice_calc: 30
   - libreoffice_impress: 20
   - libreoffice_writer: 20
 
@@ -66,7 +67,7 @@ MENUBAR:
 [menu] "Help" @ (597, 76)
 TOOLBOX (Left Panel):
 [BLOCK]
-[combo-box] "Airbrush: Normal" @ (139, 355)
+[combo-box] "Paintbrush: Normal" @ (139, 355)
 [combo-box] "Default" @ (229, 355)
 [spin-button] "100.0" @ (164, 386)
 [text] "Brush: 2. Hardness 050" @ (169, 433)
@@ -81,35 +82,22 @@ TOOLBOX (Left Panel):
 [check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
 [check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
 [check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
-[check-box] "Motion only" (UNCHECKED) @ (164, 832)
-[spin-button] "50.0" @ (164, 859)
-[spin-button] "10.0" @ (164, 887)
-[/BLOCK]
-[BLOCK]
-[label] "Mode:" @ (415, 135)
+[check-box] "Incremental" (UNCHECKED) @ (164, 832)
 [/BLOCK]
 CANVAS (Center):
-[table-cell] "Core Pointer" @ (245, 88)
-[table-cell] "Virtual core XTEST pointer" @ (245, 111)
-[combo-box] "Screen" @ (490, 135)
-[label] "X Curve" @ (736, 128)
-[table-cell] "VirtualPS/2 VMware VMMouse" @ (245, 134)
-[label] "The axis 'X' has no curve" @ (742, 291)
-[table-cell] "VMware VMware Virtual USB Mouse" @ (245, 157)
-[label] "Axes" @ (481, 165)
-[table-cell] "X" @ (465, 188)
-[table-cell] "1" @ (545, 188)
-[table-cell] "Y" @ (465, 211)
-[table-cell] "2" @ (545, 211)
-[table-cell] "Pressure" @ (465, 234)
-[table-cell] "none" @ (545, 234)
-[table-cell] "X tilt" @ (465, 257)
-[table-cell] "Y tilt" @ (465, 280)
-[table-cell] "none" @ (545, 280)
-[table-cell] "Wheel/Rotation" @ (465, 303)
-[label] "Keys" @ (481, 330)
-[push-button] "Save" @ (758, 484)
-[push-button] "Close" @ (849, 484)
+[label] "Import the image from a color profile" @ (982, 426)
+[label] "gate.jpeg-1" @ (982, 444)
+[label] "The image 'gate.jpeg' has an embedded color profile" @ (994, 475)
+[toggle-button] "sRGB IEC61966-2.1" (UNCHECKED) @ (1000, 496)
+[label] "Convert the image to the built-in sRGB color profile?" @ (994, 527)
+[toggle-button] "GIMP built-in sRGB" (UNCHECKED) @ (1000, 548)
+[label] "Rendering Intent:" @ (864, 586)
+[combo-box] "Relative colorimetric" @ (1055, 586)
+[check-box] "Black Point Compensation" (UNCHECKED) @ (994, 618)
+[check-box] "Don't ask me again" (UNCHECKED) @ (994, 651)
+[push-button] "Help" @ (849, 702)
+[push-button] "Keep" @ (1048, 702)
+[push-button] "Convert" @ (1139, 702)
 DOCKS (Right Panel):
 [BLOCK]
 [label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
@@ -117,4 +105,3 @@ DOCKS (Right Panel):
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
 STATUSBAR:
-[status] "Home" @ (1721, 1045)
