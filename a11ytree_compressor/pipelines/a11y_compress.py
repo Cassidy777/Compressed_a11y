@@ -13,7 +13,7 @@ from ..domains.gimp import GimpCompressor
 # 他ドメインは後で増やす:
 from ..domains.libreoffice_calc import LibreOfficeCalcCompressor
 # from ..domains.libreoffice_writer import LibreOfficeWriterCompressor
-# from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
+from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
 # from ..domains.vlc import VlcCompressor
 
 
@@ -23,7 +23,7 @@ DOMAIN_COMPRESSORS = {
     "gimp": GimpCompressor,
     "libreoffice_calc": LibreOfficeCalcCompressor,
     # "libreoffice_writer": LibreOfficeWriterCompressor,
-    # "libreoffice_impress": LibreOfficeImpressCompressor,
+    "libreoffice_impress": LibreOfficeImpressCompressor,
     # "vlc": VlcCompressor,
 }
 

@@ -1062,14 +1062,40 @@ def detect_modal_from_diff(
     print(f"[DEBUG STEP 7] Score: {score} (Threshold: 1.0) -> {'PASS' if is_valid else 'FAIL'}")
 
     if not is_valid:
-        # デバッグ用
-        print(f"[DEBUG STEP 7] -> ABORT: Score too low.")
+        # ----------------------------------------------------
+        # ★ フォールバック: 連続モーダルが十分あるならそれをそのまま採用
+        # ----------------------------------------------------
+        if persistent_modal_nodes:
+            modal_nodes = clean_modal_nodes(list(persistent_modal_nodes))
+
+            if modal_nodes:
+                # 今フレームの背景 = curr_nodes から modal_nodes を引いたもの
+                modal_id_set = {id(n) for n in modal_nodes}
+                background_nodes = [n for n in curr_nodes if id(n) not in modal_id_set]
+
+                # キャッシュ更新：base は「背景」、modal は「継続モーダル」
+                _modal_diff_cache["instruction"] = instruction
+                _modal_diff_cache["base_nodes"] = background_nodes
+                _modal_diff_cache["modal_nodes"] = modal_nodes
+
+                print(
+                    "[DEBUG STEP 7] -> REUSE persistent modal (score too low, but modal persists). "
+                    f"modal_nodes={len(modal_nodes)}, background_nodes={len(background_nodes)}"
+                )
+
+                # ※ STEP 3 と同じく "diff" モードで返す
+                return modal_nodes, background_nodes, "diff"
+
+            else:
+                print("[DEBUG STEP 7] persistent_modal_nodes existed but cleaned to empty -> treat as none")
+
+        # ここまで来たら本当に「モーダル無し」として扱う
+        print(f"[DEBUG STEP 7] -> ABORT: Score too low (no usable persistent modal).")
         _modal_diff_cache["instruction"] = instruction
         _modal_diff_cache["base_nodes"] = curr_nodes
-        _modal_diff_cache["modal_nodes"] = persistent_modal_nodes
+        _modal_diff_cache["modal_nodes"] = []
         return [], curr_nodes, "none"
-    # デバッグ用
-    print(f"[DEBUG STEP 7] -> SUCCESS: Modal detected!")
+
 
     # --------------------------------------------------------
     # 5) 選ばれたクラスタの bbox を少し広げて「モーダル枠」とみなし、

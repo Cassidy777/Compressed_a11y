@@ -1,0 +1,92 @@
+============================================================
+SAMPLE: domain=gimp, id=11 (gimp-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Help me choose the yellow triangle and positioning it at the center of my picture.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: gimp
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "GNU Image Manipulation Program" @ (242, 13)
+---
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Select" @ (171, 76)
+[menu] "View" @ (220, 76)
+[menu] "Image" @ (269, 76)
+[menu] "Layer" @ (320, 76)
+[menu] "Colors" @ (372, 76)
+[menu] "Tools" @ (424, 76)
+[menu] "Filters" @ (475, 76)
+[menu] "Windows" @ (539, 76)
+[menu] "Help" @ (597, 76)
+TOOLBOX (Left Panel):
+[BLOCK]
+[label] "Cage Transform" @ (164, 333)
+[radio-button] "Create or adjust the cage" @ (164, 351)
+[/BLOCK]
+DOCKS (Right Panel):
+[BLOCK]
+[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
+[spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
+[/BLOCK]
+MODAL:
+[label] "Template:" @ (115, 91)
+[label] "1920 × 1080 pixels" @ (351, 221)
+[label] "300 ppi, RGB color" @ (351, 238)
+[spin-button] "1920" @ (200, 155)
+[spin-button] "1080" @ (200, 191)
+[combo-box] "pixels" @ (286, 191)
+[label] "Height:" @ (118, 191)
+[label] "Width:" @ (118, 155)
+[label] "Image Size" @ (280, 127)
+[toggle-button] "Advanced Options" (UNCHECKED) @ (280, 268)
+[push-button] "OK" @ (435, 319)
+[push-button] "Cancel" @ (344, 319)
+[push-button] "Reset" @ (253, 319)
+[push-button] " Close menu" @ (430, 154)

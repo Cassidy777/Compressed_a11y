@@ -11,6 +11,14 @@ label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
 label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
 label	woman_​sitting_​...
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: gimp
 
 === COMPRESSED A11Y ===
@@ -76,6 +84,7 @@ TOOLBOX (Left Panel):
 DOCKS (Right Panel):
 [BLOCK]
 [label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
-[spin-button] "Basic,: 10.0" @ (1726, 378)
+[spin-button] "Basic: 10.0" @ (1726, 378)
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
+STATUSBAR:

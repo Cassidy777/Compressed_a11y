@@ -229,7 +229,7 @@ class GimpCompressor(BaseA11yCompressor):
         
         if target:
             # 強制的にフィルタONの状態でテスト
-            filtered_result = self.filter_background_nodes([target], w, h)
+            filtered_result = self._filter_background_noise([target])
             
             print(f"[DEBUG INVESTIGATION] Target 'berry' found in CANVAS nodes.")
             if not filtered_result:

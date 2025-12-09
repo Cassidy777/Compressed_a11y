@@ -1,0 +1,128 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=1 (libreoffice_impress-1), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	13_​0.​pptx	13_​0.​pptx			(1820, 920)	(66, 17)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​13_​0.​pptx#	.​~lock.​13_​0.​pptx#			(1793, 803)	(120, 17)
+menu	LibreOffice Impress	""			(99, 0)	(191, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC ...
+
+INSTRUCTION:
+Set the background color to yellow for any slide that contains one or more images of real people, and set the title of slide 2 as "Let's start".
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 65 <-- selected
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: libreoffice_impress
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+STATUSBAR:
+[status] Slide 2 of 6 @ (110, 1045)
+[status] BLANK @ (853, 1045)
+[status] 49.36 / 3.86 0.00 x 0.00 @ (1149, 1045)
+[status] English (USA) @ (1511, 1045)
+[status] 61% @ (1898, 1045)
+MENUBAR:
+[menu] File @ (90, 76)
+[menu] Edit @ (131, 76)
+[menu] View @ (177, 76)
+[menu] Insert @ (229, 76)
+[menu] Format @ (290, 76)
+[menu] Slide @ (347, 76)
+[menu] Slide Show @ (415, 76)
+[menu] Tools @ (485, 76)
+[menu] Window @ (546, 76)
+[menu] Help @ (604, 76)
+TOOLBAR:
+[toolbar] Close Pane @ (252, 161)
+[toolbar] Menu @ (1892, 188)
+[toolbar] Zoom & Pan @ (123, 122)
+[toolbar] Line Color @ (170, 122)
+[toolbar] Fill Color @ (214, 122)
+[toolbar] Line @ (260, 122)
+[toolbar] Rectangle @ (293, 122)
+[toolbar] Ellipse @ (326, 122)
+[toolbar] Lines and Arrows @ (373, 122)
+[toolbar] Curves and Polygons @ (417, 122)
+[toolbar] Connectors @ (461, 122)
+[toolbar] Basic Shapes @ (513, 122)
+[toolbar] Symbol Shapes @ (557, 122)
+[toolbar] Arrow Shapes @ (601, 122)
+[toolbar] Flowchart Shapes @ (645, 122)
+[toolbar] Callout Shapes @ (689, 122)
+[toolbar] Star Shapes @ (733, 122)
+[toolbar] 3D Objects @ (777, 122)
+[toolbar] Rotate @ (823, 122)
+[toolbar] Shadow @ (996, 122)
+[toolbar] Edit Points @ (1114, 122)
+[toolbar] Gluepoints @ (1147, 122)
+CONTENT:
+[content] "LibreOffice Impress" @ (194, 13)
+[content] "Master View" @ (1738, 506)
+[content] "Orientation:" @ (1593, 271)
+[content] "Master Background" @ (1738, 450)
+[content] "Insert Image..." @ (1738, 382)
+[content] "Master Slide:" @ (1590, 419)
+[content] "Master Objects" @ (1738, 475)
+[content] "#5F77BB" @ (1738, 345)
+[content] "Background:" @ (1592, 308)
+[content] "Format:" @ (1607, 234)
+[content] "Layouts" @ (1695, 538)
+[content] "Export Directly as PDF" @ (230, 83)
+[content] "Find and Replace" @ (559, 83)
+[content] "Spelling" @ (592, 83)
+[content] "Grid" @ (633, 83)
+[content] "Display Views" @ (676, 83)
+[content] "Master Slide" @ (718, 83)
+[content] "Start from First Slide" @ (759, 83)
+[content] "Start from Current Slide" @ (792, 83)
+[content] "Table" @ (839, 83)
+[content] "Image" @ (877, 83)
+[content] "Media" @ (910, 83)
+[content] "Chart" @ (943, 83)
+[content] "Text Box" @ (984, 83)
+[content] "Insert Fontwork" @ (1061, 83)
+[content] "Hyperlink" @ (1094, 83)
+[content] "Draw Functions" @ (1127, 83)
+[content] "New Slide" @ (1174, 83)
+[content] "Duplicate Slide" @ (1212, 83)
+[content] "Delete Slide" @ (1245, 83)
+[content] "Slide Layout" @ (1292, 83)

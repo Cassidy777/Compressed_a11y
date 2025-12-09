@@ -75,18 +75,4 @@ DOCKS (Right Panel):
 [spin-button] "Basic: 10.0" @ (1726, 378)
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
-MODAL:
-[label] "Template:" @ (115, 91)
-[label] "1920 × 1080 pixels" @ (351, 221)
-[label] "300 ppi, RGB color" @ (351, 238)
-[spin-button] "1920" @ (200, 155)
-[spin-button] "1080" @ (200, 191)
-[combo-box] "pixels" @ (286, 191)
-[label] "Height:" @ (118, 191)
-[label] "Width:" @ (118, 155)
-[label] "Image Size" @ (280, 127)
-[toggle-button] "Advanced Options" (UNCHECKED) @ (280, 268)
-[push-button] "OK" @ (435, 319)
-[push-button] "Cancel" @ (344, 319)
-[push-button] "Reset" @ (253, 319)
-[push-button] " Close menu" @ (430, 154)
+STATUSBAR:
