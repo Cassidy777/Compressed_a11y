@@ -1,0 +1,94 @@
+============================================================
+SAMPLE: domain=gimp, id=2 (gimp-2), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th...
+
+INSTRUCTION:
+Could you help me set the image to Palette-Based?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: gimp
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "GNU Image Manipulation Program" @ (242, 13)
+---
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Select" @ (171, 76)
+[menu] "View" @ (220, 76)
+[menu] "Image" @ (269, 76)
+[menu] "Layer" @ (320, 76)
+[menu] "Colors" @ (372, 76)
+[menu] "Tools" @ (424, 76)
+[menu] "Filters" @ (475, 76)
+[menu] "Windows" @ (539, 76)
+[menu] "Help" @ (597, 76)
+TOOLBOX (Left Panel):
+[BLOCK]
+[label] "GEGL Operation" @ (164, 333)
+[check-box] "Sample average" (UNCHECKED) @ (164, 351)
+[spin-button] "3" @ (170, 376)
+[check-box] "Sample merged" (UNCHECKED) @ (164, 402)
+[/BLOCK]
+CANVAS (Center):
+[label] "Import the image from a color profile" @ (975, 426)
+[label] "computer.png-1" @ (975, 444)
+[label] "The image 'computer.png' has an embedded color profile" @ (994, 475)
+[toggle-button] "sRGB IEC61966-2.1" (UNCHECKED) @ (1000, 496)
+[label] "Convert the image to the built-in sRGB color profile?" @ (994, 527)
+[toggle-button] "GIMP built-in sRGB" (UNCHECKED) @ (1000, 548)
+[label] "Rendering Intent:" @ (849, 586)
+[combo-box] "Relative colorimetric" @ (1055, 586)
+[check-box] "Black Point Compensation" (UNCHECKED) @ (994, 618)
+[check-box] "Don't ask me again" (UNCHECKED) @ (994, 651)
+[push-button] "Help" @ (834, 702)
+[push-button] "Keep" @ (1063, 702)
+[push-button] "Convert" @ (1154, 702)
+DOCKS (Right Panel):
+[BLOCK]
+[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
+[spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
+[/BLOCK]
+STATUSBAR:

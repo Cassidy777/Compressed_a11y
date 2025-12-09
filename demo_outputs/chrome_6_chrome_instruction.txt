@@ -66,9 +66,6 @@ BROWSER_UI:
 [browser-button] "Bookmark this tab" @ (1812, 90)
 CONTENT:
 [BLOCK]
-[document-web] "Bookmarks" @ (995, 597)
-[/BLOCK]
-[BLOCK]
 [menu-item] "Add new bookmark" @ (1824, 205)
 [menu-item] "Add new folder" @ (1824, 241)
 [menu-item] "Import bookmarks" @ (1824, 294)

@@ -1,0 +1,166 @@
+============================================================
+SAMPLE: domain=libreoffice_calc, id=12 (libreoffice_calc-12), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+Log not found for this step.tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu	LibreOffice Calc	""			(99, 0)	(165, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice...
+
+INSTRUCTION:
+Compute the sum of "Revenue" and "Total Expenses" and put the results under two columns named "Total Revenue" and "Total Expenses" of a new sheet (Sheet2)
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 312 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 30
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Styles" @ (351, 76)
+[menu] "Sheet" @ (406, 76)
+[menu] "Data" @ (457, 76)
+[menu] "Tools" @ (507, 76)
+[menu] "Window" @ (568, 76)
+[menu] "Help" @ (626, 76)
+TOOLBAR:
+[toggle-button] "Bold" (UNCHECKED) @ (428, 122)
+[toggle-button] "Italic" (UNCHECKED) @ (461, 122)
+[push-button] "Underline" @ (500, 122)
+[push-button] "Font Color" @ (552, 122)
+[push-button] "Background Color" @ (596, 122)
+[push-button] "Align Left" @ (642, 122)
+[push-button] "Align Center" @ (675, 122)
+[push-button] "Align Right" @ (708, 122)
+[push-button] "Align Top" @ (749, 122)
+[push-button] "Center Vertically" @ (782, 122)
+[push-button] "Align Bottom" @ (815, 122)
+[push-button] "Wrap Text" @ (856, 122)
+[push-button] "Currency" @ (1010, 122)
+[push-button] "Percent" @ (1048, 122)
+[push-button] "Number" @ (1081, 122)
+[push-button] "Date" @ (1114, 122)
+[push-button] "Add Decimal Place" @ (1155, 122)
+[push-button] "Delete Decimal Place" @ (1188, 122)
+[push-button] "Increase" @ (1229, 122)
+[push-button] "Decrease" @ (1262, 122)
+[push-button] "Borders (Shift to overwrite)" @ (1309, 122)
+[push-button] "Border Style" @ (1353, 122)
+[push-button] "Border Color" @ (1397, 122)
+[push-button] "Conditional" @ (1449, 122)
+[text] "等线" @ (166, 147)
+[text] "11 pt" @ (335, 147)
+[push-button] "Function Wizard" @ (267, 160)
+[push-button] "Select Function" @ (298, 160)
+[push-button] "Formula" @ (328, 160)
+[text] "H10" @ (142, 186)
+[toggle-button] "Menu" (UNCHECKED) @ (1892, 188)
+SHEET:
+[table-cell] "A1 : Revenue" @ (165, 210)
+[table-cell] "B1 : Total Expenses" @ (282, 210)
+[table-cell] "A2 : 39929" @ (165, 228)
+[table-cell] "B2 : 10828" @ (282, 228)
+[table-cell] "A3 : 55389" @ (165, 246)
+[table-cell] "B3 : 14977" @ (282, 246)
+[table-cell] "A4 : 52686" @ (165, 264)
+[table-cell] "B4 : 29650" @ (282, 264)
+[table-cell] "A5 : 49490" @ (165, 282)
+[table-cell] "B5 : 28708" @ (282, 282)
+[table-cell] "A6 : 38279" @ (165, 300)
+[table-cell] "B6 : 10990" @ (282, 300)
+[table-cell] "A7 : 30002" @ (165, 318)
+[table-cell] "B7 : 22022" @ (282, 318)
+[table-cell] "A8 : 56315" @ (165, 336)
+[table-cell] "B8 : 29700" @ (282, 336)
+[table-cell] "A9 : 54870" @ (165, 354)
+[table-cell] "B9 : 23324" @ (282, 354)
+[table-cell] "A10 : 39465" @ (165, 372)
+[table-cell] "B10 : 24834" @ (282, 372)
+[table-cell] "A11 : 26176" @ (165, 390)
+[table-cell] "B11 : 24207" @ (282, 390)
+[table-cell] "A12 : 32121" @ (165, 408)
+[table-cell] "B12 : 24773" @ (282, 408)
+[table-cell] "A13 : 59875" @ (165, 426)
+[table-cell] "B13 : 25871" @ (282, 426)
+[table-cell] "A14 : 42235" @ (165, 444)
+[table-cell] "B14 : 22797" @ (282, 444)
+[table-cell] "A15 : 55101" @ (165, 462)
+[table-cell] "B15 : 29775" @ (282, 462)
+[table-cell] "A16 : 35972" @ (165, 480)
+[table-cell] "B16 : 20109" @ (282, 480)
+[table-cell] "A17 : 51922" @ (165, 498)
+[table-cell] "B17 : 12614" @ (282, 498)
+[table-cell] "A18 : 42471" @ (165, 516)
+[table-cell] "B18 : 14555" @ (282, 516)
+[table-cell] "A19 : 46706" @ (165, 534)
+[table-cell] "B19 : 16246" @ (282, 534)
+[table-cell] "A20 : 58782" @ (165, 552)
+[table-cell] "B20 : 25706" @ (282, 552)
+[table-cell] "A21 : """ @ (165, 570)
+[table-cell] "B21 : """ @ (282, 570)
+SHEET_TABS:
+[push-button] "Add" @ (194, 1046)
+STATUSBAR:
+[status] "Sheet 1 of 1" @ (211, 1045)
+[status] "PageStyle_Sheet1" @ (786, 1045)
+[status] "English (Hong Kong)" @ (1104, 1045)
+[status] "Average: ; Sum: 0" @ (1574, 1045)
+[status] "100%" @ (1895, 1045)
+MODAL:
+[radio-button] "Before current sheet" @ (1001, 365)
+[radio-button] "After current sheet" @ (1001, 393)
+[label] "Position" @ (743, 339)
+[radio-button] "New sheet" @ (1001, 450)
+[text] "Sheet2" @ (1060, 524)
+[spin-button] "1" @ (903, 484)
+[label] "Name:" @ (784, 524)
+[label] "No. of sheets:" @ (784, 484)
+[radio-button] "From file" @ (1001, 558)
+[label] "Sheet" @ (735, 424)
+[push-button] "Help" @ (757, 795)
+[push-button] "Cancel" @ (1144, 795)
+[push-button] "OK" @ (1234, 795)
+[push-button] " Close menu" @ (430, 154)

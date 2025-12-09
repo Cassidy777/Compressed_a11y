@@ -1,0 +1,90 @@
+============================================================
+SAMPLE: domain=gimp, id=1 (gimp-1), mode=baseline
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	berry.​png	berry.​png			(1556, 218)	(65, 17)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
+label	woman_​sitting_​...
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: gimp
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "GNU Image Manipulation Program" @ (242, 13)
+---
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Select" @ (171, 76)
+[menu] "View" @ (220, 76)
+[menu] "Image" @ (269, 76)
+[menu] "Layer" @ (320, 76)
+[menu] "Colors" @ (372, 76)
+[menu] "Tools" @ (424, 76)
+[menu] "Filters" @ (475, 76)
+[menu] "Windows" @ (539, 76)
+[menu] "Help" @ (597, 76)
+TOOLBOX (Left Panel):
+[BLOCK]
+[combo-box] "Paintbrush: Normal" @ (139, 355)
+[combo-box] "Default" @ (229, 355)
+[spin-button] "100.0" @ (164, 386)
+[text] "Brush: 2. Hardness 050" @ (169, 433)
+[spin-button] "51.00" @ (132, 469)
+[spin-button] "0.00" @ (132, 505)
+[spin-button] "0.00" @ (132, 541)
+[spin-button] "10.0" @ (132, 577)
+[spin-button] "50.0" @ (132, 613)
+[spin-button] "50.0" @ (132, 649)
+[text] "Dynamics: Dynamics Off" @ (169, 700)
+[toggle-button] "Dynamics Options" (UNCHECKED) @ (164, 729)
+[check-box] "Apply Jitter" (UNCHECKED) @ (164, 753)
+[check-box] "Smooth stroke" (UNCHECKED) @ (164, 780)
+[check-box] "Lock brush to view" (UNCHECKED) @ (164, 807)
+[check-box] "Incremental" (UNCHECKED) @ (164, 832)
+[/BLOCK]
+DOCKS (Right Panel):
+[BLOCK]
+[label] "2. Hardness 050 (51 × 51)" @ (1726, 161)
+[spin-button] "Basic: 10.0" @ (1726, 378)
+[spin-button] "100.0" @ (1726, 508)
+[/BLOCK]
+STATUSBAR:

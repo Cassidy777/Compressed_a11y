@@ -59,6 +59,7 @@ BROWSER_UI:
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
+[static] "Customise Chrome" @ (1832, 1047)
 [menu-item] "New tab Ctrl+T" @ (1737, 134)
 [menu-item] "New window Ctrl+N" @ (1737, 165)
 [menu-item] "New Incognito window Ctrl+Shift+N" @ (1737, 196)
@@ -85,16 +86,14 @@ MODAL:
 [push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
-[document-web] "New tab" @ (995, 597)
-[/BLOCK]
-[BLOCK]
 [combo-box] "Search Google or type a URL" @ (995, 400)
 [/BLOCK]
 [BLOCK]
 [link] "Web Store" @ (939, 498)
 [push-button] "Add shortcut" @ (1051, 498)
 [push-button] "More actions for Web Store shortcut" @ (979, 460)
-[static] "Web Store / Add shortcut" @ (939, 529)
+[static] "Web Store" @ (939, 529)
+[static] "Add shortcut" @ (1051, 529)
 [/BLOCK]
 [BLOCK]
 [push-button] "Search by voice" @ (1302, 400)

@@ -1,0 +1,199 @@
+============================================================
+SAMPLE: domain=libreoffice_calc, id=8 (libreoffice_calc-8), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu	LibreOffice Calc	""			(99, 0)	(165, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)...
+
+INSTRUCTION:
+Make sparkline charts for each order id with the data from Jan to Mar in the "Chart" column.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 280 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Soffice" @ (35, 816)
+---
+[launcher-app] "Trash" @ (35, 884)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Tools" @ (349, 76)
+[menu] "Window" @ (410, 76)
+[menu] "Help" @ (468, 76)
+TOOLBAR:
+[push-button] "Export Directly as PDF" @ (142, 108)
+[push-button] "Format Selection" @ (506, 108)
+[push-button] "Chart Type" @ (547, 108)
+[push-button] "Chart Area" @ (580, 108)
+[push-button] "Chart Wall" @ (613, 108)
+[push-button] "Data Ranges" @ (687, 108)
+[push-button] "Titles" @ (761, 108)
+[push-button] "Legend On/Off" @ (802, 108)
+[push-button] "Format Legend" @ (835, 108)
+[push-button] "Horizontal Grids" @ (876, 108)
+[push-button] "Vertical Grids" @ (909, 108)
+[push-button] "X Axis" @ (950, 108)
+[push-button] "Y Axis" @ (983, 108)
+[push-button] "All Axes" @ (1049, 108)
+[text] "C2" @ (142, 147)
+[toggle-button] "Menu" (UNCHECKED) @ (1892, 149)
+[push-button] "Function Wizard" @ (267, 146)
+[push-button] "Select Function" @ (298, 146)
+[push-button] "Formula" @ (328, 146)
+SHEET:
+[table-cell] "B1 : Order ID" @ (246, 197)
+[table-cell] "C1 : Jan" @ (336, 197)
+[table-cell] "D1 : Feb" @ (426, 197)
+[table-cell] "E1 : Mar" @ (516, 197)
+[table-cell] "F1 : Chart" @ (606, 197)
+[table-cell] "T1 : """ @ (1835, 197)
+[table-cell] "B2 : Benedict Cucumberbatch" @ (246, 218)
+[table-cell] "F2 : """ @ (606, 218)
+[table-cell] "B3 : Blake Dreary" @ (246, 239)
+[table-cell] "F3 : """ @ (606, 239)
+[table-cell] "B4 : Bey Twice" @ (246, 260)
+[table-cell] "F4 : """ @ (606, 260)
+[table-cell] "B5 : Arnold Shawama" @ (246, 281)
+[table-cell] "F5 : """ @ (606, 281)
+[table-cell] "B6 : Clint Eastwood" @ (246, 302)
+[table-cell] "F6 : """ @ (606, 302)
+[table-cell] "B7 : Olivia Calme" @ (246, 323)
+[table-cell] "F7 : """ @ (606, 323)
+[table-cell] "B8 : Parah Salin" @ (246, 344)
+[table-cell] "F8 : """ @ (606, 344)
+[table-cell] "B9 : Elijah Plastic" @ (246, 365)
+[table-cell] "F9 : """ @ (606, 365)
+[table-cell] "B10 : Tom Softy" @ (246, 386)
+[table-cell] "F10 : """ @ (606, 386)
+[table-cell] "B11 : John Badman" @ (246, 407)
+[table-cell] "F11 : """ @ (606, 407)
+[table-cell] "B12 : Kanye East" @ (246, 428)
+[table-cell] "F12 : """ @ (606, 428)
+[table-cell] "B13 : Reese Withoutaspoon" @ (246, 449)
+[table-cell] "F13 : """ @ (606, 449)
+[table-cell] "B14 : Swan Ronson" @ (246, 470)
+[table-cell] "F14 : """ @ (606, 470)
+[table-cell] "B15 : 50 Dollar Dollar" @ (246, 491)
+[table-cell] "F15 : """ @ (606, 491)
+[table-cell] "B16 : Jonah Mountain" @ (246, 512)
+[table-cell] "F16 : """ @ (606, 512)
+[table-cell] "B17 : Jeff Tunnels" @ (246, 533)
+[table-cell] "F17 : """ @ (606, 533)
+[table-cell] "B18 : Keira Daily" @ (246, 554)
+[table-cell] "F18 : """ @ (606, 554)
+[table-cell] "B19 : Morgan Prisoner" @ (246, 575)
+[table-cell] "F19 : """ @ (606, 575)
+[table-cell] "B20 : Emma Stoned" @ (246, 596)
+[table-cell] "F20 : """ @ (606, 596)
+[table-cell] "B21 : Leonardo DiThario" @ (246, 617)
+[table-cell] "F21 : """ @ (606, 617)
+[table-cell] "B22 : Tom Drive" @ (246, 638)
+[table-cell] "F22 : """ @ (606, 638)
+[table-cell] "B23 : Selena Stopmez" @ (246, 659)
+[table-cell] "F23 : """ @ (606, 659)
+[table-cell] "B24 : """ @ (246, 680)
+[table-cell] "F24 : """ @ (606, 680)
+[table-cell] "B25 : """ @ (246, 701)
+[table-cell] "F25 : """ @ (606, 701)
+[table-cell] "B26 : """ @ (246, 722)
+[table-cell] "F26 : """ @ (606, 722)
+[table-cell] "B27 : """ @ (246, 743)
+[table-cell] "F27 : """ @ (606, 743)
+[table-cell] "B28 : """ @ (246, 764)
+[table-cell] "F28 : """ @ (606, 764)
+[table-cell] "B29 : """ @ (246, 785)
+[table-cell] "F29 : """ @ (606, 785)
+[table-cell] "B30 : """ @ (246, 806)
+[table-cell] "F30 : """ @ (606, 806)
+[table-cell] "B31 : """ @ (246, 827)
+[table-cell] "F31 : """ @ (606, 827)
+[table-cell] "B32 : """ @ (246, 848)
+[table-cell] "F32 : """ @ (606, 848)
+[table-cell] "B33 : """ @ (246, 869)
+[table-cell] "F33 : """ @ (606, 869)
+[table-cell] "B34 : """ @ (246, 890)
+[table-cell] "F34 : """ @ (606, 890)
+[table-cell] "B35 : """ @ (246, 911)
+[table-cell] "F35 : """ @ (606, 911)
+[table-cell] "B36 : """ @ (246, 932)
+[table-cell] "F36 : """ @ (606, 932)
+[table-cell] "B37 : """ @ (246, 953)
+[table-cell] "F37 : """ @ (606, 953)
+[table-cell] "B38 : """ @ (246, 974)
+[table-cell] "F38 : """ @ (606, 974)
+[table-cell] "B39 : """ @ (246, 995)
+[table-cell] "F39 : """ @ (606, 995)
+[table-cell] "B40 : """ @ (246, 1014)
+[table-cell] "F40 : """ @ (606, 1014)
+SHEET_TABS:
+[push-button] "Add" @ (194, 1046)
+STATUSBAR:
+[status] "Chart Area selected" @ (984, 1070)
+[status] "*" @ (1906, 1070)
+MODAL:
+[label] "Choose a Chart Type" @ (1096, 386)
+[table-cell] "Column" @ (828, 413)
+[table-cell] "Bar" @ (828, 436)
+[table-cell] "Pie" @ (828, 459)
+[table-cell] "Area" @ (828, 482)
+[table-cell] "Line" @ (828, 505)
+[table-cell] "XY (Scatter)" @ (828, 528)
+[table-cell] "Bubble" @ (828, 551)
+[table-cell] "Net" @ (828, 574)
+[table-cell] "Stock" @ (828, 597)
+[table-cell] "Column and Line" @ (828, 620)
+[table-cell] "Bar" @ (1182, 585)
+[table-cell] "Cylinder" @ (1182, 608)
+[table-cell] "Cone" @ (1182, 631)
+[table-cell] "Pyramid" @ (1182, 654)
+[check-box] "3D Look" (UNCHECKED) @ (941, 532)
+[push-button] "Help" @ (779, 761)
+[push-button] "Finish" @ (1413, 761)
+[push-button] "Cancel" @ (1321, 761)
+[push-button] "Next >" @ (1229, 761)
+[push-button] " Close menu" @ (430, 154)

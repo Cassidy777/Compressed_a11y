@@ -6,8 +6,10 @@ from typing import Optional, List
 # ★ 変更点: 新しいディレクトリ構成に合わせてインポートを修正
 # ============================================================
 from a11ytree_compressor.a11y_utils import parse_raw_a11y
-from a11ytree_compressor.domain_detector import detect_domain_from_nodes
-
+from a11ytree_compressor.domain_detector import (
+    detect_domain_from_nodes,
+    detect_domain_and_scores,
+)
 # 以前は直下でしたが、pipelines の中へ移動したのでパスを変更
 from a11ytree_compressor.pipelines.a11y_compress import (
     compress_from_raw_a11y,
@@ -146,7 +148,7 @@ def main():
 
         # ドメイン検出のテスト表示
         nodes = parse_raw_a11y(sample_text)
-        detected_domain = detect_domain_from_nodes(nodes)
+        detected_domain, domain_scores = detect_domain_and_scores(nodes)
         print(f"DETECTED DOMAIN: {detected_domain}")
 
         # --- 圧縮実行 ---
@@ -183,6 +185,12 @@ def main():
             if instruction_text:
                 f.write("INSTRUCTION:\n")
                 f.write(instruction_text.strip() + "\n\n")
+
+            f.write("DOMAIN SCORES (from domain_detector):\n")
+            for d, s in domain_scores.items():
+                mark = " <-- selected" if d == detected_domain else ""
+                f.write(f"  - {d}: {s}{mark}\n")
+            f.write("\n")    
 
             f.write(f"DETECTED DOMAIN: {detected_domain}\n\n")
 

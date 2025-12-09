@@ -1,0 +1,171 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=2 (libreoffice_impress-2), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	13_​0.​pptx	13_​0.​pptx			(1820, 920)	(66, 17)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​13_​0.​pptx#	.​~lock.​13_​0.​pptx#			(1793, 803)	(120, 17)
+menu	LibreOffice Impress	""			(99, 0)	(191, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC ...
+
+INSTRUCTION:
+Set the background color to yellow for any slide that contains one or more images of real people, and set the title of slide 2 as "Let's start".
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 65 <-- selected
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: libreoffice_impress
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+STATUSBAR:
+[status] Slide 2 of 6 @ (110, 1070)
+[status] TextEdit: Paragraph 1, Row 1, Column 12 @ (419, 1070)
+[status] BLANK @ (873, 1070)
+[status] 8.04 / 4.95 34.71 x 19.81 @ (1162, 1070)
+[status] English (USA) @ (1518, 1070)
+[status] 61% @ (1898, 1070)
+MENUBAR:
+[menu] File @ (90, 76)
+[menu] Edit @ (131, 76)
+[menu] View @ (177, 76)
+[menu] Insert @ (229, 76)
+[menu] Format @ (290, 76)
+[menu] Slide @ (347, 76)
+[menu] Slide Show @ (415, 76)
+[menu] Tools @ (485, 76)
+[menu] Window @ (546, 76)
+[menu] Help @ (604, 76)
+TOOLBAR:
+[toolbar] Close Pane @ (252, 186)
+[toolbar] Menu @ (1892, 188)
+[toolbar] Zoom & Pan @ (123, 147)
+[toolbar] Line Color @ (170, 147)
+[toolbar] Fill Color @ (214, 147)
+[toolbar] Line @ (260, 147)
+[toolbar] Rectangle @ (293, 147)
+[toolbar] Ellipse @ (326, 147)
+[toolbar] Lines and Arrows @ (373, 147)
+[toolbar] Curves and Polygons @ (417, 147)
+[toolbar] Connectors @ (461, 147)
+[toolbar] Basic Shapes @ (513, 147)
+[toolbar] Symbol Shapes @ (557, 147)
+[toolbar] Arrow Shapes @ (601, 147)
+[toolbar] Flowchart Shapes @ (645, 147)
+[toolbar] Callout Shapes @ (689, 147)
+[toolbar] Star Shapes @ (733, 147)
+[toolbar] 3D Objects @ (777, 147)
+[toolbar] Rotate @ (823, 147)
+[toolbar] Align Objects @ (862, 147)
+[toolbar] Arrange @ (906, 147)
+[toolbar] Distribution @ (950, 147)
+[toolbar] Shadow @ (996, 147)
+[toolbar] Edit Points @ (1114, 147)
+[toolbar] Gluepoints @ (1147, 147)
+[toolbar] Toggle Extrusion @ (1180, 147)
+[toolbar] Export Directly as PDF @ (230, 108)
+[toolbar] Clone @ (422, 108)
+[toolbar] Undo @ (469, 108)
+[toolbar] Find and Replace @ (559, 108)
+[toolbar] Spelling @ (592, 108)
+[toolbar] Grid @ (633, 108)
+[toolbar] Display Views @ (676, 108)
+[toolbar] Master Slide @ (718, 108)
+[toolbar] Start from First Slide @ (759, 108)
+[toolbar] Start from Current Slide @ (792, 108)
+[toolbar] Table @ (839, 108)
+[toolbar] Image @ (877, 108)
+[toolbar] Media @ (910, 108)
+[toolbar] Chart @ (943, 108)
+[toolbar] Text Box @ (984, 108)
+[toolbar] Symbol @ (1023, 108)
+[toolbar] Insert Fontwork @ (1061, 108)
+[toolbar] Hyperlink @ (1094, 108)
+[toolbar] Draw Functions @ (1127, 108)
+[toolbar] New Slide @ (1174, 108)
+[toolbar] Duplicate Slide @ (1212, 108)
+[toolbar] Delete Slide @ (1245, 108)
+[toolbar] Slide Layout @ (1292, 108)
+CONTENT:
+[content] "LibreOffice Impress" @ (194, 13)
+[content] "Liberation Sans" @ (1635, 238)
+[content] "14 pt" @ (1823, 238)
+[content] "Bold" @ (1548, 283)
+[content] "Italic" @ (1585, 283)
+[content] "Underline" @ (1622, 283)
+[content] "Menu" @ (1649, 283)
+[content] "Strikethrough" @ (1677, 283)
+[content] "Shadow" @ (1714, 283)
+[content] "Increase" @ (1837, 283)
+[content] "Decrease" @ (1874, 283)
+[content] "Font Color" @ (1548, 328)
+[content] "Menu" @ (1575, 328)
+[content] "Character Highlighting Color" @ (1616, 328)
+[content] "Menu" @ (1643, 328)
+[content] "Clear" @ (1684, 328)
+[content] "Superscript" @ (1769, 328)
+[content] "Subscript" @ (1806, 328)
+[content] "Character Spacing" @ (1856, 328)
+[content] "Paragraph" @ (1699, 364)
+[content] "Indent:" @ (1805, 440)
+[content] "Increase" @ (1736, 473)
+[content] "Decrease" @ (1773, 473)
+[content] "Hanging Indent" @ (1810, 473)
+[content] "Before Text Indent" @ (1820, 518)
+[content] "After Text Indent" @ (1820, 563)
+[content] "First Line Indent" @ (1820, 608)
+[content] "Spacing:" @ (1617, 440)
+[content] "Increase" @ (1548, 473)
+[content] "Above Paragraph Spacing" @ (1632, 518)
+[content] "Below Paragraph Spacing" @ (1632, 563)
+[content] "Line Spacing" @ (1551, 608)
+[content] "Menu" @ (1578, 608)
+[content] "Left" @ (1548, 401)
+[content] "Center" @ (1585, 401)
+[content] "Right" @ (1622, 401)
+[content] "Justified" @ (1659, 401)
+[content] "Top" @ (1800, 401)
+[content] "Center" @ (1837, 401)
+[content] "Bottom" @ (1874, 401)
+[content] "Lists" @ (1699, 644)
+[content] "Demote" @ (1763, 681)
+[content] "Unordered List" @ (1548, 681)
+[content] "Menu" @ (1575, 681)
+[content] "Ordered List" @ (1603, 681)
+[content] "Menu" @ (1630, 681)

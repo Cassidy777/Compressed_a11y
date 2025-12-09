@@ -1,0 +1,200 @@
+============================================================
+SAMPLE: domain=libreoffice_calc, id=5 (libreoffice_calc-5), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	berry.​png	berry.​png			(1556, 218)	(65, 17)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop	chrome-​Play_​Puzzle_​Game_​2048_​1.​desktop			(1265, 569)	(120, 34)
+label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
+label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
+label	woman...
+
+INSTRUCTION:
+In the column "Pass/Fail/Held", one from the texts "Pass", "Fail", and "Held" should be filled. For convinience, enable data validation for the cells in this column so that the texts to fill can be directly selected from a drop down list.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 312 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 30
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Styles" @ (351, 76)
+[menu] "Sheet" @ (406, 76)
+[menu] "Data" @ (457, 76)
+[menu] "Tools" @ (507, 76)
+[menu] "Window" @ (568, 76)
+[menu] "Help" @ (626, 76)
+TOOLBAR:
+[push-button] "Open" @ (140, 108)
+[push-button] "Save" @ (184, 108)
+[push-button] "Export Directly as PDF" @ (230, 108)
+[push-button] "Print" @ (263, 108)
+[toggle-button] "Print Preview" (UNCHECKED) @ (296, 108)
+[push-button] "Cut" @ (337, 108)
+[push-button] "Copy" @ (370, 108)
+[push-button] "Clear" @ (488, 108)
+[toggle-button] "Find and Replace" (UNCHECKED) @ (625, 108)
+[push-button] "Spelling" @ (658, 108)
+[push-button] "Row" @ (705, 108)
+[push-button] "Column" @ (749, 108)
+[push-button] "Sort" @ (795, 108)
+[push-button] "Sort Ascending" @ (828, 108)
+[push-button] "Sort Descending" @ (861, 108)
+[push-button] "AutoFilter" @ (894, 108)
+[push-button] "Image" @ (935, 108)
+[push-button] "Chart" @ (968, 108)
+[push-button] "Pivot Table" @ (1001, 108)
+[push-button] "Symbol" @ (1048, 108)
+[toggle-button] "Hyperlink" (UNCHECKED) @ (1086, 108)
+[push-button] "Comment" @ (1119, 108)
+[push-button] "Print Area" @ (1193, 108)
+[push-button] "Freeze Rows and Columns" @ (1232, 108)
+[push-button] "Split Window" @ (1270, 108)
+[toggle-button] "Draw Functions" (UNCHECKED) @ (1311, 108)
+[text] "Söhne" @ (166, 147)
+[text] "11 pt" @ (335, 147)
+[toggle-button] "Bold" (UNCHECKED) @ (428, 147)
+[toggle-button] "Italic" (UNCHECKED) @ (461, 147)
+[push-button] "Underline" @ (500, 147)
+[push-button] "Font Color" @ (552, 147)
+[push-button] "Background Color" @ (596, 147)
+[push-button] "Align Left" @ (642, 147)
+[push-button] "Align Center" @ (675, 147)
+[push-button] "Align Right" @ (708, 147)
+[push-button] "Align Top" @ (749, 147)
+[push-button] "Center Vertically" @ (782, 147)
+[push-button] "Align Bottom" @ (815, 147)
+[push-button] "Wrap Text" @ (856, 147)
+[push-button] "Currency" @ (1010, 147)
+[push-button] "Percent" @ (1048, 147)
+[push-button] "Number" @ (1081, 147)
+[push-button] "Date" @ (1114, 147)
+[push-button] "Add Decimal Place" @ (1155, 147)
+[push-button] "Delete Decimal Place" @ (1188, 147)
+[push-button] "Increase" @ (1229, 147)
+[push-button] "Decrease" @ (1262, 147)
+[push-button] "Borders (Shift to overwrite)" @ (1309, 147)
+[push-button] "Border Style" @ (1353, 147)
+[push-button] "Border Color" @ (1397, 147)
+[push-button] "Conditional" @ (1449, 147)
+[text] "D2" @ (142, 186)
+[toggle-button] "Menu" (UNCHECKED) @ (1892, 188)
+[push-button] "Function Wizard" @ (267, 186)
+[push-button] "Cancel" @ (292, 186)
+[push-button] "Accept" @ (317, 186)
+SHEET:
+[table-cell] "B1 : Order ID" @ (277, 236)
+[table-cell] "C1 : Marks" @ (385, 236)
+[table-cell] "D1 : Pass/Fail/Held" @ (461, 236)
+[table-cell] "B2 : 50 Dollar Dollar" @ (277, 257)
+[table-cell] "D2 : """ @ (461, 257)
+[table-cell] "B3 : Angelina Sad" @ (277, 278)
+[table-cell] "D3 : """ @ (461, 278)
+[table-cell] "B4 : Arnold Shawarma" @ (277, 299)
+[table-cell] "D4 : """ @ (461, 299)
+[table-cell] "B5 : Benedict Cucumberbach" @ (277, 320)
+[table-cell] "D5 : """ @ (461, 320)
+[table-cell] "B6 : Bey Twice" @ (277, 341)
+[table-cell] "D6 : """ @ (461, 341)
+[table-cell] "B7 : Blake Dreary" @ (277, 362)
+[table-cell] "D7 : """ @ (461, 362)
+[table-cell] "B8 : Clint Eastwood" @ (277, 383)
+[table-cell] "D8 : """ @ (461, 383)
+[table-cell] "B9 : Demi Tomato" @ (277, 404)
+[table-cell] "D9 : """ @ (461, 404)
+[table-cell] "B10 : Elijah Plastic" @ (277, 425)
+[table-cell] "D10 : """ @ (461, 425)
+[table-cell] "B11 : Ellen Degreedy" @ (277, 446)
+[table-cell] "D11 : """ @ (461, 446)
+[table-cell] "B12 : Emma Stoned" @ (277, 467)
+[table-cell] "D12 : """ @ (461, 467)
+[table-cell] "B13 : Jeff Tunnels" @ (277, 488)
+[table-cell] "D13 : """ @ (461, 488)
+[table-cell] "B14 : Jim Doesntcarrey" @ (277, 509)
+[table-cell] "D14 : """ @ (461, 509)
+[table-cell] "B15 : John Badman" @ (277, 530)
+[table-cell] "D15 : """ @ (461, 530)
+[table-cell] "B16 : Jonah Mountain" @ (277, 551)
+[table-cell] "D16 : """ @ (461, 551)
+[table-cell] "B17 : Kanye East" @ (277, 572)
+[table-cell] "D17 : """ @ (461, 572)
+[table-cell] "B18 : Keira Daily" @ (277, 593)
+[table-cell] "D18 : """ @ (461, 593)
+[table-cell] "B19 : Lady Haha" @ (277, 614)
+[table-cell] "D19 : """ @ (461, 614)
+[table-cell] "B20 : Leonardo DiThario" @ (277, 635)
+[table-cell] "D20 : """ @ (461, 635)
+[table-cell] "B21 : Morgan Prisoner" @ (277, 656)
+[table-cell] "D21 : """ @ (461, 656)
+[table-cell] "B22 : Olivia Calme" @ (277, 677)
+[table-cell] "D22 : """ @ (461, 677)
+[table-cell] "B23 : Parah Salin" @ (277, 698)
+[table-cell] "D23 : """ @ (461, 698)
+[table-cell] "B24 : Reese Withoutaspoon" @ (277, 719)
+[table-cell] "D24 : """ @ (461, 719)
+[table-cell] "B25 : Roger Lesse" @ (277, 740)
+[table-cell] "D25 : """ @ (461, 740)
+[table-cell] "B26 : Selena Stopmez" @ (277, 761)
+[table-cell] "D26 : """ @ (461, 761)
+[table-cell] "B27 : Swan Ronson" @ (277, 782)
+[table-cell] "D27 : """ @ (461, 782)
+[table-cell] "B28 : Tom Drive" @ (277, 803)
+[table-cell] "D28 : """ @ (461, 803)
+[table-cell] "B29 : Tom Softy" @ (277, 824)
+[table-cell] "D29 : """ @ (461, 824)
+[table-cell] "B30 : """ @ (277, 845)
+[table-cell] "D30 : """ @ (461, 845)
+SHEET_TABS:
+[push-button] "Add" @ (194, 1046)
+STATUSBAR:
+[status] "Sheet 1 of 1" @ (188, 1070)
+[status] "PageStyle_Sheet1" @ (770, 1070)
+[status] "English (Hong Kong)" @ (1042, 1070)
+[status] "Average: ; Sum: 0" @ (1532, 1070)
+[status] "100%" @ (1895, 1070)
+MODAL:
+[label] "Allow:" @ (792, 413)
+[push-button] "Reset" @ (1003, 775)
+[push-button] "Help" @ (808, 775)
+[push-button] "Cancel" @ (1093, 775)
+[push-button] "OK" @ (1183, 775)
+[push-button] " Close menu" @ (430, 154)

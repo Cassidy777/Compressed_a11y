@@ -1,0 +1,182 @@
+============================================================
+SAMPLE: domain=libreoffice_calc, id=14 (libreoffice_calc-14), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu	LibreOffice Calc	""			(99, 0)	(165, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)...
+
+INSTRUCTION:
+Make sparkline charts for each order id with the data from Jan to Mar in the "Chart" column.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 312 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 30
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Soffice" @ (35, 816)
+---
+[launcher-app] "Trash" @ (35, 884)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Styles" @ (351, 76)
+[menu] "Sheet" @ (406, 76)
+[menu] "Data" @ (457, 76)
+[menu] "Tools" @ (507, 76)
+[menu] "Window" @ (568, 76)
+[menu] "Help" @ (626, 76)
+TOOLBAR:
+[toggle-button] "Bold" (UNCHECKED) @ (428, 122)
+[toggle-button] "Italic" (UNCHECKED) @ (461, 122)
+[push-button] "Underline" @ (500, 122)
+[push-button] "Font Color" @ (552, 122)
+[push-button] "Background Color" @ (596, 122)
+[push-button] "Align Left" @ (642, 122)
+[push-button] "Align Center" @ (675, 122)
+[push-button] "Align Right" @ (708, 122)
+[push-button] "Align Top" @ (749, 122)
+[push-button] "Center Vertically" @ (782, 122)
+[push-button] "Align Bottom" @ (815, 122)
+[push-button] "Wrap Text" @ (856, 122)
+[push-button] "Currency" @ (1010, 122)
+[push-button] "Percent" @ (1048, 122)
+[push-button] "Number" @ (1081, 122)
+[push-button] "Date" @ (1114, 122)
+[push-button] "Add Decimal Place" @ (1155, 122)
+[push-button] "Delete Decimal Place" @ (1188, 122)
+[push-button] "Increase" @ (1229, 122)
+[push-button] "Decrease" @ (1262, 122)
+[push-button] "Borders (Shift to overwrite)" @ (1309, 122)
+[push-button] "Border Style" @ (1353, 122)
+[push-button] "Border Color" @ (1397, 122)
+[push-button] "Conditional" @ (1449, 122)
+[text] "Arial" @ (166, 147)
+[text] "10 pt" @ (335, 147)
+[push-button] "Function Wizard" @ (267, 160)
+[push-button] "Select Function" @ (298, 160)
+[push-button] "Formula" @ (328, 160)
+[text] "A1" @ (142, 186)
+[toggle-button] "Menu" (UNCHECKED) @ (1892, 188)
+SHEET:
+[table-cell] "B1 : Order ID" @ (246, 211)
+[table-cell] "C1 : Jan" @ (336, 211)
+[table-cell] "D1 : Feb" @ (426, 211)
+[table-cell] "E1 : Mar" @ (516, 211)
+[table-cell] "F1 : Chart" @ (606, 211)
+[table-cell] "B2 : Benedict Cucumberbatch" @ (246, 232)
+[table-cell] "F2 : """ @ (606, 232)
+[table-cell] "B3 : Blake Dreary" @ (246, 253)
+[table-cell] "F3 : """ @ (606, 253)
+[table-cell] "B4 : Bey Twice" @ (246, 274)
+[table-cell] "F4 : """ @ (606, 274)
+[table-cell] "B5 : Arnold Shawama" @ (246, 295)
+[table-cell] "F5 : """ @ (606, 295)
+[table-cell] "B6 : Clint Eastwood" @ (246, 316)
+[table-cell] "F6 : """ @ (606, 316)
+[table-cell] "B7 : Olivia Calme" @ (246, 337)
+[table-cell] "F7 : """ @ (606, 337)
+[table-cell] "B8 : Parah Salin" @ (246, 358)
+[table-cell] "F8 : """ @ (606, 358)
+[table-cell] "B9 : Elijah Plastic" @ (246, 379)
+[table-cell] "F9 : """ @ (606, 379)
+[table-cell] "B10 : Tom Softy" @ (246, 400)
+[table-cell] "F10 : """ @ (606, 400)
+[table-cell] "B11 : John Badman" @ (246, 421)
+[table-cell] "F11 : """ @ (606, 421)
+[table-cell] "B12 : Kanye East" @ (246, 442)
+[table-cell] "F12 : """ @ (606, 442)
+[table-cell] "B13 : Reese Withoutaspoon" @ (246, 463)
+[table-cell] "F13 : """ @ (606, 463)
+[table-cell] "B14 : Swan Ronson" @ (246, 484)
+[table-cell] "F14 : """ @ (606, 484)
+[table-cell] "B15 : 50 Dollar Dollar" @ (246, 505)
+[table-cell] "F15 : """ @ (606, 505)
+[table-cell] "B16 : Jonah Mountain" @ (246, 526)
+[table-cell] "F16 : """ @ (606, 526)
+[table-cell] "B17 : Jeff Tunnels" @ (246, 547)
+[table-cell] "F17 : """ @ (606, 547)
+[table-cell] "B18 : Keira Daily" @ (246, 568)
+[table-cell] "F18 : """ @ (606, 568)
+[table-cell] "B19 : Morgan Prisoner" @ (246, 589)
+[table-cell] "F19 : """ @ (606, 589)
+[table-cell] "B20 : Emma Stoned" @ (246, 610)
+[table-cell] "F20 : """ @ (606, 610)
+[table-cell] "B21 : Leonardo DiThario" @ (246, 631)
+[table-cell] "F21 : """ @ (606, 631)
+[table-cell] "B22 : Tom Drive" @ (246, 652)
+[table-cell] "F22 : """ @ (606, 652)
+[table-cell] "B23 : Selena Stopmez" @ (246, 673)
+[table-cell] "F23 : """ @ (606, 673)
+[table-cell] "B24 : """ @ (246, 694)
+[table-cell] "F24 : """ @ (606, 694)
+SHEET_TABS:
+[push-button] "Add" @ (194, 1046)
+STATUSBAR:
+[status] "Sheet 1 of 1" @ (211, 1045)
+[status] "PageStyle_Sheet1" @ (786, 1045)
+[status] "English (Hong Kong)" @ (1104, 1045)
+[status] "Average: ; Sum: 0" @ (1574, 1045)
+[status] "100%" @ (1895, 1045)
+MODAL:
+[menu-item] "Image..." @ (371, 101)
+[menu-item] "Chart..." @ (371, 126)
+[menu-item] "Pivot Table..." @ (371, 151)
+[menu] "Media" @ (371, 176)
+[menu] "Object" @ (371, 201)
+[menu] "Shape" @ (371, 226)
+[menu-item] "Function..." @ (371, 252)
+[menu-item] "Named Range or Expression..." @ (371, 277)
+[menu-item] "Comment" @ (371, 328)
+[menu-item] "Floating Frame..." @ (371, 353)
+[menu-item] "Fontwork..." @ (371, 378)
+[menu-item] "Special Character..." @ (371, 429)
+[menu] "Formatting Mark" @ (371, 454)
+[menu-item] "Date" @ (371, 480)
+[menu-item] "Time" @ (371, 505)
+[menu] "Field" @ (371, 530)
+[menu] "Form Control" @ (371, 581)
+[menu-item] "Signature Line..." @ (371, 606)
+[push-button] " Close menu" @ (430, 154)

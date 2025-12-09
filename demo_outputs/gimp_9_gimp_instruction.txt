@@ -1,0 +1,83 @@
+============================================================
+SAMPLE: domain=gimp, id=9 (gimp-9), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	orange_​background.​xcf	orange_​background.​xcf			(1529, 569)	(120, 34)
+label	Triangle_​On_​The_​Side.​png	Triangle_​On_​The_​Side.​png			(1793, 335)	(120, 34)
+label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​the_​tree2.​png			(1793, 569)	(120, 34)
+label	woman_​sitting_​by_​the_​tree.​png	woman_​sitting_​by_​the_​tree.​png			(1793, 686)	(120, 34)
+label	helloExtension.​zip	helloExtension.​zip			(1793,...
+
+INSTRUCTION:
+Please rotate my figure to mirror it horizontally.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 100 <-- selected
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 31
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: gimp
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "GNU Image Manipulation Program" @ (242, 13)
+---
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Select" @ (171, 76)
+[menu] "View" @ (220, 76)
+[menu] "Image" @ (269, 76)
+[menu] "Layer" @ (320, 76)
+[menu] "Colors" @ (372, 76)
+[menu] "Tools" @ (424, 76)
+[menu] "Filters" @ (475, 76)
+[menu] "Windows" @ (539, 76)
+[menu] "Help" @ (597, 76)
+TOOLBOX (Left Panel):
+[BLOCK]
+[combo-box] "pixels" @ (193, 1064)
+[combo-box] "66.7 %" @ (253, 1064)
+[text] "66.7 %" @ (242, 1064)
+[/BLOCK]
+STATUSBAR:
+[status] "berry.png (17.0 MB)" @ (1101, 1064)
+MODAL:
+[label] "There is one image with unsaved changes:" @ (1009, 456)
+[table-cell] "[berry] (imported)-1" @ (943, 492)
+[label] "If you quit GIMP now, these changes will be lost." @ (1009, 605)
+[label] "Press Ctrl+D to discard all changes and quit." @ (1009, 633)
+[push-button] "Discard Changes" @ (1135, 681)
+[push-button] "Cancel" @ (995, 681)
+[push-button] "Help" @ (855, 681)
+[push-button] " Close menu" @ (430, 154)

@@ -548,6 +548,9 @@ class CenteredOverlayDetector(ModalDetector):
 class ChromeCompressor(BaseA11yCompressor):
     domain_name = "chrome"
 
+    enable_multiline_normalization = False
+    enable_static_line_merge = False
+
     def get_modal_detectors(self) -> List[ModalDetector]:
         return [
             # ★ 1. Diffで見つからなかった場合の「中央ポップアップ」検出 (最強)
@@ -1136,11 +1139,11 @@ class ChromeCompressor(BaseA11yCompressor):
         
         # 2. タプル化 (Baseクラスのメソッドを利用)
         tuples = self._nodes_to_tuples(filtered_nodes)
-        tuples.sort()
-        
+        tuples.sort()        
         y_tol = int(screen_h * 0.03)
         x_tol = int(screen_w * 0.15)
-        tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
+        if self.enable_static_line_merge:
+            tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
         
         return build_hierarchical_content_lines(
             tuples,

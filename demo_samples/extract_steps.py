@@ -6,14 +6,14 @@ import glob
 # ================= CONFIGuration =================
 # 抽出元のフォルダ（ログと画像がある場所）
 # 例: .../vllm-qwen3vl32b/chrome/0d8b7de3-e8de-4d86-b9fd-dd2dce58a217
-SOURCE_DIR = "/home/cassidy/AI_Agent/OSWorld_new/results/pyautogui/a11y_tree/vllm-qwen3vl32b/chrome/82bc8d6a-36eb-4d2d-8801-ef714fb1e55a" 
+SOURCE_DIR = "/home/cassidy/AI_Agent/OSWorld_new/results/pyautogui/a11y_tree/vllm-qwen3vl32b/gimp/045bf3ff-9077-4b86-b483-a1040a949cff" 
 
 # 出力先の親ディレクトリ
-DEST_DIR = "/home/cassidy/a11y-tree/demo_samples/chrome"
+DEST_DIR = "/home/cassidy/a11y-tree/demo_samples/gimp"
 
 # 抽出したいステップの範囲 (N ~ M)
 STEP_START = 1
-STEP_END = 1
+STEP_END = 6
 
 # Instructionが入っているJSONがあるルートディレクトリ
 EXAMPLES_ROOT_PATH = "/home/cassidy/AI_Agent/OSWorld_new/evaluation_examples/examples"
