@@ -1,21 +1,18 @@
 ============================================================
-SAMPLE: domain=libreoffice_impress, id=4 (libreoffice_impress-4), mode=instruction
+SAMPLE: domain=libreoffice_impress, id=11 (libreoffice_impress-11), mode=instruction
 ============================================================
 
 ORIGINAL LINEAR A11Y (Head 500 chars):
-LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
-label	31_​2.​pptx	31_​2.​pptx			(1820, 920)	(66, 17)
-label	none.​png	none.​png			(1822, 803)	(62, 17)
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	CPD_​Background_​Investigation_​Process.​pptx	CPD_​Background_​Investigation_​Process.​pptx			(1793, 920)	(120, 34)
 label	Home	Home			(1833, 1037)	(40, 17)
-label	.​~lock.​31_​2.​pptx#	.​~lock.​31_​2.​pptx#			(1793, 686)	(120, 17)
+label	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#			(1793, 803)	(120, 34)
 menu	LibreOffice Impress	""			(99, 0)	(191, 27)
 menu	System	""			(1814, 0)	(106, 27)
-push-button	Google Chrome	""			(0, 33)	(70, 64)
-push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
-push-button	Visual St...
+push-button	Google Chrome	""			(0, 33)	(70, ...
 
 INSTRUCTION:
-Add an image "none.png" on the Desktop to slide 2 with 1cm*1cm size.
+I want to turn the rectangular image of Columbus on the first page into a cover page. Could you help me stretch this image to fill the entire page, keeping its proportion and centering the image?
 
 DOMAIN SCORES (from domain_detector):
   - gimp: 0
@@ -57,10 +54,11 @@ APP_LAUNCHER:
 STATUSBAR:
 [status] Horizontal scroll bar @ (886, 1053)
 [status] Home @ (1853, 1045)
-[status] Slide 1 of 2 @ (110, 1070)
-[status] Blank Slide @ (836, 1070)
-[status] -3.43 / 2.22 0.00 x 0.00 @ (1131, 1070)
-[status] English (Hong Kong) @ (1499, 1070)
+[status] Slide 1 of 4 (3) @ (119, 1070)
+[status] Image with transparency 'Picture 2' selected @ (438, 1070)
+[status] Title Slide @ (889, 1070)
+[status] 2.59 / 0.43 8.84 x 15.36 @ (1175, 1070)
+[status] English (USA) @ (1521, 1070)
 [status] 118% @ (1895, 1070)
 MENUBAR:
 [menu] File @ (90, 76)
@@ -93,12 +91,18 @@ TOOLBAR:
 [toolbar] Star Shapes @ (733, 147)
 [toolbar] 3D Objects @ (777, 147)
 [toolbar] Rotate @ (823, 147)
+[toolbar] Align Objects @ (862, 147)
+[toolbar] Arrange @ (906, 147)
+[toolbar] Distribution @ (950, 147)
 [toolbar] Shadow @ (996, 147)
+[toolbar] Crop @ (1029, 147)
+[toolbar] Filter @ (1068, 147)
 [toolbar] Edit Points @ (1114, 147)
 [toolbar] Gluepoints @ (1147, 147)
 [toolbar] Export Directly as PDF @ (230, 108)
 [toolbar] Cut @ (304, 108)
 [toolbar] Copy @ (337, 108)
+[toolbar] Clone @ (422, 108)
 [toolbar] Find and Replace @ (559, 108)
 [toolbar] Spelling @ (592, 108)
 [toolbar] Grid @ (633, 108)
@@ -120,19 +124,19 @@ TOOLBAR:
 [toolbar] Slide Layout @ (1292, 108)
 SLIDE_LIST:
 [slide-list] Slides View @ (166, 629)
-[slide-list] Slide 1 @ (176, 353)
 PROPERTIES:
-[property] Master View @ (1739, 469)
-[property] Orientation: @ (1613, 271)
-[property] Master Background @ (1739, 413)
-[property] Insert Image... @ (1739, 345)
-[property] Master Slide: @ (1610, 382)
-[property] Master Objects @ (1739, 438)
-[property] Background: @ (1612, 308)
-[property] Format: @ (1627, 234)
+[property] Transparency: @ (1573, 383)
+[property] Color mode: @ (1573, 272)
+[property] Contrast: @ (1573, 346)
+[property] Brightness: @ (1573, 309)
+[property] Line: @ (1573, 471)
+[property] Line Style @ (1791, 471)
 CONTENT:
 [menu] "LibreOffice Impress" @ (194, 13)
-[document-presentation] "31_2 - LibreOffice Presentation" @ (885, 606)
-[paragraph] "Click to add Title" @ (487, 285)
-[paragraph] "Click to add Text" @ (498, 401)
+[document-presentation] "CPD_Background_Investigation_Process - LibreOffice Presentation" @ (885, 606)
+[image] "Picture 2" @ (1047, 434)
+[image] "Picture 7" @ (515, 922)
+[paragraph] "The Background Investigation" @ (909, 934)
+[paragraph] "Process" @ (788, 1025)
+[image] "Picture 2" @ (628, 541)
 [scroll-bar] "Vertical scroll bar" @ (1505, 607)

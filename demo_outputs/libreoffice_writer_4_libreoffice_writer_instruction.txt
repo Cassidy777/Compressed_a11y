@@ -1,0 +1,154 @@
+============================================================
+SAMPLE: domain=libreoffice_writer, id=4 (libreoffice_writer-4), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Constitution_​Template_​With_​Guidelines.​docx	Constitution_​Template_​With_​Guidelines.​docx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​Constitution_​Template_​With_​Guidelines.​docx#	.​~lock.​Constitution_​Template_​With_​Guidelines.​docx#			(1793, 803)	(120, 34)
+menu	LibreOffice Writer	""			(99, 0)	(180, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""		...
+
+INSTRUCTION:
+Help me center align the heading in LibreOffice.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 57
+  - libreoffice_impress: 20
+  - libreoffice_writer: 61 <-- selected
+
+DETECTED DOMAIN: libreoffice_writer
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Styles" @ (351, 76)
+[menu] "Table" @ (405, 76)
+[menu] "Form" @ (458, 76)
+[menu] "Tools" @ (510, 76)
+[menu] "Window" @ (571, 76)
+[menu] "Help" @ (629, 76)
+TOOLBAR:
+[toolbar-toggle] "Menu" @ (1892, 188)
+[toolbar-btn] "Open" @ (140, 83)
+[toolbar-btn] "Save" @ (184, 83)
+[toolbar-btn] "Export Directly as PDF" @ (230, 83)
+[toolbar-btn] "Print" @ (263, 83)
+[toolbar-toggle] "Print Preview" @ (296, 83)
+[toolbar-btn] "Clone" @ (455, 83)
+[toolbar-toggle] "Find and Replace" @ (592, 83)
+[toolbar-btn] "Spelling" @ (625, 83)
+[toolbar-toggle] "Formatting Marks" @ (658, 83)
+[toolbar-btn] "Table" @ (705, 83)
+[toolbar-btn] "Image" @ (743, 83)
+[toolbar-btn] "Chart" @ (776, 83)
+[toolbar-btn] "Text Box" @ (809, 83)
+[toolbar-btn] "Page Break" @ (850, 83)
+[toolbar-btn] "Field" @ (889, 83)
+[toolbar-btn] "Symbol" @ (933, 83)
+[toolbar-toggle] "Hyperlink" @ (979, 83)
+[toolbar-btn] "Footnote" @ (1012, 83)
+[toolbar-btn] "Endnote" @ (1045, 83)
+[toolbar-btn] "Bookmark" @ (1078, 83)
+[toolbar-btn] "Cross-reference" @ (1111, 83)
+[toolbar-btn] "Comment" @ (1152, 83)
+[toolbar-toggle] "Track Changes Functions" @ (1185, 83)
+[toolbar-btn] "Line" @ (1226, 83)
+[toolbar-btn] "Basic Shapes" @ (1265, 83)
+[toolbar-toggle] "Draw Functions" @ (1303, 83)
+[style-preset] "normal" @ (157, 147)
+[toolbar-btn] "Update" @ (292, 122)
+[toolbar-btn] "New" @ (325, 122)
+[font] "Arial" @ (442, 147)
+[font-size] "12 pt" @ (611, 147)
+[toolbar-toggle] "Bold" @ (704, 122)
+[toolbar-toggle] "Italic" @ (737, 122)
+[toolbar-btn] "Underline" @ (776, 122)
+[toolbar-toggle] "Strikethrough" @ (814, 122)
+[toolbar-toggle] "Superscript" @ (855, 122)
+[toolbar-toggle] "Subscript" @ (888, 122)
+[toolbar-btn] "Clear" @ (929, 122)
+[toolbar-btn] "Font Color" @ (976, 122)
+[toolbar-btn] "Character Highlighting Color" @ (1020, 122)
+[toolbar-toggle] "Left" @ (1066, 122)
+[toolbar-toggle] "Center" @ (1099, 122)
+[toolbar-toggle] "Right" @ (1132, 122)
+[toolbar-toggle] "Justified" @ (1165, 122)
+[toolbar-btn] "Unordered List" @ (1212, 122)
+[toolbar-btn] "Ordered List" @ (1256, 122)
+[toolbar-btn] "No List" @ (1294, 122)
+[toolbar-btn] "Increase" @ (1335, 122)
+[toolbar-btn] "Decrease" @ (1368, 122)
+[toolbar-btn] "Line Spacing" @ (1415, 122)
+[toolbar-btn] "Increase" @ (1453, 122)
+STATUSBAR:
+[status] "Page 1 of 2" @ (238, 1045)
+[status] "509 words, 3,087 characters" @ (560, 1045)
+[status] "First Page" @ (882, 1045)
+[status] "English (UK)" @ (1159, 1045)
+[status] "100%" @ (1895, 1045)
+CONTENT:
+[paragraph-1] "Guidelines on drawing up a Constitution" @ (959, 290)
+[paragraph-2] "· Societies may draft their own constitution or choose to use or modify ROS' Guide Constitution. · Basically, a society's constitution should have rules to cover:" @ (281, 159)
+[paragraph-3] "#" @ (720, 401)
+[paragraph-4] "Clause" @ (841, 401)
+[paragraph-5] "Purpose" @ (1106, 401)
+[paragraph-6] "1." @ (720, 419)
+[paragraph-7] "Name" @ (841, 419)
+[paragraph-8] "Spells out the official name of the society." @ (1106, 419)
+[paragraph-9] "2." @ (720, 447)
+[paragraph-10] "Place of Business" @ (841, 447)
+[paragraph-11] "Spells out the place of business of the society." @ (1106, 447)
+[paragraph-12] "3." @ (720, 502)
+[paragraph-13] "Objects" @ (841, 502)
+[paragraph-14] "Spells out the main aims or objects in order of priority for which the society is formed, or which it may pursue, or for which its funds or any of them may be used." @ (1106, 502)
+[paragraph-15] "4." @ (720, 631)
+[paragraph-16] "Membership Qualification and Rights" @ (841, 631)
+[paragraph-17] "Spells out the society's membership criteria e.g. · The characteristics of person qualified to become a member and the class of membership, if any · Whether membership is restricted by sex, age, interest, experience, academic performance, etc · Voting rights of members and their rights to hold office" @ (0, 0)
+[paragraph-18] "5." @ (720, 750)
+[paragraph-19] "Application for Membership" @ (841, 750)
+[paragraph-20] "Spells out the procedure of applying for membership, the method of conferment of membership." @ (1106, 750)
+[paragraph-21] "6." @ (720, 824)
+[paragraph-22] "Entrance Fees, Subscription and Other Dues" @ (841, 824)
+[paragraph-23] "Specifies the sources from which the society shall derive its income, including the rates and method of payment of such entrance fees and periodical subscriptions as may be decided upon." @ (1106, 824)
+[paragraph-24] "7." @ (720, 916)
+[paragraph-25] "Supreme Authority and General Meetings" @ (841, 916)
+[paragraph-26] "Provides that the supreme authority over the society lies with the General Meeting of members and the quorum required for the transaction of business at any General Meeting of the society." @ (1106, 916)
+[paragraph-27] "8." @ (720, 999)
+[paragraph-28] "Management and Committee" @ (841, 999)
+[paragraph-29] "Lists the titles of the office-bearers and the method of appointment of the committee or governing body entrusted with the day-to-day administration of the society." @ (1106, 998)

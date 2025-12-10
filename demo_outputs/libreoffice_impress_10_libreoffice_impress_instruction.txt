@@ -1,21 +1,18 @@
 ============================================================
-SAMPLE: domain=libreoffice_impress, id=1 (libreoffice_impress-1), mode=instruction
+SAMPLE: domain=libreoffice_impress, id=10 (libreoffice_impress-10), mode=instruction
 ============================================================
 
 ORIGINAL LINEAR A11Y (Head 500 chars):
-LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
-label	13_​0.​pptx	13_​0.​pptx			(1820, 920)	(66, 17)
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	CPD_​Background_​Investigation_​Process.​pptx	CPD_​Background_​Investigation_​Process.​pptx			(1793, 920)	(120, 34)
 label	Home	Home			(1833, 1037)	(40, 17)
-label	.​~lock.​13_​0.​pptx#	.​~lock.​13_​0.​pptx#			(1793, 803)	(120, 17)
+label	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#			(1793, 803)	(120, 34)
 menu	LibreOffice Impress	""			(99, 0)	(191, 27)
 menu	System	""			(1814, 0)	(106, 27)
-push-button	Google Chrome	""			(0, 33)	(70, 64)
-push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
-push-button	Visual Studio Code	""			(0, 169)	(70, 64)
-push-button	VLC ...
+push-button	Google Chrome	""			(0, 33)	(70, ...
 
 INSTRUCTION:
-Set the background color to yellow for any slide that contains one or more images of real people, and set the title of slide 2 as "Let's start".
+I want to turn the rectangular image of Columbus on the first page into a cover page. Could you help me stretch this image to fill the entire page, keeping its proportion and centering the image?
 
 DOMAIN SCORES (from domain_detector):
   - gimp: 0
@@ -56,11 +53,11 @@ APP_LAUNCHER:
 [launcher-app] "Show Applications" @ (35, 1045)
 STATUSBAR:
 [status] Home @ (1853, 1045)
-[status] Slide 2 of 6 @ (110, 1045)
-[status] BLANK @ (853, 1045)
-[status] 49.36 / 3.86 0.00 x 0.00 @ (1149, 1045)
+[status] Slide 1 of 4 (3) @ (119, 1045)
+[status] Title Slide @ (859, 1045)
+[status] 24.96 / 4.04 0.00 x 0.00 @ (1155, 1045)
 [status] English (USA) @ (1511, 1045)
-[status] 61% @ (1898, 1045)
+[status] 118% @ (1895, 1045)
 MENUBAR:
 [menu] File @ (90, 76)
 [menu] Edit @ (131, 76)
@@ -98,20 +95,22 @@ TOOLBAR:
 SLIDE_LIST:
 [slide-list] Slides View @ (166, 604)
 PROPERTIES:
-[property] Master View @ (1738, 506)
-[property] Orientation: @ (1593, 271)
-[property] Master Background @ (1738, 450)
-[property] Insert Image... @ (1738, 382)
-[property] Master Slide: @ (1590, 419)
-[property] Master Objects @ (1738, 475)
-[property] Background: @ (1592, 308)
-[property] Format: @ (1607, 234)
+[property] Master View @ (1739, 469)
+[property] Orientation: @ (1613, 271)
+[property] Master Background @ (1739, 413)
+[property] Insert Image... @ (1739, 345)
+[property] Master Slide: @ (1610, 382)
+[property] Master Objects @ (1739, 438)
+[property] Background: @ (1612, 308)
+[property] Format: @ (1627, 234)
 CONTENT:
 [menu] "LibreOffice Impress" @ (194, 13)
-[document-presentation] "13_0 - LibreOffice Presentation" @ (885, 581)
-[paragraph] "Introduction" @ (765, 519)
-[paragraph] "Elaborate on what" @ (832, 615)
-[paragraph] "you want to discuss" @ (840, 647)
+[document-presentation] "CPD_Background_Investigation_Process - LibreOffice Presentation" @ (885, 581)
+[image] "Picture 2" @ (1047, 409)
+[image] "Picture 7" @ (515, 897)
+[paragraph] "The Background Investigation" @ (909, 909)
+[paragraph] "Process" @ (788, 1000)
+[image] "Picture 2" @ (628, 516)
 [scroll-bar] "Horizontal scroll bar" @ (886, 1028)
 [scroll-bar] "Vertical scroll bar" @ (1505, 582)
 [push-button] "Export Directly as PDF" @ (230, 83)

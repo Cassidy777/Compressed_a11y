@@ -274,6 +274,8 @@ class BaseA11yCompressor:
             # 判定のために「全ノード (modal + bg)」を渡して get_semantic_regions を呼ぶ。
             # これにより、アドレスバー等の位置関係が正しく認識され、
             # "Reload" ボタンなどが正確に "BROWSER_UI" に分類されるようになる。
+            modal_ids = {id(n) for n in modal_nodes}
+            print("[DEBUG ENGINE] modal_ids BEFORE region filter:", len(modal_ids))
             
             # ※ ID(メモリ番地)で追跡するために、一旦リストを結合
             check_nodes = modal_nodes + bg_nodes
@@ -313,14 +315,18 @@ class BaseA11yCompressor:
             modal_nodes = safe_modal_nodes
             if rejected_nodes:
                 bg_nodes.extend(rejected_nodes)
+            print(f"[DEBUG ENGINE] modal_nodes count AFTER safety filter: {len(modal_nodes)}, "f"rejected={len(rejected_nodes)}")
 
         # =========================================================================
         # ★ 共通クリーニング (重複除去・ゴミ除去)
         # =========================================================================
         if modal_nodes:
+            before_clean = len(modal_nodes)
             modal_nodes = clean_modal_nodes(modal_nodes)
+            print(f"[DEBUG ENGINE] modal_nodes AFTER clean_modal_nodes: {len(modal_nodes)} "f"(before={before_clean})")
             
             if not modal_nodes:
+                print("[DEBUG ENGINE] All modal_nodes removed by clean_modal_nodes")
                 return [], nodes, "none"
 
         return modal_nodes, bg_nodes, mode
