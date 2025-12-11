@@ -1,0 +1,114 @@
+============================================================
+SAMPLE: domain=os, id=10 (os-10), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+toggle-button	Primary Men...
+
+INSTRUCTION:
+Could you set the 'Dim screen when inactive' to off in setting?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 50 <-- selected
+
+DETECTED DOMAIN: os
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Settings" @ (35, 816)
+[launcher-app] "Terminal" @ (35, 884)
+[launcher-app] "Trash" @ (35, 952)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Settings" @ (155, 13)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (1853, 1045)
+CONTENT:
+=== Window: user@user-virtual-machine: ~ ===
+[text] "user@user-virtual-machine: ~" @ (627, 78)
+[btn] "Close" @ (971, 79)
+[btn] "Minimize" @ (891, 79)
+[btn] "Maximize" @ (931, 79)
+[btn] "Menu" @ (843, 79)
+[text] "Settings" @ (625, 164)
+[btn] "Primary Menu" @ (723, 165)
+[btn] "Search" @ (529, 165)
+[terminal] "user@user-virtual-machine:~$" @ (621, 320)
+
+=== Window: Power ===
+[text] "Power" @ (1116, 164)
+[btn] "Close" @ (1462, 165)
+[btn] "Minimize" @ (1382, 165)
+[btn] "Maximize" @ (1422, 165)
+[text] "Network" @ (640, 211)
+[text] "Bluetooth" @ (640, 256)
+[text] "Balanced" @ (912, 284)
+[text] "Background" @ (640, 302)
+[text] "Standard performance and power usage." @ (1004, 303)
+[text] "Power Saver" @ (922, 340)
+[text] "Appearance" @ (640, 347)
+[text] "Reduced performance and power usage." @ (1002, 359)
+[text] "Notifications" @ (640, 392)
+[text] "Search" @ (640, 437)
+[text] "Multitasking" @ (640, 482)
+[text] "Automatic suspend" @ (1116, 514)
+[text] "Off" @ (1379, 514)
+[text] "Applications" @ (626, 528)
+[text] "Privacy" @ (626, 573)
+[text] "Online Accounts" @ (640, 618)
+[text] "Sharing" @ (640, 663)
+[text] "Sound" @ (640, 709)
+[text] "Power" @ (640, 754)
+[text] "Displays" @ (640, 799)
+[text] "Mouse & Touchpad" @ (640, 844)
+[text] "Keyboard" @ (640, 889)
+[text] "Printers" @ (640, 934)

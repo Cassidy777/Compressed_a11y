@@ -1,0 +1,105 @@
+============================================================
+SAMPLE: domain=os, id=11 (os-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+toggle-button	Primary Men...
+
+INSTRUCTION:
+Could you set the 'Dim screen when inactive' to off in setting?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 10
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Settings" @ (35, 816)
+[launcher-app] "Terminal" @ (35, 884)
+[launcher-app] "Trash" @ (35, 952)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Settings" @ (155, 13)
+DESKTOP_ICONS:
+[desktop-icon] "user@user-virtual-machine: ~" @ (627, 78)
+[desktop-icon] "Minimize" @ (891, 79)
+[desktop-icon] "Maximize" @ (931, 79)
+[desktop-icon] "Close" @ (971, 79)
+[desktop-icon] "Settings" @ (625, 164)
+[desktop-icon] "Power" @ (1116, 164)
+[desktop-icon] "Privacy" @ (626, 214)
+[desktop-icon] "Online Accounts" @ (640, 259)
+[desktop-icon] "Balanced" @ (912, 284)
+[desktop-icon] "Standard performance and power usage." @ (1004, 303)
+[desktop-icon] "Sharing" @ (640, 304)
+[desktop-icon] "Power Saver" @ (922, 340)
+[desktop-icon] "Sound" @ (640, 350)
+[desktop-icon] "Reduced performance and power usage." @ (1002, 359)
+[desktop-icon] "Displays" @ (640, 440)
+[desktop-icon] "Mouse & Touchpad" @ (640, 485)
+[desktop-icon] "Off" @ (1379, 514)
+[desktop-icon] "Keyboard" @ (640, 530)
+[desktop-icon] "Printers" @ (640, 575)
+[desktop-icon] "Removable Media" @ (640, 620)
+[desktop-icon] "Color" @ (640, 665)
+[desktop-icon] "Region & Language" @ (640, 711)
+[desktop-icon] "Accessibility" @ (640, 756)
+[desktop-icon] "Users" @ (640, 801)
+[desktop-icon] "Default Applications" @ (640, 846)
+[desktop-icon] "Date & Time" @ (640, 891)
+[desktop-icon] "About" @ (640, 936)
+CONTENT:
+[content-item] "Menu" @ (843, 79)
+[content-item] "Primary Menu" @ (723, 165)
+[content-item] "Search" @ (529, 165)
+[content-item] "Automatic suspend" @ (1116, 514)

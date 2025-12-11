@@ -1,0 +1,50 @@
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	dir1	dir1			(1839, 920)	(27, 17)
+label	dir3	dir3			(1839, 803)	(27, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	"Represent_in_millions_billions.xlsx
+requirement.txt
+Resize_Cells_Fit_Page.xlsx
+SalesRep.xlsx
+screenshots
+server
+Set_Decimal_Separator_Dot.xlsx
+SmallBalanceSheet.xlsx
+snap
+Student_Grades_and_Remarks.xlsx
+Student_Level_Fill_Blank.xlsx
+Students_Class_Subject_Marks.xlsx
+SummerSales.xlsx
+Templates
+trimmed_video.mp4
+Videos
+VLOOKUP_Fill_the_form.xlsx
+WeeklySales.xlsx
+Zoom_Out_Oversized_Cells.xlsx
+user@user-virtual-machine:~$ find ~ -type d -name ""dir1""
+/home/user/Desktop/dir1
+user@user-virtual-machine:~$ find ~ -type d -name ""dir3""
+/home/user/Desktop/dir3
+user@user-virtual-machine:~$ 
+"			(260, 103)	(722, 434)
+menu	Terminal	""			(99, 0)	(116, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
+push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
+push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
+push-button	Files	""			(0, 577)	(70, 64)
+push-button	Ubuntu Software	""			(0, 645)	(70, 64)
+push-button	Help	""			(0, 713)	(70, 64)
+push-button	Terminal	""			(0, 784)	(70, 64)
+push-button	Trash	""			(0, 852)	(70, 64)
+toggle-button	Show Applications	""			(0, 1010)	(70, 70)

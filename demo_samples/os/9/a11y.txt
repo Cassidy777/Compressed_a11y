@@ -1,0 +1,100 @@
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+toggle-button	Primary Menu	""			(705, 142)	(36, 46)
+label	Settings	Settings			(583, 156)	(85, 17)
+toggle-button	Search	""			(511, 142)	(36, 46)
+push-button	Minimize	""			(1365, 150)	(34, 30)
+push-button	Maximize	""			(1405, 150)	(34, 30)
+push-button	Close	""			(1445, 150)	(34, 30)
+label	About	About			(1082, 156)	(69, 17)
+label	Network	Network			(547, 203)	(186, 17)
+label	Bluetooth	Bluetooth			(547, 248)	(186, 17)
+label	Background	Background			(547, 294)	(186, 17)
+label	Appearance	Appearance			(547, 339)	(186, 17)
+label	Notifications	Notifications			(547, 384)	(186, 17)
+label	Search	Search			(547, 429)	(186, 17)
+label	Multitasking	Multitasking			(547, 474)	(186, 17)
+icon	Forward	""			(717, 520)	(16, 17)
+label	Applications	Applications			(547, 520)	(158, 17)
+label	Privacy	Privacy			(547, 565)	(158, 17)
+icon	Forward	""			(717, 565)	(16, 17)
+label	Online Accounts	Online Accounts			(547, 610)	(186, 17)
+label	Sharing	Sharing			(547, 655)	(186, 17)
+label	Sound	Sound			(547, 701)	(186, 17)
+label	Power	Power			(547, 746)	(186, 17)
+label	Displays	Displays			(547, 791)	(186, 17)
+label	Mouse & Touchpad	Mouse & Touchpad			(547, 836)	(186, 17)
+label	Keyboard	Keyboard			(547, 881)	(186, 17)
+label	Printers	Printers			(547, 926)	(186, 17)
+label	Device Name	Device Name			(842, 357)	(373, 17)
+label	user-virtual-machine	user-virtual-machine			(1227, 357)	(135, 17)
+icon	Forward	""			(1374, 357)	(16, 16)
+label	Hardware Model	Hardware Model			(842, 434)	(278, 17)
+label	VMware, Inc. VMware Virtual Platform	VMware, Inc. VMware Virtual Platform			(1132, 434)	(258, 17)
+label	Memory	Memory			(842, 480)	(490, 17)
+label	3.8 GiB	3.8 GiB			(1344, 480)	(46, 17)
+label	Processor	Processor			(842, 526)	(268, 17)
+label	AMD® Epyc 7302p 16-core processor × 4	AMD® Epyc 7302p 16-core processor × 4			(1122, 526)	(268, 17)
+label	Graphics	Graphics			(842, 572)	(325, 17)
+label	llvmpipe (LLVM 15.0.7, 256 bits)	llvmpipe (LLVM 15.0.7, 256 bits)			(1179, 572)	(211, 17)
+label	Disk Capacity	Disk Capacity			(842, 618)	(486, 17)
+label	53.7 GB	53.7 GB			(1340, 618)	(50, 17)
+label	OS Name	OS Name			(842, 695)	(411, 17)
+label	Ubuntu 22.04.3 LTS	Ubuntu 22.04.3 LTS			(1265, 695)	(125, 17)
+label	OS Type	OS Type			(842, 741)	(497, 17)
+label	64-bit	64-bit			(1351, 741)	(39, 17)
+label	GNOME Version	GNOME Version			(842, 787)	(508, 17)
+label	42.9	42.9			(1362, 787)	(28, 17)
+label	Windowing System	Windowing System			(842, 833)	(511, 17)
+label	X11	X11			(1365, 833)	(25, 17)
+label	Virtualization	Virtualization			(842, 879)	(480, 17)
+label	VMware	VMware			(1334, 879)	(56, 17)
+label	Software Updates	Software Updates			(842, 925)	(508, 17)
+icon	Forward	""			(1374, 925)	(16, 16)
+menu	Settings	""			(99, 0)	(113, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
+push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
+push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
+push-button	Files	""			(0, 577)	(70, 64)
+push-button	Ubuntu Software	""			(0, 645)	(70, 64)
+push-button	Help	""			(0, 713)	(70, 64)
+push-button	Settings	""			(0, 784)	(70, 64)
+push-button	Terminal	""			(0, 852)	(70, 64)
+push-button	Trash	""			(0, 920)	(70, 64)
+toggle-button	Show Applications	""			(0, 1010)	(70, 70)

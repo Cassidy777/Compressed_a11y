@@ -414,6 +414,8 @@ class BaseA11yCompressor:
         # ゼロ幅スペースなどを削除するためのパターン
         zero_width_chars = re.compile(r'[\u200b\u200c\u200d\ufeff]')
 
+        use_statusbar = getattr(self, "use_statusbar", True)
+
         for n in nodes:
             bbox = node_bbox_from_raw(n)
             x, y, width, height = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
@@ -426,41 +428,41 @@ class BaseA11yCompressor:
             # ラベル正規化（ゼロ幅文字削除＋小文字）
             normalized_label = zero_width_chars.sub("", label).lower()
 
-            if tag == "label" and name in ("home", "helloextension"):
-                n["tag"] = "status"
-                status.append(n)
-                continue
-
-            # ==== ① __MACOSX は無条件にステータス扱い ====
-            if normalized_label == "__macosx":
-                n["tag"] = "status"
-                status.append(n)
-                continue
-
-            # ==== Launcher ====
+            # ==== Launcher (共通で使いたいのでそのまま) ====
             if x <= LAUNCHER_X_MAX and width <= ICON_W_MAX and height >= 40:
                 if tag in ("push-button", "toggle-button"):
                     n["tag"] = "launcher-app"
                     launcher.append(n)
                     continue
-        
-            # ==== Statusbar or Desktop Icons at bottom ====
-            # ここは y ではなく中心 cy で判定した方が確実
-            if cy >= STATUS_Y_MIN:
-                # ファイル名っぽいものや Home / Trash を status に寄せる
-                is_file = (
-                    bool(file_ext_pattern.search(label))
-                    or name == "home"
-                    or "trash" in name
-                    or label.startswith(".~lock")
-                )
 
-                if is_file or tag in ("label", "static") or tag == "status-bar":
+            # ==== 以下は use_statusbar が True のときだけ ====
+            if use_statusbar:
+                # ① Home / HelloExtension を status 扱い
+                if tag == "label" and name in ("home", "helloextension"):
                     n["tag"] = "status"
                     status.append(n)
                     continue
 
-            # どれでもないものは通常の UI / コンテンツとして残す
+                # ② __MACOSX は無条件に status
+                if normalized_label == "__macosx":
+                    n["tag"] = "status"
+                    status.append(n)
+                    continue
+
+                # ③ 右下のステータス（ファイル名っぽいラベルなど）
+                if cy >= STATUS_Y_MIN:
+                    is_file = (
+                        bool(file_ext_pattern.search(label))
+                        or name == "home"
+                        or "trash" in name
+                        or label.startswith(".~lock")
+                    )
+                    if is_file or tag in ("label", "static") or tag == "status-bar":
+                        n["tag"] = "status"
+                        status.append(n)
+                        continue
+
+            # どれでもないものは main に残す
             main.append(n)
 
         return launcher, status, main

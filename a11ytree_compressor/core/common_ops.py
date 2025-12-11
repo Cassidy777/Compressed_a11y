@@ -61,12 +61,28 @@ def parse_xy(raw: str) -> Optional[Tuple[int, int]]:
         return None
 
 
-# bbox {x: ,y: ,w: ,h: } を作成
 def node_bbox_from_raw(node: Node) -> Dict[str, int]:
-    raw_line = node.get("raw", "")
-    parts = raw_line.split("\t")
+    raw_line = node.get("raw", "") or ""
+    parts = [p.strip() for p in raw_line.split("\t")]
+
+    # 1. まず従来ロジックを試す（元の a11y 形式もまだ来るかもしれないので）
     pos = parse_xy(parts[5]) if len(parts) >= 6 else None
     size = parse_xy(parts[6]) if len(parts) >= 7 else None
+
+    # 2. どちらか欠けていたら、行全体から座標候補をスキャン
+    if pos is None or size is None:
+        coord_candidates = []
+        for p in parts:
+            xy = parse_xy(p)
+            if xy is not None:
+                coord_candidates.append(xy)
+
+        if coord_candidates:
+            # 最初の2個を pos, size として使う（1個だけなら pos のみ）
+            pos = coord_candidates[0]
+            if len(coord_candidates) >= 2:
+                size = coord_candidates[1]
+
     return {
         "x": pos[0] if pos else 0,
         "y": pos[1] if pos else 0,

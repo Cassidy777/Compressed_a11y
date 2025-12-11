@@ -10,10 +10,10 @@ from ..a11y_instruction_utils import get_instruction_keywords
 from ..core.engine import BaseA11yCompressor
 from ..domains.chrome import ChromeCompressor
 from ..domains.gimp import GimpCompressor
-# 他ドメインは後で増やす:
 from ..domains.libreoffice_calc import LibreOfficeCalcCompressor
 from ..domains.libreoffice_writer import LibreOfficeWriterCompressor
 from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
+from ..domains.os import OSCompressor
 # from ..domains.vlc import VlcCompressor
 
 
@@ -24,6 +24,7 @@ DOMAIN_COMPRESSORS = {
     "libreoffice_calc": LibreOfficeCalcCompressor,
     "libreoffice_writer": LibreOfficeWriterCompressor,
     "libreoffice_impress": LibreOfficeImpressCompressor,
+    "os": OSCompressor,
     # "vlc": VlcCompressor,
 }
 
@@ -44,13 +45,16 @@ def compress_from_raw_a11y(
     screen_w, screen_h = _estimate_screen_size(nodes)
 
     # 4. ドメインごとの Compressor を選択
-    CompressorCls = DOMAIN_COMPRESSORS.get(domain, BaseA11yCompressor)
-    compressor: BaseA11yCompressor = CompressorCls()
-
+    if compressor is None:
+        CompressorCls = DOMAIN_COMPRESSORS.get(domain, BaseA11yCompressor)
+        compressor = CompressorCls()
+    # 型的には BaseA11yCompressor とみなす
+    compressor: BaseA11yCompressor
     compressor.domain_name = domain
 
     # 4-1. 背景フィルタ / STATUSBAR フラグ
     if domain == "os":
+        # OS は background_filtering なし / statusbar もそもそも使わない
         compressor.enable_background_filtering = False
         compressor.use_statusbar = False
 
@@ -74,7 +78,7 @@ def compress_from_raw_a11y(
         compressor.enable_static_line_merge = True
 
     elif domain in ("chrome", "os"):
-        # 圧縮しすぎを避けたい系
+        # OS / Chrome は「見えたまま」を残したいので、あまり潰しすぎない
         compressor.enable_multiline_normalization = False
         compressor.enable_static_line_merge = False
 
@@ -86,6 +90,7 @@ def compress_from_raw_a11y(
     # 5. 実行
     use_instruction = (mode == "instruction")
 
+    # instruction からキーワード集合を作る（instruction が空なら空セット）
     if use_instruction and instruction:
         instruction_keywords = get_instruction_keywords(instruction)
     else:
@@ -102,25 +107,4 @@ def compress_from_raw_a11y(
     print("[DEBUG] instruction in compress_from_raw_a11y:", repr(instruction))
     return result
 
-
-
-    # 5. 実行
-    use_instruction = (mode == "instruction")
-
-    # instruction からキーワード集合を作る（instruction が空なら空セット）
-    if use_instruction and instruction:
-        instruction_keywords = get_instruction_keywords(instruction)
-    else:
-        instruction_keywords = set()
-
-    result = compressor.compress(
-        nodes,
-        screen_w=screen_w,
-        screen_h=screen_h,
-        instruction=instruction or "",
-        instruction_keywords=instruction_keywords,  # ★追加
-        use_instruction=use_instruction,
-    )
-    print("[DEBUG] instruction in compress_from_raw_a11y:", repr(instruction))
-    return result
 

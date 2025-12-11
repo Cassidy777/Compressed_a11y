@@ -1,0 +1,118 @@
+============================================================
+SAMPLE: domain=os, id=5 (os-5), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+push-button	Minimize	""		...
+
+INSTRUCTION:
+I click in terminal: terminal->132x43 to change terminal size but after each reboot terminal size is set to default setting and I have to change it again. Help me set it permanently
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 65 <-- selected
+
+DETECTED DOMAIN: os
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Terminal" @ (35, 816)
+[launcher-app] "Trash" @ (35, 884)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Terminal" @ (157, 13)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (1853, 1045)
+CONTENT:
+=== Window: user@user-virtual-machine: ~ ===
+[text] "user@user-virtual-machine: ~" @ (627, 78)
+[btn] "Close" @ (971, 79)
+[btn] "Minimize" @ (891, 79)
+[btn] "Maximize" @ (931, 79)
+[btn] "Menu" @ (843, 79)
+[text] "General" @ (1035, 175)
+[text] "Shortcuts" @ (1035, 225)
+[terminal] "user@user-virtual-machine:~$" @ (621, 320)
+[text] "Unnamed" @ (1035, 321)
+
+=== Window: Preferences – Profile “Unnamed” ===
+[text] "Preferences – Profile “Unnamed”" @ (1394, 78)
+[btn] "Close" @ (1771, 79)
+[btn] "Minimize" @ (1731, 79)
+[text] "Text Appearance" @ (1470, 161)
+[btn] "Reset" @ (1738, 193)
+[control] "24" @ (1566, 193)
+[text] "rows" @ (1647, 193)
+[control] "80" @ (1374, 193)
+[text] "columns" @ (1467, 193)
+[text] "Initial terminal size:" @ (1237, 193)
+[check] "Custom font:" @ (1237, 233)
+[btn] "Reset" @ (1738, 273)
+[control] "1.00" @ (1566, 273)
+[text] "× height" @ (1657, 273)
+[control] "1.00" @ (1374, 273)
+[text] "× width" @ (1463, 273)
+[text] "Cell spacing:" @ (1237, 273)
+[combo] "Always" @ (1548, 313)
+[text] "Allow blinking text:" @ (1237, 313)
+[text] "Cursor" @ (1470, 356)
+[combo] "Block" @ (1548, 388)
+[text] "Cursor shape:" @ (1237, 388)
+[combo] "Default" @ (1548, 428)
+[text] "Cursor blinking:" @ (1237, 428)
+[text] "Sound" @ (1470, 471)
+[check] "Terminal bell" @ (1476, 497)
+[text] "Profile ID:" @ (1465, 657)
+[text] "b1dcc9dd-5262-4d8d-a863-c897e6d979b9" @ (1642, 657)
+
+=== Background / Other ===
+[btn] "Help" @ (1032, 79)
+[btn] "Menu" @ (1120, 321)

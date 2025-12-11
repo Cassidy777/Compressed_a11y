@@ -1,0 +1,54 @@
+============================================================
+SAMPLE: domain=os, id=2 (os-2), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~/test_environment	user@user-virtual-machine: ~/test_environment			(412, 70)	(365, 17)
+terminal	Terminal	user@user-virtual-machine:~$ cd test_environment
+user@user-virtual-ma...
+
+INSTRUCTION:
+Copy all files matching "*failed.ipynb" in the current directory tree to "./fails" preserving the directory hierarchy
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 25
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Terminal" @ (35, 816)
+[launcher-app] "Trash" @ (35, 884)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Terminal" @ (157, 13)
+DESKTOP_ICONS:
+[desktop-icon] "user@user-virtual-machine: ~/test_environment" @ (594, 78)
+[desktop-icon] "Minimize" @ (891, 79)
+[desktop-icon] "Maximize" @ (931, 79)
+[desktop-icon] "Close" @ (971, 79)
+CONTENT:
+[content-item] "Menu" @ (843, 79)

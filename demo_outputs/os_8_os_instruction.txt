@@ -1,0 +1,78 @@
+============================================================
+SAMPLE: domain=os, id=8 (os-8), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	photos	photos			(1829, 920)	(48, 17)
+label	cpjpg	cpjpg			(1834, 803)	(37, 17)
+push-button	Minimize	""			(1608, 202)	(34, 30)
+push-button	Maximize	""			(1648, 202)	(34, 30)
+push-button	Close	""			(1688, 202)	(34, 30)
+toggle-button	Menu	""			(1559, 194)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(1245, 208)	(232, 17)
+terminal	Terminal	user@user...
+
+INSTRUCTION:
+Recursively go through the folders of the 'photos' directory and copy any .jpg files found into another directory named 'cpjpg'.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 75 <-- selected
+
+DETECTED DOMAIN: os
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Terminal" @ (35, 816)
+[launcher-app] "Trash" @ (35, 884)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Terminal" @ (157, 13)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (395, 217)
+[desktop-icon] "cpjpg" @ (1852, 811)
+[desktop-icon] "photos" @ (1853, 928)
+CONTENT:
+=== Window: Unknown Window (Menu) ===
+[btn] "Menu" @ (620, 217)
+[btn] "Menu" @ (806, 217)
+[btn] "Menu" @ (843, 217)
+[text] "Recent" @ (210, 263)
+[text] "Starred" @ (210, 301)
+[text] "Home" @ (210, 339)
+[text] "Desktop" @ (210, 377)
+[text] "Documents" @ (210, 415)
+[text] "Downloads" @ (210, 453)
+[text] "Music" @ (210, 491)
+[text] "Pictures" @ (210, 529)
+[text] "Videos" @ (210, 567)
+[text] "Trash" @ (210, 605)
+[text] "Other Locations" @ (210, 652)
+
+=== Window: user@user-virtual-machine: ~ ===
+[text] "user@user-virtual-machine: ~" @ (1361, 216)
+[btn] "Close" @ (1705, 217)
+[btn] "Maximize" @ (1665, 217)
+[btn] "Minimize" @ (1625, 217)
+[btn] "Menu" @ (1577, 217)
+[terminal] "user@user-virtual-machine:~$ cp -r ~/photos/**/*.jpg ~/cpjpg/
+cp: cannot stat '/home/user/photos/**/*.jpg': No such file or directory
+user@user-virtual-machine:~$" @ (1355, 458)
