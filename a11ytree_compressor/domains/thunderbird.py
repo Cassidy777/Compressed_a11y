@@ -76,9 +76,6 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         SPLIT_LIST_X    = w * 0.55
         TB_TOOLBAR_BOTTOM_Y = 100 
         SIDEBAR_HEADER_BOTTOM_Y = 150
-        
-        # ★修正: ステータスバーの開始位置を厳密にする
-        # Add-ons(1001), Colors(1031) より下で、Hide Spaces(1058) と同等か下
         BOTTOM_AREA_Y = 1060 
 
         for n in nodes:
@@ -108,9 +105,18 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 regions["TOP_BAR"].append(n)
                 continue
             
-            # --- 3. Thunderbird Left Columns (優先度アップ) ---
-            # ★修正: ステータスバー判定より先にSPACESを判定する
-            # これにより "Settings"(y=1013) や "Hide Spaces"(y=1058) がステータスバーに行かなくなる
+            # --- 3. Status Bar (最優先判定) ---
+            # ★修正: 名前完全一致なら座標無視でステータスバーへ
+            if name in {"You are currently online.", "Done", "Unread:", "Total:"}:
+                regions["STATUSBAR"].append(n)
+                continue
+
+            # 座標判定: 画面最下部
+            if cy > BOTTOM_AREA_Y and cy < 1080:
+                regions["STATUSBAR"].append(n)
+                continue
+
+            # --- 4. Thunderbird Left Columns ---
             if cx < SPACES_BAR_MAX_X and bw < 60:
                 regions["SPACES_BAR"].append(n)
                 continue
@@ -120,25 +126,6 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                     regions["SIDEBAR_HEADER"].append(n)
                 else:
                     regions["FOLDER_TREE"].append(n)
-                continue
-
-            # --- 4. Status Bar (条件厳格化) ---
-            is_statusbar_item = False
-            
-            # 名前指定: 画面上部にあるボタン等との誤爆を防ぐため y > 500
-            if name in {"Done", "You are currently online.", "Home"}:
-                if cy > 500: 
-                    is_statusbar_item = True
-            
-            # 座標指定: 
-            # 1. BOTTOM_AREA_Y (1060) より下にある
-            # 2. かつ、画面の物理的な下端 (1080) より上にあること
-            #    これがないと、スクロール先の要素 (y=2691) がステータスバー扱いになって消滅する
-            elif cy > BOTTOM_AREA_Y and cy < 1080:
-                is_statusbar_item = True
-            
-            if is_statusbar_item:
-                regions["STATUSBAR"].append(n)
                 continue
 
             # --- 5. Main Content Area ---
@@ -652,38 +639,233 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         return lines
 
+    def _compress_account_settings_view(
+        self,
+        regions: Dict[str, List[Node]],
+        modal_nodes: List[Node],
+        screen_w: int,
+        screen_h: int,
+    ) -> List[str]:
+        lines: List[str] = []
+        fold_y = 1080
+
+        all_nodes = []
+        target_regions = [
+            "HOME_DASHBOARD", "MESSAGE_LIST", "PREVIEW", "DASHBOARD", 
+            "FOLDER_TREE", "SIDEBAR", "SIDEBAR_HEADER", "CONTENT", "MODAL"
+        ]
+        for k in target_regions:
+            all_nodes.extend(regions.get(k, []))
+        
+        if modal_nodes:
+            all_nodes.extend(modal_nodes)
+
+        if not all_nodes:
+            return lines
+
+        sidebar_nodes: List[Node] = []
+        content_nodes: List[Node] = []
+        split_x = 320 
+
+        for n in all_nodes:
+            bbox = node_bbox_from_raw(n)
+            if bbox["y"] < 50: 
+                continue
+            
+            x = bbox["x"]
+            if x <= split_x:
+                sidebar_nodes.append(n)
+            else:
+                content_nodes.append(n)
+
+        # 上下分割
+        visible_content, below_fold_content, deep_content = self._split_by_vertical_position(
+            content_nodes, fold_y, visible_ratio=1.0, scroll_ratio=10.0
+        )
+        below_fold_content.extend(deep_content)
+
+        lines.append("=== ACCOUNT SETTINGS ===")
+
+        # サイドバー (インデント付き)
+        visible_sidebar, _, _ = self._split_by_vertical_position(sidebar_nodes, fold_y, visible_ratio=1.0)
+        sidebar_lines = self._compress_account_settings_sidebar(visible_sidebar)
+        if sidebar_lines:
+            lines.append("=== ACCOUNT SETTINGS SIDEBAR ===")
+            lines.extend(sidebar_lines)
+
+        # メイン (マージ機能 & フィルタ付き)
+        # ★変更: 専用のメイン圧縮関数を呼ぶ
+        main_lines = self._compress_account_settings_main(visible_content, fold_y)
+        if main_lines:
+            lines.append("=== ACCOUNT SETTINGS MAIN ===")
+            lines.extend(main_lines)
+
+        # スクロール先
+        below_lines = self._compress_settings_below_fold(below_fold_content)
+        if below_lines:
+            lines.append("=== ACCOUNT SETTINGS (scroll down) ===")
+            lines.extend(below_lines)
+
+        return lines
+
+    
+    def _compress_account_settings_sidebar(self, nodes: List[Node]) -> List[str]:
+        """
+        Account Settings サイドバー。
+        - X座標に基づいてインデントを付与し、階層構造を可視化する。
+        - ステータスバー要素が紛れ込まないようフィルタする。
+        """
+        if not nodes:
+            return []
+
+        VALID_TAGS = {"tree-item", "push-button", "link"}
+        
+        # y順、x順
+        nodes = sorted(nodes, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        
+        # インデント計算用の基準X座標を探す
+        # 極端に左にあるものは無視して、tree-item の最小Xを探す
+        tree_items_x = [node_bbox_from_raw(n)["x"] for n in nodes if (n.get("tag")=="tree-item")]
+        base_x = min(tree_items_x) if tree_items_x else 0
+
+        lines: List[str] = []
+        seen = set()
+
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or "").strip()
+            if not name: continue
+            
+            if tag not in VALID_TAGS: continue
+
+            # ノイズ除去
+            if name in {"You are currently online.", "Done"}: continue
+            if node_bbox_from_raw(n)["x"] > 350: continue
+
+            # インデント処理
+            bbox = node_bbox_from_raw(n)
+            # 基準からのズレを 20px 単位でインデント1個分とする（適当なヒューリスティック）
+            indent_level = max(0, int((bbox["x"] - base_x) / 15))
+            indent_str = "  " * indent_level
+
+            # フォーマット
+            cx, cy = bbox_to_center_tuple(bbox)
+            line = f'{indent_str}[{tag}] "{name}" @ ({cx}, {cy})'
+            
+            if line not in seen:
+                seen.add(line)
+                lines.append(line)
+
+        return lines
+
+
+    def _compress_account_settings_main(self, nodes: List[Node], fold_y: int) -> List[str]:
+        """
+        Account Settings Main 専用圧縮。
+        1. [label] と [entry/check-box] が隣接している場合、1行に結合する。
+        2. "Settings" タブなどの不要なヘッダを除去する。
+        """
+        if not nodes:
+            return []
+
+        # 1. 不要なタブヘッダの除去
+        # "Settings" という名前の section や、それに関連する Close Tab ボタンを消す
+        filtered_nodes = []
+        for n in nodes:
+            name = (n.get("name") or "").strip()
+            tag = (n.get("tag") or "").lower()
+            
+            # 不要なタブ (Settings)
+            if tag == "section" and name == "Settings":
+                continue
+            # 不要な閉じるボタン (Settingsタブの近辺にあると推測される)
+            # Account Settings タブよりも左(x<600くらい)にある Close Tab は消す
+            if name == "Close Tab" and node_bbox_from_raw(n)["x"] < 600:
+                continue
+            
+            filtered_nodes.append(n)
+
+        # 2. ソート (Y優先、次にX)
+        nodes = sorted(filtered_nodes, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        
+        lines: List[str] = []
+        skip_next = False
+        
+        for i, n in enumerate(nodes):
+            if skip_next:
+                skip_next = False
+                continue
+            
+            bbox = node_bbox_from_raw(n)
+            if bbox["y"] > fold_y: continue # 画面外は無視
+
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or "").strip()
+            
+            # --- マージ処理 ---
+            # 現在が Label で、次が入力欄なら結合を試みる
+            if tag == "label" and i + 1 < len(nodes):
+                next_n = nodes[i+1]
+                next_tag = (next_n.get("tag") or "").lower()
+                next_name = (next_n.get("name") or "").strip()
+                next_bbox = node_bbox_from_raw(next_n)
+
+                # Y座標が近く(行が同じ)、X座標が右側にあるか確認
+                y_diff = abs(bbox["y"] - next_bbox["y"])
+                if y_diff < 20 and next_bbox["x"] > bbox["x"]:
+                    # 入力欄系タグなら結合
+                    if next_tag in {"entry", "check-box", "combo-box", "push-button"}:
+                        # 結合フォーマット: [tag] "LabelName: ValueName"
+                        # 名前が重複している場合("Account Name:" と "Account Name: ...")のケア
+                        final_name = next_name
+                        if name.rstrip(":") not in next_name:
+                            final_name = f"{name} {next_name}"
+                        
+                        cx, cy = bbox_to_center_tuple(next_bbox)
+                        line = f'[{next_tag}] "{final_name}" @ ({cx}, {cy})'
+                        lines.append(line)
+                        skip_next = True # 次のノードは処理済みとする
+                        continue
+            
+            # マージされなかった場合は通常出力
+            line = self._format_node(n)
+            if line:
+                lines.append(line)
+
+        return lines
+
 
     def _detect_view_type(self, nodes: List[Node]) -> str:
         """
         Decide which Thunderbird view this is:
         - 'home'            : top dashboard (Set Up Another Account ... )
         - 'settings'        : Thunderbird Settings (General / Composition / ...)
-        - 'account_settings': Account Settings for a specific account
+        - 'account_settings': Account Settings (Sidebar is tree-items, title is 'Account Settings - ...')
         - 'generic'         : fallback
         """
         names = { (n.get("name") or "").strip() for n in nodes }
         lower_names = { n.lower() for n in names if n }
 
-        # 1) Home dashboard
+        # 1) Account Settings view (Priority High)
+        # ドメイン固有ルール: タイトルに "Account Settings -" がある、または
+        # "Account Settings" というラベルと "Account Name:" などの特徴的な項目がある場合
+        if any("account settings -" in ln for ln in lower_names):
+            return "account_settings"
+        
+        if "account settings" in lower_names:
+            # 誤検出防止: "Account Name:" や サイドバーの "Server Settings" などがあるか確認
+            has_account_indicators = any(
+                (n.get("name") or "").strip() in {"Account Name:", "Server Settings", "Outgoing Server (SMTP)"}
+                for n in nodes
+            )
+            if has_account_indicators:
+                return "account_settings"
+
+        # 2) Home dashboard
         if "set up another account" in lower_names or "import from another program" in lower_names:
             return "home"
 
-        # 2) Account Settings view
-        #   - title "Account Settings"
-        #   - or label "Account Settings - <account>"
-        if any("account settings -" in ln for ln in lower_names) or "account settings" in lower_names:
-            # ただし Settings 画面の左下リンク "Account Settings" だけで誤検出しないように、
-            # tree-item や entry の "Account Name:" 等があるかも併せて確認する
-            has_account_name_label = any(
-                (n.get("name") or "").strip() == "Account Name:"
-                for n in nodes
-            )
-            if has_account_name_label:
-                return "account_settings"
-
-        # 3) Thunderbird Settings view (General / Composition / Privacy & Security ...)
-        # 左サイドに list-item "General", "Composition", etc. が並び、
-        # 中央上に heading "General" などが出るパターンを検出
+        # 3) Thunderbird Settings view
         settings_side_candidates = {"General", "Composition", "Privacy & Security", "Chat"}
         has_settings_section = any(
             (n.get("tag") or "").lower() == "section"
@@ -695,7 +877,6 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             and (n.get("name") or "").strip() in settings_side_candidates
             for n in nodes
         )
-        # 条件を少し緩めて、SettingsセクションがなくてもNavがあればSettingsとみなす(誤検出あれば調整)
         if has_settings_section or has_settings_nav:
             return "settings"
 
@@ -715,14 +896,29 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         """
         lines: List[str] = []
 
-        all_nodes = []
+        # 全ノードからViewTypeを判定
+        all_nodes_for_detect = []
         for lst in regions.values():
-            all_nodes.extend(lst)
-        view_type = self._detect_view_type(all_nodes)
+            all_nodes_for_detect.extend(lst)
+        # modal_nodes も判定に加える
+        if modal_nodes:
+            all_nodes_for_detect.extend(modal_nodes)
+            
+        view_type = self._detect_view_type(all_nodes_for_detect)
 
+        # ★重要: Account Settings の場合は Modal を強制的に空にする準備
+        # (後続の処理で regions["MODAL"] や modal_nodes を使わせないため、
+        #  専用の圧縮関数に渡して消費させる)
+        detected_modals_to_merge = []
+        if view_type == "account_settings":
+            detected_modals_to_merge = list(modal_nodes) # コピー
+            modal_nodes = [] # 空にする
+            # regions["MODAL"] は _compress_account_settings_view 内で統合されるのでそのままでOK
+            # ただし出力段階で重複しないよう、後で regions["MODAL"] を空にする処理が必要だが、
+            # 下記のロジックでは regions["MODAL"] を個別出力しているので、
+            # view_type分岐内で処理済みフラグを立てるか、regionsを操作する。
+            
         # --- 共通部分 ---
-        
-        # ★修正: SYSTEM見出しを確実に出力
         if regions.get("TOP_BAR"):
             r = self._compress_top_bar(regions["TOP_BAR"])
             if r:
@@ -761,7 +957,8 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 lines.extend(r)
                 lines.append("")
 
-        elif view_type == "settings" or view_type == "account_settings":
+        elif view_type == "settings":
+            # 通常のSettings
             settings_lines = self._compress_settings_view(regions, screen_w, screen_h)
             if settings_lines:
                 lines.extend(settings_lines)
@@ -770,7 +967,22 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                     lines.append("=== SETTINGS (Fallback) ===")
                     lines.extend(r)
 
+        elif view_type == "account_settings":
+            # ★新規: Account Settings
+            # モーダルとして検出されたものもメインコンテンツとして渡す
+            acc_lines = self._compress_account_settings_view(
+                regions, 
+                detected_modals_to_merge, 
+                screen_w, 
+                screen_h
+            )
+            if acc_lines:
+                lines.extend(acc_lines)
+            # このビューでは MODAL 領域を表示済みとみなすため、regions["MODAL"] を空にする
+            regions["MODAL"] = [] 
+
         else:
+            # Generic / Mail View
             if r := self._compress_folder_tree(
                 regions["FOLDER_TREE"] + regions["SIDEBAR_HEADER"] + regions["SIDEBAR"]
             ):
@@ -794,13 +1006,13 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                     lines.append("")
 
         # 4. 下部ステータスバー (共通)
-        # ★ここが重要: 最後に必ずSTATUS BARを出力
         if r := self._compress_statusbar(regions["STATUSBAR"]):
             lines.append("=== STATUS BAR ===")
             lines.extend(r)
             lines.append("")
         
         # 5. モーダル
+        # Account Settingsの場合は上で空にされているか、regions["MODAL"]がクリアされている
         all_modals = regions["MODAL"] + (modal_nodes or [])
         if r := self._compress_modal(all_modals):
             lines.append("=== MODAL / DIALOG ===")
