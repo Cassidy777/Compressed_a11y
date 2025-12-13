@@ -1,4 +1,5 @@
 import re
+import sys
 from typing import List, Dict, Tuple, Set, Optional, Any
 from collections import defaultdict
 from ..core.engine import BaseA11yCompressor
@@ -841,21 +842,234 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         return lines
 
+    def _compress_addons_toolbar(self, nodes: List[Node]) -> List[str]:
+        """
+        Add-ons Manager の上部操作群を抽出する。
+        例: 'Find more add-ons', 検索入力, 'Tools for all add-ons' など
+        """
+        if not nodes:
+            return []
+
+        def tag(n): return (n.get("tag") or "").lower()
+        def nm(n):  return (n.get("name") or "").strip()
+        def bbox(n): return node_bbox_from_raw(n)
+
+        picked: List[Node] = []
+        for n in nodes:
+            t = tag(n)
+            name = nm(n)
+            if not name and t != "entry":
+                continue
+
+            b = bbox(n)
+
+            # Add-ons 画面の「上部」っぽい範囲（必要なら微調整）
+            # y=160〜320 に検索周りや見出しがいることが多い
+            if b["y"] < 140 or b["y"] > 360:
+                continue
+
+            # 検索入力（nameが空でも残す）
+            if t == "entry":
+                picked.append(n)
+                continue
+
+            # 上部に出やすいUI要素
+            if t in {"label", "heading"}:
+                # 'Find more add-ons', 'Manage Your Themes' など
+                picked.append(n)
+                continue
+
+            if t == "push-button":
+                # 'Tools for all add-ons' / 'More Options' など
+                picked.append(n)
+                continue
+
+        picked = sorted(picked, key=lambda n: (bbox(n)["y"], bbox(n)["x"]))
+        # 既存の整形/重複除去ユーティリティを使う前提
+        return self._dedup_lines([self._format_node(n) for n in picked])
+
+
+
+    def _compress_addons_tabs(self, nodes: List[Node]) -> List[str]:
+        """
+        Add-ons Manager のタブ列（上部の 'Settings' / 'Add-ons Manager' など）を軽く要約。
+        """
+        if not nodes:
+            return []
+
+        picked: List[Node] = []
+        for n in nodes:
+            t = (n.get("tag") or "").lower()
+            nm = (n.get("name") or n.get("text") or "").strip()
+            bbox = node_bbox_from_raw(n)
+
+            # タブはだいたい y=90〜150 付近にいる想定
+            if bbox["y"] > 180:
+                continue
+
+            txt = ((n.get("name") or n.get("text") or "")).strip()
+            if t in {"section", "label"} and txt:
+                # "Settings", "Add-ons Manager", アカウント名タブなど
+                picked.append(n)
+            elif t == "push-button" and nm in {"Close Tab"}:
+                picked.append(n)
+
+        picked = sorted(picked, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        return self._dedup_lines([self._format_node(n) for n in picked])
+
+
+    def _compress_addons_sidebar(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+
+        SIDEBAR_MAX_X = 420
+        ALLOW_TAGS = {"section", "link", "list-item", "label", "heading"}
+        TAG_PRIORITY = {"link": 4, "list-item": 3, "label": 2, "section": 1, "heading": 1}
+
+        def disp(n):
+            return ((n.get("name") or n.get("text") or "")).strip()
+
+        grouped: Dict[str, List[Node]] = {}
+        for n in nodes:
+            t = (n.get("tag") or "").lower()
+            if t not in ALLOW_TAGS:
+                continue
+
+            txt = disp(n)
+            if not txt:
+                continue
+
+            bbox = node_bbox_from_raw(n)
+            if bbox["x"] > SIDEBAR_MAX_X:
+                continue
+
+            key = txt.lower()  # ★重複潰しやすく
+            grouped.setdefault(key, []).append(n)
+
+        picked: List[Node] = []
+        for key, group in grouped.items():
+            best = sorted(
+                group,
+                key=lambda n: (
+                    -TAG_PRIORITY.get((n.get("tag") or "").lower(), 0),
+                    node_bbox_from_raw(n)["y"],
+                    node_bbox_from_raw(n)["x"],
+                ),
+            )[0]
+            picked.append(best)
+
+        picked = sorted(picked, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        return self._dedup_lines([self._format_node(n) for n in picked])
+
+
+
+    def _compress_addons_content(self, nodes: List[Node]) -> List[str]:
+        """
+        Add-ons Manager の右側コンテンツ（テーマ一覧、Enabled/Saved Themes、説明文、Enableボタン等）
+        am["CONTENT"] 用。
+        """
+        if not nodes:
+            return []
+
+        # 右ペインっぽい領域だけを優先（左ナビと混ざるのを抑制）
+        CONTENT_LEFT_X = 400
+
+        allowed_tags = {
+            "heading", "section", "link", "push-button",
+            "label", "static", "paragraph", "list-item",
+            "check-box", "entry",
+        }
+
+        filtered: List[Node] = []
+        for n in nodes:
+            bbox = node_bbox_from_raw(n)
+            tg = (n.get("tag") or "").lower()
+            if bbox["x"] >= CONTENT_LEFT_X and tg in allowed_tags:
+                filtered.append(n)
+
+        if not filtered:
+            # もし抽出しすぎたら全体で最低限出す
+            filtered = [n for n in nodes if ((n.get("tag") or "").lower() in allowed_tags)]
+
+        # 読みやすさ：上から下、同じ段なら左から右
+        filtered = sorted(filtered, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+
+        lines = [self._format_node(n) for n in filtered]
+        return self._dedup_lines(lines)
+
+
 
     def _detect_view_type(self, nodes: List[Node]) -> str:
+        """
+        Thunderbird view type detector (score-based + a few strong guards).
+
+        Views:
+        - "mail"
+        - "home"
+        - "settings"
+        - "addons_manager"
+        - "account_settings"
+        - "compose"
+        - "unknown"
+        """
+        from collections import defaultdict
+        from typing import Dict
+
         def tag(n): return (n.get("tag") or "").lower()
         def name(n): return (n.get("name") or "").strip()
         def lower_name(n): return name(n).lower()
 
+        # ★ 文字列は disp/ldisp に統一して判定する（name空/text側対応）
+        def disp(n):
+            return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+        def ldisp(n): return disp(n).lower()
+
         # ----------------------------
-        # 1) HARD GUARDS (確定ルール)
+        # 1) STRONG GUARDS (確定ルール)
         # ----------------------------
-        # Add-ons Manager
-        if any(tag(n) == "document-web" and "add-ons manager" in lower_name(n) for n in nodes):
+
+        # --- Compose (New Message) guard ---
+        # "Message body" + (From/To/Subject/Send etc.) の組み合わせで強確定
+        has_message_body = any(
+            tag(n) == "document-web" and ldisp(n) in {"message body", "body"}
+            for n in nodes
+        )
+
+        compose_signals = {
+            "from", "to", "subject", "cc", "bcc",
+            "send", "attach", "spelling",
+        }
+        compose_hits = sum(
+            1 for n in nodes
+            if tag(n) in {"label", "entry", "push-button", "combo-box", "toggle-button"}
+            and ldisp(n) in compose_signals
+        )
+
+        # "Subject" は entry の name が "Subject"、text に件名が入る等の揺れがあるので補強
+        has_subject_entry = any(
+            tag(n) == "entry" and (ldisp(n) == "subject" or lower_name(n) == "subject")
+            for n in nodes
+        )
+
+        # 2-of-N 以上で確定（強め）
+        if has_message_body and (compose_hits >= 2 or has_subject_entry):
+            return "compose"
+
+        # --- Add-ons Manager guard ---
+        # NOTE: document-web の title が必ず "Add-ons Manager" とは限らないので、
+        # Add-ons 特有の UI（検索欄 / 見出し / ツールボタン）も確定材料にする。
+        is_addons_guard = (
+            any(tag(n) == "document-web" and "add-ons" in ldisp(n) for n in nodes)
+            or any(tag(n) == "entry" and "addons.thunderbird.net" in ldisp(n) for n in nodes)
+            or any(tag(n) == "label" and ldisp(n) == "find more add-ons" for n in nodes)
+            or any(tag(n) == "heading" and ldisp(n) in {"manage your themes", "manage your extensions"} for n in nodes)
+            or any(tag(n) == "push-button" and ldisp(n) == "tools for all add-ons" for n in nodes)
+        )
+        if is_addons_guard:
             return "addons_manager"
 
-        # Account Settings
-        if any("account settings -" in lower_name(n) for n in nodes):
+        # --- Account Settings guard (keep yours) ---
+        if any("account settings -" in ldisp(n) for n in nodes):
             return "account_settings"
 
         # ----------------------------
@@ -865,11 +1079,11 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         # --- mail signals ---
         mail_keywords = {"quick filter", "message list display options"}
-        if any(lower_name(n) in mail_keywords for n in nodes):
+        if any(ldisp(n) in mail_keywords for n in nodes):
             score["mail"] += 3
 
-        # tree-item にカンマ含む行が複数ある → メール一覧っぽい
-        msg_row_hits = sum(1 for n in nodes if tag(n) == "tree-item" and "," in name(n))
+        # message rows: tree-item にカンマ含む行が複数ある → メール一覧っぽい
+        msg_row_hits = sum(1 for n in nodes if tag(n) == "tree-item" and "," in disp(n))
         if msg_row_hits >= 2:
             score["mail"] += 3
         elif msg_row_hits == 1:
@@ -882,42 +1096,89 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             "about mozilla thunderbird",
             "resources",
         }
-        home_heading_hits = sum(1 for n in nodes if tag(n) == "heading" and lower_name(n) in home_headings)
+        home_heading_hits = sum(
+            1 for n in nodes
+            if tag(n) == "heading" and ldisp(n) in home_headings
+        )
         score["home"] += min(home_heading_hits * 2, 6)
 
         # --- settings signals ---
-        if any(tag(n) == "document-web" and lower_name(n) == "settings" for n in nodes):
-            score["settings"] += 6  # hard guardにしなかった場合の強シグナル
-        settings_nav = {"general", "composition", "privacy & security", "chat"}
-        nav_hits = sum(1 for n in nodes if tag(n) in {"list-item", "label"} and lower_name(n) in settings_nav)
-        score["settings"] += min(nav_hits, 4)
+        # Settings本体 (document-web=Settings) は強シグナル
+        if any(tag(n) == "document-web" and ldisp(n) == "settings" for n in nodes):
+            score["settings"] += 6
 
-        if any(tag(n) == "section" and name(n) == "Settings" for n in nodes):
+        # 左ナビ (Settings) は Add-ons 画面にも出るので加点を控えめにする
+        settings_nav = {"general", "composition", "privacy & security", "chat"}
+        nav_hits = sum(
+            1 for n in nodes
+            if tag(n) in {"list-item", "label"} and ldisp(n) in settings_nav
+        )
+        score["settings"] += min(nav_hits, 2)
+
+        # タブ名などで "Settings" セクションがある
+        if any(tag(n) == "section" and ldisp(n) == "settings" for n in nodes):
             score["settings"] += 2
 
-        # --- addons signals（hard guard落ちた時の保険） ---
-        if any(tag(n) == "section" and lower_name(n) == "add-ons manager" for n in nodes):
+        # --- addons signals (guardに落ちなかった時の保険) ---
+        if any(tag(n) == "section" and "add-ons manager" in ldisp(n) for n in nodes):
             score["addons_manager"] += 4
+        if any(tag(n) == "document-web" and "add-ons manager" in ldisp(n) for n in nodes):
+            score["addons_manager"] += 4
+
+        if any(tag(n) == "entry" and "addons.thunderbird.net" in ldisp(n) for n in nodes):
+            score["addons_manager"] += 6
+        if any(tag(n) == "label" and ldisp(n) == "find more add-ons" for n in nodes):
+            score["addons_manager"] += 3
+        if any(tag(n) == "heading" and ldisp(n) == "manage your themes" for n in nodes):
+            score["addons_manager"] += 3
+        if any(tag(n) == "push-button" and ldisp(n) == "tools for all add-ons" for n in nodes):
+            score["addons_manager"] += 3
+
         addons_nav = {"recommendations", "extensions", "themes", "languages"}
-        addons_hits = sum(1 for n in nodes if lower_name(n) in addons_nav)
+        addons_hits = sum(
+            1 for n in nodes
+            if tag(n) in {"section", "list-item", "label", "link"}
+            and ldisp(n) in addons_nav
+        )
         score["addons_manager"] += min(addons_hits, 4)
+
+        # --- compose signals (guardに落ちなかった時の保険) ---
+        # ガードほど強くないが、それっぽさを加点
+        if any(tag(n) == "document-web" and ldisp(n) in {"message body", "body"} for n in nodes):
+            score["compose"] += 6
+        # フィールド類が複数あると compose っぽい
+        compose_field_keys = {"from", "to", "subject", "cc", "bcc"}
+        compose_field_hits = sum(
+            1 for n in nodes
+            if tag(n) in {"label", "entry", "combo-box"} and ldisp(n) in compose_field_keys
+        )
+        score["compose"] += min(compose_field_hits, 4)
+        if any(tag(n) == "push-button" and ldisp(n) == "send" for n in nodes):
+            score["compose"] += 2
+        if any(tag(n) == "push-button" and ldisp(n) == "attach" for n in nodes):
+            score["compose"] += 1
 
         # ----------------------------
         # 3) 決定ロジック
         # ----------------------------
-        # 最小閾値：これ未満なら unknown（誤判定防止）
         MIN_SCORE = 3.0
 
-        best_view, best_score = max(score.items(), key=lambda kv: kv[1], default=("unknown", 0.0))
-
-        # 同点があるなら unknown（危険回避）
         top = sorted(score.items(), key=lambda kv: kv[1], reverse=True)
         if not top or top[0][1] < MIN_SCORE:
             return "unknown"
-        if len(top) >= 2 and abs(top[0][1] - top[1][1]) < 0.5:
-            return "unknown"
 
-        return best_view
+        # 競合時のマージン
+        if len(top) >= 2:
+            v1, s1 = top[0]
+            v2, s2 = top[1]
+
+            # settings vs addons_manager は誤判定が痛いので厳しめに
+            margin = 2.0 if {v1, v2} == {"settings", "addons_manager"} else 0.5
+            if (s1 - s2) < margin:
+                return "unknown"
+
+        return top[0][0]
+
 
     def _estimate_split_msg_list_x(self, nodes, fallback=1040):
         """
@@ -1179,6 +1440,180 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         return lines
 
+    def _dedup_nodes(self, nodes: List[Node]) -> List[Node]:
+        seen = set()
+        out = []
+        for n in nodes:
+            key = (
+                (n.get("tag") or ""),
+                (n.get("name") or ""),
+                tuple(n.get("position") or (None, None)),
+                tuple(n.get("size") or (None, None)),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(n)
+        return out
+
+    def _dedup_lines(self, lines: List[str]) -> List[str]:
+        seen = set()
+        out = []
+        for s in lines:
+            if s in seen:
+                continue
+            seen.add(s)
+            out.append(s)
+        return out
+
+
+
+    def _build_addons_manager_view(
+        self,
+        regions: dict,
+        modal_nodes_for_output: List[Node],
+        screen_w: int,
+        screen_h: int,
+    ) -> dict:
+        import sys  # DEBUG用
+
+        # helper
+        def tag(n): return (n.get("tag") or "").lower()
+        def disp(n): return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+        def ldisp(n): return disp(n).lower()
+        def xy(n):
+            b = node_bbox_from_raw(n)
+            return (b["x"], b["y"])
+
+
+        # ----------------------------------------
+        # 0) “Add-ons Manager の中身候補”だけ集める
+        # ----------------------------------------
+        candidate_nodes: List[Node] = []
+
+        # 0-1) 最優先：呼び出し側が渡してきた modal candidates
+        if modal_nodes_for_output:
+            candidate_nodes.extend(modal_nodes_for_output)
+        print("[DEBUG-AM] modal_nodes_for_output:", len(modal_nodes_for_output), file=sys.stderr, flush=True)
+
+        # 0-2) 補完：regions からも拾う（MODAL を “除外しない”）
+        EXCLUDE_KEYS = {"APP_LAUNCHER", "SPACES_BAR", "TOOLBAR", "TOP_BAR", "STATUSBAR"}
+        for k, lst in (regions or {}).items():
+            if not lst or k in EXCLUDE_KEYS:
+                continue
+            candidate_nodes.extend(lst)
+        print("[DEBUG-AM] candidate_nodes before x-filter:", len(candidate_nodes), file=sys.stderr, flush=True)
+        for n in candidate_nodes:
+            s = ldisp(n)
+            if s in {"recommendations", "extensions", "themes", "languages"}:
+                pos = n.get("position")
+                b = node_bbox_from_raw(n)
+                print("[CHECK-NAV]", s, "pos=", pos, "bbox=", (b["x"], b["y"]), "tag=", tag(n),
+                    file=sys.stderr, flush=True)
+
+        # 0-3) 左のランチャー縦バーを除外（position欠損は落とさない）
+        filtered_candidates: List[Node] = []
+        for n in candidate_nodes:
+            pos = n.get("position")
+            if not pos:
+                filtered_candidates.append(n)
+                continue
+            x, y = pos
+            if (x or 0) < 85:
+                continue
+            filtered_candidates.append(n)
+        candidate_nodes = filtered_candidates
+        print("[DEBUG-AM] candidate_nodes after x-filter:", len(candidate_nodes), file=sys.stderr, flush=True)
+
+        # ----------------------------------------
+        # 1) しきい値
+        # ----------------------------------------
+        LEFT_NAV_X_MAX = 420
+        TAB_Y_MAX = 155
+
+        tabs: List[Node] = []
+        sidenav: List[Node] = []
+        addons_toolbar: List[Node] = []
+        content: List[Node] = []
+
+        # keywords
+        nav_keys = {
+            "recommendations", "extensions", "themes", "languages",
+            "add-ons support", "thunderbird settings",
+        }
+        tab_keys = {"settings", "add-ons manager", "close tab"}
+        toolbar_keys = {
+            "search addons.thunderbird.net",
+            "tools for all add-ons",
+            "find more add-ons",
+        }
+
+        # ----------------------------------------
+        # 2) 分類
+        # ----------------------------------------
+        for n in candidate_nodes:
+            x, y = xy(n)
+            t = tag(n)
+            s = ldisp(n)
+
+            # document-web は「ページの根」なので content には落とさない（ノイズ対策）
+            if t == "document-web":
+                continue
+
+            # --- Tabs area ---
+            if y <= TAB_Y_MAX and t in {"section", "push-button"}:
+                if any(k in s for k in tab_keys):
+                    tabs.append(n)
+                    continue
+
+            # --- Left navigation ---
+            if x <= LEFT_NAV_X_MAX and t in {"list-item", "link", "section", "label"}:
+                if any(k in s for k in nav_keys):
+                    sidenav.append(n)
+                    continue
+
+            # --- Add-ons toolbar-ish ---
+            if t in {"entry", "push-button", "label"}:
+                if any(k in s for k in toolbar_keys):
+                    addons_toolbar.append(n)
+                    continue
+
+            # --- Others -> content ---
+            content.append(n)
+
+        # ----------------------------------------
+        # 3) dedup
+        # ----------------------------------------
+        tabs = self._dedup_nodes(tabs)
+        addons_toolbar = self._dedup_nodes(addons_toolbar)
+        content = self._dedup_nodes(content)
+
+        # ★ SIDENAV は「同一ラベルが link/list-item/section で多重に出る」ので文字列ベースで追加dedup
+        #sidenav = self._dedup_nodes(sidenav)
+        def xy_bbox(n):
+            b = node_bbox_from_raw(n)
+            return b["x"], b["y"]
+            
+        seen_nav_text = set()
+        sidenav2: List[Node] = []
+        for n in sorted(sidenav, key=lambda n: (xy(n)[1], xy(n)[0])):  # 上から順に
+            text = ldisp(n)
+            if not text:
+                continue
+            if text in seen_nav_text:
+                continue
+            seen_nav_text.add(text)
+            sidenav2.append(n)
+        sidenav = sidenav2
+
+        return {
+            "TABS": tabs,
+            "SIDENAV": sidenav,
+            "ADDONS_TOOLBAR": addons_toolbar,
+            "CONTENT": content,
+        }
+
+
 
     
     def _is_inside_mail_area(self, node: Node, mail_area_nodes: List[Node]) -> bool:
@@ -1360,6 +1795,248 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         return kept_modal_out, uniq_rescued
 
 
+    def _build_compose_view(
+        self,
+        regions: dict,
+        modal_nodes_for_output: List[Node],
+        screen_w: int,
+        screen_h: int,
+    ) -> dict:
+        import sys
+
+        def tag(n): return (n.get("tag") or "").lower()
+        def disp(n): return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+        def ldisp(n): return disp(n).lower()
+        def bbox(n): return node_bbox_from_raw(n)
+
+        # 0) composeの候補を集める
+        candidate_nodes: List[Node] = []
+
+        if modal_nodes_for_output:
+            candidate_nodes.extend(modal_nodes_for_output)
+
+        EXCLUDE_KEYS = {
+            "APP_LAUNCHER", "SPACES_BAR", "TOOLBAR", "TOP_BAR", "STATUSBAR",
+            "WINDOW_CONTROLS",
+        }
+        for k, lst in (regions or {}).items():
+            if not lst or k in EXCLUDE_KEYS:
+                continue
+            candidate_nodes.extend(lst)
+
+        # 1) ランチャー縦バー誤爆を避けたいので bbox で除外（x<85）
+        filtered: List[Node] = []
+        for n in candidate_nodes:
+            b = bbox(n)
+            if b["x"] < 85:
+                continue
+            filtered.append(n)
+        candidate_nodes = filtered
+
+        # 2) composeを領域分割
+        menubar: List[Node] = []
+        actions: List[Node] = []
+        fields: List[Node] = []
+        formatting: List[Node] = []
+        body: List[Node] = []
+
+        # しきい値（あなたの例の座標に合わせた初期値）
+        MENUBAR_Y_MAX = 160     # menu(File/Edit/...)
+        ACTIONS_Y_MAX = 210     # Send/Attach/Save/Spellingあたり
+        FIELDS_Y_MAX = 320      # From/To/Subject
+        FORMAT_Y_MAX = 350      # 太字/箇条書きなどの整形バー
+        BODY_Y_MIN = 340        # document-web "Message body" + paragraph群
+
+        # キーワード
+        action_keys = {"send", "attach", "save", "spelling", "contacts"}
+        field_keys = {"from", "to", "subject", "cc", "bcc"}
+
+        for n in candidate_nodes:
+            t = tag(n)
+            s = ldisp(n)
+            b = bbox(n)
+            y = b["y"]
+
+            # document-web "Message body" は BODY へ
+            if t == "document-web" and s in {"message body", "body"}:
+                body.append(n)
+                continue
+
+            # 1) Menubar
+            if t == "menu" and y <= MENUBAR_Y_MAX:
+                menubar.append(n)
+                continue
+
+            # 2) Actions row (Send/Attach etc.)
+            if t in {"push-button", "toggle-button"} and y <= ACTIONS_Y_MAX:
+                if s in action_keys:
+                    actions.append(n)
+                    continue
+
+            # 3) Fields (From/To/Subject + entry/combo-box + label)
+            if y <= FIELDS_Y_MAX:
+                if (t in {"label", "entry", "combo-box", "push-button"} and (s in field_keys or "bcc" == s or "cc" == s)):
+                    fields.append(n)
+                    continue
+                # From/To/Subject の entry が長文になるケースもあるので補強
+                if t in {"entry", "combo-box"} and any(k in s for k in ("from", "to", "subject")):
+                    fields.append(n)
+                    continue
+
+            # 4) Formatting toolbar
+            if y <= FORMAT_Y_MAX:
+                if t in {"push-button", "toggle-button", "combo-box", "menu-item"}:
+                    formatting.append(n)
+                    continue
+
+            # 5) Body paragraphs / etc.
+            if y >= BODY_Y_MIN:
+                if t in {"paragraph", "section", "static", "label", "link"}:
+                    body.append(n)
+                    continue
+
+        # 3) dedup（tabsでやったのと同じノリ）
+        menubar = self._dedup_nodes(menubar)
+        actions = self._dedup_nodes(actions)
+        fields = self._dedup_nodes(fields)
+        formatting = self._dedup_nodes(formatting)
+        # body = self._dedup_nodes(body)
+        body = body
+
+        return {
+            "MENUBAR": menubar,
+            "ACTIONS": actions,
+            "FIELDS": fields,
+            "FORMATTING": formatting,
+            "BODY": body,
+        }
+
+
+    def _compress_menubar(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+        nodes = sorted(nodes, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        return self._dedup_lines([self._format_node(n) for n in nodes])
+
+
+    def _compress_compose_actions(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+        # 重要ボタンだけ優先表示
+        priority = {"send": 0, "attach": 1, "save": 2, "spelling": 3, "contacts": 4}
+        def key(n):
+            s = ((n.get("name") or n.get("text") or "")).strip().lower()
+            b = node_bbox_from_raw(n)
+            return (priority.get(s, 99), b["y"], b["x"])
+        nodes = sorted(nodes, key=key)
+        return self._dedup_lines([self._format_node(n) for n in nodes])
+
+
+    def _compress_compose_fields(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+
+        def t(n): return (n.get("tag") or "").lower()
+        def d(n): return ((n.get("name") or n.get("text") or "")).strip()
+        def ld(n): return d(n).lower()
+        def b(n): return node_bbox_from_raw(n)
+
+        items = sorted(nodes, key=lambda n: (b(n)["y"], b(n)["x"]))
+
+        # label候補
+        labels = [n for n in items if t(n) == "label" and ld(n) in {"from", "to", "subject"}]
+        # 入力候補
+        inputs = [n for n in items if t(n) in {"entry", "combo-box"}]
+
+        # yが近い入力を対応付け
+        pairs = []
+        used = set()
+        for lab in labels:
+            ly = b(lab)["y"]
+            best = None
+            best_dist = 1e9
+            for inp in inputs:
+                if id(inp) in used:
+                    continue
+                iy = b(inp)["y"]
+                dist = abs(iy - ly)
+                if dist < best_dist:
+                    best, best_dist = inp, dist
+            if best is not None and best_dist <= 20:  # 近接しきい値
+                used.add(id(best))
+                pairs.append((lab, best))
+            else:
+                pairs.append((lab, None))
+
+        lines = []
+        for lab, inp in pairs:
+            if inp is None:
+                lines.append(self._format_node(lab))
+            else:
+                # Subject entry は text に値が入るので format_node が効く
+                lines.append(f"{self._format_node(lab)}  ->  {self._format_node(inp)}")
+
+        # CC/BCC はボタン/ラベルが混ざるので残りを追記
+        leftovers = [n for n in items if id(n) not in used and n not in labels]
+        # 重要そうなものだけ（Cc/Bcc + アドレス表示）
+        keep = []
+        for n in leftovers:
+            s = ld(n)
+            if s in {"cc", "bcc"} or "@" in s or t(n) in {"entry", "combo-box"}:
+                keep.append(n)
+
+        keep = self._dedup_nodes(keep)
+        keep = sorted(keep, key=lambda n: (b(n)["y"], b(n)["x"]))
+        lines.extend([self._format_node(n) for n in keep])
+
+        return self._dedup_lines(lines)
+
+    def _compress_compose_formatting(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+        # ここは多いので、押せる系＋combo-boxだけに絞る
+        allowed = {"push-button", "toggle-button", "combo-box"}
+        filtered = [n for n in nodes if ((n.get("tag") or "").lower() in allowed)]
+        filtered = self._dedup_nodes(filtered)
+        filtered = sorted(filtered, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+        return self._dedup_lines([self._format_node(n) for n in filtered])
+
+
+    def _compress_compose_body(self, nodes: List[Node]) -> List[str]:
+        if not nodes:
+            return []
+
+        def tg(n): return (n.get("tag") or "").lower()
+        def b(n): return node_bbox_from_raw(n)
+        def disp(n): return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+
+        # document-web / paragraph を優先して残す
+        # paragraph が空文字なら落とす
+        keep = []
+        for n in nodes:
+            if tg(n) == "document-web":
+                keep.append(n)
+            elif tg(n) == "paragraph":
+                if disp(n):
+                    keep.append(n)
+
+        keep = sorted(keep, key=lambda n: (b(n)["y"], b(n)["x"]))
+
+        # ★ BODY だけは dedup を強くかけない（文章が消える事故防止）
+        # 代わりに “完全一致の重複” だけ落とす
+        seen = set()
+        out = []
+        for n in keep:
+            key = (tg(n), disp(n), b(n)["x"], b(n)["y"])
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(self._format_node(n))
+        return out
+
+
+
+
 
     def _build_output(self, regions, modal_nodes, screen_w, screen_h):
         import os, sys
@@ -1391,18 +2068,31 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         if prev_view is not None and view_type != prev_view:
             cooldown = 2
 
+        # diff 由来のモーダル候補はここで管理
+        modal_nodes_for_output: List[Node] = list(modal_nodes or [])
+
+
+        suppressed_modal_candidates: List[Node] = []
         # クールダウン中は modal を “出力対象から除外”
         if cooldown > 0:
+            # 今ある MODAL/差分modal を退避
+            if regions.get("MODAL"):
+                suppressed_modal_candidates.extend(regions["MODAL"])
+            if modal_nodes_for_output:
+                suppressed_modal_candidates.extend(modal_nodes_for_output)
+
+            # MODALとしては出さない
             regions["MODAL"] = []
             modal_nodes = []
+            modal_nodes_for_output = []
+
             lines.append(f"DEBUG_MODAL_SUPPRESSED: cooldown={cooldown}, prev={prev_view}, curr={view_type}")
             print(f"[DEBUG] MODAL_SUPPRESSED cooldown={cooldown} prev={prev_view} curr={view_type}")
 
         setattr(self, "_prev_view_type", view_type)
         setattr(self, "_view_change_cooldown", max(0, cooldown - 1))
 
-        # diff 由来のモーダル候補はここで管理
-        modal_nodes_for_output: List[Node] = list(modal_nodes or [])
+
 
         # ----------------------------------------
         # 1) 共通部分 (SYSTEM / LAUNCHER / TOOLBAR / SPACES)
@@ -1454,6 +2144,7 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                     lines.append("=== SETTINGS (Fallback) ===")
                     lines.extend(r)
 
+
         elif view_type == "account_settings":
             account_modal_nodes: List[Node] = list(modal_nodes_for_output)
             modal_nodes_for_output = []
@@ -1468,6 +2159,62 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 lines.extend(acc_lines)
 
             regions["MODAL"] = []
+            
+        elif view_type == "addons_manager":
+            print(
+                f"[DEBUG-AM] enter addons_manager: "
+                f"cooldown={cooldown} prev={prev_view} curr={view_type} "
+                f"regions.MODAL={len(regions.get('MODAL', []))} "
+                f"modal_nodes_for_output={len(modal_nodes_for_output)} "
+                f"suppressed_modal_candidates={len(suppressed_modal_candidates) if 'suppressed_modal_candidates' in locals() else 'NA'}",
+                file=sys.stderr, flush=True
+            )
+            # addons manager view 専用ロジック
+            # 1) 必要な個別領域を組み立てる（regionsを直接いじらず dict を返すのが安全）
+            modal_candidates = list(suppressed_modal_candidates) + list(modal_nodes_for_output)
+
+            # ★ここが重要：regions 側に“材料”として戻す
+            # regions["CONTENT"] が addons 本体を担うなら、そこへ合流（適切なキーは実装に合わせて）
+            regions_for_am = dict(regions)
+            regions_for_am["CONTENT"] = list(regions.get("CONTENT", [])) + modal_candidates
+
+            am = self._build_addons_manager_view(regions_for_am, modal_candidates, screen_w, screen_h)
+
+            print(
+                f"[DEBUG-AM] built am sizes: "
+                f"TABS={len(am.get('TABS', []))} "
+                f"SIDENAV={len(am.get('SIDENAV', []))} "
+                f"ADDONS_TOOLBAR={len(am.get('ADDONS_TOOLBAR', []))} "
+                f"CONTENT={len(am.get('CONTENT', []))}",
+                file=sys.stderr, flush=True
+            )
+
+
+            # 2) タブ周り（あれば）
+            if r := self._compress_addons_tabs(am.get("TABS", [])):
+                lines.append("=== TABS ===")
+                lines.extend(r)
+                lines.append("")
+
+            # 3) 左ナビ（Recommendations/Extensions/Themes/Languages）
+            if r := self._compress_addons_sidebar(am.get("SIDENAV", [])):
+                lines.append("=== ADDONS SIDENAV ===")
+                lines.extend(r)
+                lines.append("")
+
+            # 4) ツールバー（検索欄 etc）
+            if r := self._compress_addons_toolbar(am.get("ADDONS_TOOLBAR", [])):
+                lines.append("=== ADDONS TOOLBAR ===")
+                lines.extend(r)
+                lines.append("")
+
+            # 5) メインコンテンツ（テーマ一覧など）
+            if r := self._compress_addons_content(am.get("CONTENT", [])):
+                lines.append("=== ADDONS CONTENT ===")
+                lines.extend(r)
+                lines.append("")
+
+
 
         elif view_type == "mail":
             # ----------------------------------------
@@ -1571,6 +2318,26 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
             mail_lines = self._build_mail_view(regions)
             lines.extend(mail_lines)
+
+
+        elif view_type == "compose":
+            cv = self._build_compose_view(regions, modal_nodes, screen_w, screen_h)
+
+            lines.append("=== COMPOSE MENUBAR ===")
+            lines.extend(self._compress_menubar(cv.get("MENUBAR", [])))
+
+            lines.append("\n=== COMPOSE ACTIONS ===")
+            lines.extend(self._compress_compose_actions(cv.get("ACTIONS", [])))
+
+            lines.append("\n=== COMPOSE FIELDS ===")
+            lines.extend(self._compress_compose_fields(cv.get("FIELDS", [])))
+
+            lines.append("\n=== COMPOSE FORMATTING ===")
+            lines.extend(self._compress_compose_formatting(cv.get("FORMATTING", [])))
+
+            lines.append("\n=== COMPOSE BODY ===")
+            lines.extend(self._compress_compose_body(cv.get("BODY", [])))
+
 
         else:
             # Generic / その他ビュー (古いメール画面など)
