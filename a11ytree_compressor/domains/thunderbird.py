@@ -97,7 +97,7 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             name_lower = name.lower()
             
             # --- 1. MODAL ---
-            is_control = tag in {"push-button", "toggle-button", "link", "menu-item", "menu"}
+            is_control = tag in {"push-button", "toggle-button", "link", "menu-item", "menu", "toggle-menu-item"}
             if role in {"dialog", "alert"} or (
                 not is_control and any(k in name_lower for k in self.MODAL_KEYWORDS)
             ):
@@ -457,6 +457,8 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 deep.append(n)
         return visible, below_fold, deep
 
+    
+
     def _compress_settings_sidebar(self, nodes: List[Node]) -> List[str]:
         """
         Settings 左サイドバー: 
@@ -602,7 +604,8 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         sidebar_nodes: List[Node] = []
         content_nodes: List[Node] = []
-        split_x = 320 
+        split_x = 420
+
 
         for n in all_settings_nodes:
             bbox = node_bbox_from_raw(n)
@@ -726,7 +729,8 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         if not nodes:
             return []
 
-        VALID_TAGS = {"tree-item", "push-button", "link"}
+        VALID_TAGS = {"tree-item", "push-button", "link", "list-item", "label"}
+
         
         # y順、x順
         nodes = sorted(nodes, key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
@@ -748,7 +752,7 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
             # ノイズ除去
             if name in {"You are currently online.", "Done"}: continue
-            if node_bbox_from_raw(n)["x"] > 350: continue
+            if node_bbox_from_raw(n)["x"] > 520: continue
 
             # インデント処理
             bbox = node_bbox_from_raw(n)
@@ -1068,8 +1072,28 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         if is_addons_guard:
             return "addons_manager"
 
-        # --- Account Settings guard (keep yours) ---
-        if any("account settings -" in ldisp(n) for n in nodes):
+        # --- Account Settings guard (strong) ---
+        if any(
+            tag(n) in {"document-web", "heading", "section"} and "account settings" in ldisp(n)
+            for n in nodes
+        ):
+            return "account_settings"
+
+        acc_kw = {
+            "account name",
+            "message storage",
+            "message store type",
+            "local directory",
+        }
+        acc_hits = sum(
+            1 for n in nodes
+            if tag(n) in {"label", "section", "paragraph"} and ldisp(n) in acc_kw
+        )
+        if acc_hits >= 2:
+            return "account_settings"
+
+        tree_cnt = sum(1 for n in nodes if tag(n) == "tree-item")
+        if tree_cnt >= 8 and any(tag(n) in {"label", "heading"} and "account" in ldisp(n) for n in nodes):
             return "account_settings"
 
         # ----------------------------
@@ -1809,22 +1833,49 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         def ldisp(n): return disp(n).lower()
         def bbox(n): return node_bbox_from_raw(n)
 
+        # -----------------------------
         # 0) composeの候補を集める
+        # -----------------------------
         candidate_nodes: List[Node] = []
 
-        if modal_nodes_for_output:
-            candidate_nodes.extend(modal_nodes_for_output)
+        # ★ diff(modal_nodes_for_output) を tagで再配分
+        diff_pack = self._partition_compose_diff_nodes(modal_nodes_for_output or [])
+        diff_popup = diff_pack["popup"]
+        diff_body_like = diff_pack["body_like"]
+        diff_field_like = diff_pack["field_like"]
 
+        POPUP_ITEM_TAGS = {"menu-item", "check-menu-item", "radio-menu-item"}
+        popup: List[Node] = []
+        # まずは regions から拾う（従来通り）
         EXCLUDE_KEYS = {
             "APP_LAUNCHER", "SPACES_BAR", "TOOLBAR", "TOP_BAR", "STATUSBAR",
             "WINDOW_CONTROLS",
         }
+        
         for k, lst in (regions or {}).items():
-            if not lst or k in EXCLUDE_KEYS:
+            if not lst:
                 continue
+
+            # ★除外リージョンでも popup 項目だけは救出する
+            if k in EXCLUDE_KEYS:
+                for n in lst:
+                    if tag(n) in POPUP_ITEM_TAGS and ldisp(n):
+                        popup.append(n)
+                continue
+
             candidate_nodes.extend(lst)
 
-        # 1) ランチャー縦バー誤爆を避けたいので bbox で除外（x<85）
+        # ★ diff由来の「本文/フィールド」は candidate に戻す（あとで BODY / FIELDS に入る）
+        candidate_nodes.extend(diff_body_like)
+        candidate_nodes.extend(diff_field_like)
+
+        # ★ diff由来の popup は candidate に混ぜない（後でPOPUPに入れる）
+
+        popup.extend(diff_popup)
+
+        # -----------------------------
+        # 1) ランチャー縦バー除外（bboxで x<85）
+        # -----------------------------
         filtered: List[Node] = []
         for n in candidate_nodes:
             b = bbox(n)
@@ -1833,21 +1884,26 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             filtered.append(n)
         candidate_nodes = filtered
 
+        # -----------------------------
         # 2) composeを領域分割
+        # -----------------------------
         menubar: List[Node] = []
         actions: List[Node] = []
         fields: List[Node] = []
         formatting: List[Node] = []
         body: List[Node] = []
 
-        # しきい値（あなたの例の座標に合わせた初期値）
-        MENUBAR_Y_MAX = 160     # menu(File/Edit/...)
-        ACTIONS_Y_MAX = 210     # Send/Attach/Save/Spellingあたり
-        FIELDS_Y_MAX = 320      # From/To/Subject
-        FORMAT_Y_MAX = 350      # 太字/箇条書きなどの整形バー
-        BODY_Y_MIN = 340        # document-web "Message body" + paragraph群
+        # しきい値（必要なら後で調整）
+        MENUBAR_Y_MAX = 160
+        ACTIONS_Y_MAX = 210
+        FIELDS_Y_MAX = 320
+        FORMAT_Y_MAX = 350
+        BODY_Y_MIN = 340
 
-        # キーワード
+        # popup は「ドロップダウン項目」を中心に隔離
+        # ※ menu 自体まで popup にすると MENUBAR が空になるので入れないのが安全
+        POPUP_TAGS = {"menu-item", "check-menu-item", "radio-menu-item"}
+
         action_keys = {"send", "attach", "save", "spelling", "contacts"}
         field_keys = {"from", "to", "subject", "cc", "bcc"}
 
@@ -1857,51 +1913,88 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             b = bbox(n)
             y = b["y"]
 
-            # document-web "Message body" は BODY へ
-            if t == "document-web" and s in {"message body", "body"}:
-                body.append(n)
-                continue
-
-            # 1) Menubar
+            # -----------------------------
+            # 2-0) MENUBAR を先に確保
+            # ここで menu(File/Edit/...) を取っておけば、後で popup に吸われない
+            # -----------------------------
             if t == "menu" and y <= MENUBAR_Y_MAX:
                 menubar.append(n)
                 continue
 
-            # 2) Actions row (Send/Attach etc.)
+            # -----------------------------
+            # 2-1) COMPOSE_POPUP（Attachドロップダウン等）
+            # menu-item/check-menu-item はここに隔離
+            # -----------------------------
+            if t in POPUP_TAGS:
+                popup.append(n)
+                continue
+
+            # -----------------------------
+            # 2-2) document-web "Message body" は BODY へ
+            # -----------------------------
+            if t == "document-web" and s in {"message body", "body"}:
+                body.append(n)
+                continue
+
+            # -----------------------------
+            # 2-3) Actions row (Send/Attach etc.)
+            # -----------------------------
             if t in {"push-button", "toggle-button"} and y <= ACTIONS_Y_MAX:
                 if s in action_keys:
                     actions.append(n)
                     continue
 
-            # 3) Fields (From/To/Subject + entry/combo-box + label)
+            # -----------------------------
+            # 2-4) Fields (From/To/Subject + entry/combo-box + label)
+            # -----------------------------
             if y <= FIELDS_Y_MAX:
-                if (t in {"label", "entry", "combo-box", "push-button"} and (s in field_keys or "bcc" == s or "cc" == s)):
+                if t in {"label", "entry", "combo-box", "push-button"} and s in field_keys:
                     fields.append(n)
                     continue
-                # From/To/Subject の entry が長文になるケースもあるので補強
+                # 長文entry対策
                 if t in {"entry", "combo-box"} and any(k in s for k in ("from", "to", "subject")):
                     fields.append(n)
                     continue
 
-            # 4) Formatting toolbar
+            # -----------------------------
+            # 2-5) Formatting toolbar
+            # -----------------------------
             if y <= FORMAT_Y_MAX:
-                if t in {"push-button", "toggle-button", "combo-box", "menu-item"}:
+                if t in {"push-button", "toggle-button", "combo-box"}:
                     formatting.append(n)
                     continue
 
-            # 5) Body paragraphs / etc.
+            # -----------------------------
+            # 2-6) Body
+            # -----------------------------
             if y >= BODY_Y_MIN:
                 if t in {"paragraph", "section", "static", "label", "link"}:
                     body.append(n)
                     continue
 
-        # 3) dedup（tabsでやったのと同じノリ）
+        # -----------------------------
+        # 3) dedup
+        # -----------------------------
         menubar = self._dedup_nodes(menubar)
         actions = self._dedup_nodes(actions)
         fields = self._dedup_nodes(fields)
         formatting = self._dedup_nodes(formatting)
+
+        # ★ BODY は dedup しない（あなたの方針）
         # body = self._dedup_nodes(body)
-        body = body
+
+        # ★ POPUP は “完全一致だけ” 落とす（消える事故防止）
+        popup = sorted(popup, key=lambda n: (bbox(n)["y"], bbox(n)["x"]))
+        seen = set()
+        popup2: List[Node] = []
+        for n in popup:
+            b = bbox(n)
+            key = (tag(n), disp(n), b["x"], b["y"], b.get("w"), b.get("h"))
+            if key in seen:
+                continue
+            seen.add(key)
+            popup2.append(n)
+        popup = popup2
 
         return {
             "MENUBAR": menubar,
@@ -1909,7 +2002,9 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             "FIELDS": fields,
             "FORMATTING": formatting,
             "BODY": body,
+            "POPUP": popup,
         }
+
 
 
     def _compress_menubar(self, nodes: List[Node]) -> List[str]:
@@ -2035,6 +2130,48 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         return out
 
 
+    def _partition_compose_diff_nodes(self, diff_nodes: List[Node]) -> dict:
+        """
+        DiffModalDetector から来た modal_nodes_for_output（=差分ノード）を
+        tagベースで compose用に再配分する。
+        """
+        if not diff_nodes:
+            return {"popup": [], "body_like": [], "field_like": [], "other": []}
+
+        def tg(n): return (n.get("tag") or "").lower()
+        def disp(n): return ((n.get("name") or n.get("text") or n.get("description") or "")).strip().lower()
+
+        POPUP_TAGS = {"menu", "menu-item", "check-menu-item", "radio-menu-item", "check-menu-item"}
+        BODY_TAGS = {"paragraph", "document-web"}  # 本文側
+        FIELD_TAGS = {"entry", "combo-box", "label"}  # From/To/Subject等に混ざりがち
+
+        popup, body_like, field_like, other = [], [], [], []
+
+        for n in diff_nodes:
+            t = tg(n)
+            s = disp(n)
+
+            # 1) popup系（Attachのドロップダウン等）
+            if t in POPUP_TAGS:
+                popup.append(n)
+                continue
+
+            # 2) 本文系（paragraphが増えた/更新された等）
+            if t in BODY_TAGS:
+                # document-web は "Message body" 以外もあり得るが、ひとまず戻す方針でOK
+                # もし過剰ならここで s=="message body" だけ採用などに絞れる
+                body_like.append(n)
+                continue
+
+            # 3) 入力欄・フィールド系（誤ってdiffに乗ることがある）
+            if t in FIELD_TAGS:
+                field_like.append(n)
+                continue
+
+            other.append(n)
+
+        return {"popup": popup, "body_like": body_like, "field_like": field_like, "other": other}
+
 
 
 
@@ -2081,6 +2218,20 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             if modal_nodes_for_output:
                 suppressed_modal_candidates.extend(modal_nodes_for_output)
 
+        # --- クールダウン中は modal を本文として救済 ---
+        if cooldown > 0:
+            rescued_nodes: List[Node] = []
+
+            # MODAL領域 + diff由来modalを回収
+            if regions.get("MODAL"):
+                rescued_nodes.extend(regions["MODAL"])
+            if modal_nodes_for_output:
+                rescued_nodes.extend(modal_nodes_for_output)
+
+            if rescued_nodes:
+                # CONTENT にマージ（＝本文扱い）
+                regions["CONTENT"] = list(regions.get("CONTENT") or []) + rescued_nodes
+
             # MODALとしては出さない
             regions["MODAL"] = []
             modal_nodes = []
@@ -2088,6 +2239,15 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
             lines.append(f"DEBUG_MODAL_SUPPRESSED: cooldown={cooldown}, prev={prev_view}, curr={view_type}")
             print(f"[DEBUG] MODAL_SUPPRESSED cooldown={cooldown} prev={prev_view} curr={view_type}")
+
+            def _count_tag(ns, t):
+                t = t.lower()
+                return sum(1 for n in (ns or []) if (n.get("tag") or "").lower() == t)
+
+            print("[DEBUG] tree-item counts:",
+                "SIDEBAR", _count_tag(regions.get("SIDEBAR"), "tree-item"),
+                "CONTENT", _count_tag(regions.get("CONTENT"), "tree-item"),
+                "MODAL", _count_tag(regions.get("MODAL"), "tree-item"))
 
         setattr(self, "_prev_view_type", view_type)
         setattr(self, "_view_change_cooldown", max(0, cooldown - 1))
@@ -2334,6 +2494,10 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
             lines.append("\n=== COMPOSE FORMATTING ===")
             lines.extend(self._compress_compose_formatting(cv.get("FORMATTING", [])))
+
+            if cv.get("POPUP"):
+                lines.append("=== COMPOSE POPUP ===")
+                lines += [self._format_node(n) for n in cv["POPUP"] if self._format_node(n)]
 
             lines.append("\n=== COMPOSE BODY ===")
             lines.extend(self._compress_compose_body(cv.get("BODY", [])))
