@@ -1,5 +1,6 @@
 import re
 from typing import List, Dict, Tuple, Set, Optional, Any
+from collections import defaultdict
 from ..core.engine import BaseA11yCompressor
 from ..core.common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
@@ -45,6 +46,12 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         "Connect to a newsgroup": "Newsgroups",
         "Import data from other programs": "Import",
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._prev_view_type = None
+        self._view_change_cooldown = 0  # view切替直後のフレーム数（1 or 2 推奨）
+
 
 
     def get_semantic_regions(
@@ -836,89 +843,570 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
 
     def _detect_view_type(self, nodes: List[Node]) -> str:
-        """
-        Decide which Thunderbird view this is:
-        - 'home'            : top dashboard (Set Up Another Account ... )
-        - 'settings'        : Thunderbird Settings (General / Composition / ...)
-        - 'account_settings': Account Settings (Sidebar is tree-items, title is 'Account Settings - ...')
-        - 'generic'         : fallback
-        """
-        names = { (n.get("name") or "").strip() for n in nodes }
-        lower_names = { n.lower() for n in names if n }
+        def tag(n): return (n.get("tag") or "").lower()
+        def name(n): return (n.get("name") or "").strip()
+        def lower_name(n): return name(n).lower()
 
-        # 1) Account Settings view (Priority High)
-        # ドメイン固有ルール: タイトルに "Account Settings -" がある、または
-        # "Account Settings" というラベルと "Account Name:" などの特徴的な項目がある場合
-        if any("account settings -" in ln for ln in lower_names):
+        # ----------------------------
+        # 1) HARD GUARDS (確定ルール)
+        # ----------------------------
+        # Add-ons Manager
+        if any(tag(n) == "document-web" and "add-ons manager" in lower_name(n) for n in nodes):
+            return "addons_manager"
+
+        # Account Settings
+        if any("account settings -" in lower_name(n) for n in nodes):
             return "account_settings"
-        
-        if "account settings" in lower_names:
-            # 誤検出防止: "Account Name:" や サイドバーの "Server Settings" などがあるか確認
-            has_account_indicators = any(
-                (n.get("name") or "").strip() in {"Account Name:", "Server Settings", "Outgoing Server (SMTP)"}
-                for n in nodes
-            )
-            if has_account_indicators:
-                return "account_settings"
 
-        # 2) Home dashboard
-        if "set up another account" in lower_names or "import from another program" in lower_names:
-            return "home"
+        # ----------------------------
+        # 2) SCORE-BASED (柔らかい判定)
+        # ----------------------------
+        score: Dict[str, float] = defaultdict(float)
 
-        # 3) Thunderbird Settings view
-        settings_side_candidates = {"General", "Composition", "Privacy & Security", "Chat"}
-        has_settings_section = any(
-            (n.get("tag") or "").lower() == "section"
-            and (n.get("name") or "").strip() == "Settings"
-            for n in nodes
+        # --- mail signals ---
+        mail_keywords = {"quick filter", "message list display options"}
+        if any(lower_name(n) in mail_keywords for n in nodes):
+            score["mail"] += 3
+
+        # tree-item にカンマ含む行が複数ある → メール一覧っぽい
+        msg_row_hits = sum(1 for n in nodes if tag(n) == "tree-item" and "," in name(n))
+        if msg_row_hits >= 2:
+            score["mail"] += 3
+        elif msg_row_hits == 1:
+            score["mail"] += 1
+
+        # --- home signals ---
+        home_headings = {
+            "set up another account",
+            "import from another program",
+            "about mozilla thunderbird",
+            "resources",
+        }
+        home_heading_hits = sum(1 for n in nodes if tag(n) == "heading" and lower_name(n) in home_headings)
+        score["home"] += min(home_heading_hits * 2, 6)
+
+        # --- settings signals ---
+        if any(tag(n) == "document-web" and lower_name(n) == "settings" for n in nodes):
+            score["settings"] += 6  # hard guardにしなかった場合の強シグナル
+        settings_nav = {"general", "composition", "privacy & security", "chat"}
+        nav_hits = sum(1 for n in nodes if tag(n) in {"list-item", "label"} and lower_name(n) in settings_nav)
+        score["settings"] += min(nav_hits, 4)
+
+        if any(tag(n) == "section" and name(n) == "Settings" for n in nodes):
+            score["settings"] += 2
+
+        # --- addons signals（hard guard落ちた時の保険） ---
+        if any(tag(n) == "section" and lower_name(n) == "add-ons manager" for n in nodes):
+            score["addons_manager"] += 4
+        addons_nav = {"recommendations", "extensions", "themes", "languages"}
+        addons_hits = sum(1 for n in nodes if lower_name(n) in addons_nav)
+        score["addons_manager"] += min(addons_hits, 4)
+
+        # ----------------------------
+        # 3) 決定ロジック
+        # ----------------------------
+        # 最小閾値：これ未満なら unknown（誤判定防止）
+        MIN_SCORE = 3.0
+
+        best_view, best_score = max(score.items(), key=lambda kv: kv[1], default=("unknown", 0.0))
+
+        # 同点があるなら unknown（危険回避）
+        top = sorted(score.items(), key=lambda kv: kv[1], reverse=True)
+        if not top or top[0][1] < MIN_SCORE:
+            return "unknown"
+        if len(top) >= 2 and abs(top[0][1] - top[1][1]) < 0.5:
+            return "unknown"
+
+        return best_view
+
+    def _estimate_split_msg_list_x(self, nodes, fallback=1040):
+        """
+        3-pane の境界 x を動的推定する。
+        アイデア: 主要ノードの x を並べ、最大ギャップの中点を境界とみなす。
+        """
+        xs = []
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            if not tag:
+                continue
+            bbox = node_bbox_from_raw(n)
+            x, y = bbox["x"], bbox["y"]
+
+            # Launcher/Spaces（超左）やメニューバーっぽい領域を除外
+            if x < 200:
+                continue
+
+            # 極端に上（メニューバー）も境界推定にはノイズになりやすいので軽く除外
+            if y < 40:
+                continue
+
+            xs.append(x)
+
+        if len(xs) < 10:
+            return fallback
+
+        xs.sort()
+
+        # 最大ギャップの場所を探す
+        best_gap = 0
+        best_mid = None
+        MIN_VALID_GAP = 120  # 3-pane の分断として妥当な最小幅
+
+        for a, b in zip(xs, xs[1:]):
+            gap = b - a
+            if gap > best_gap and gap >= MIN_VALID_GAP:
+                best_gap = gap
+                best_mid = (a + b) / 2
+
+        if best_mid is None:
+            return fallback
+
+        # あり得ない境界を弾く（環境差の暴走防止）
+        # Thunderbird の一般的な 3-pane はだいたい 800〜1400 の間に境界が来ることが多い
+        if not (800 <= best_mid <= 1400):
+            return fallback
+
+        return int(best_mid)
+
+
+    def _estimate_msg_list_header_cut_y(self, nodes, msg_left_x, split_x, fallback=140):
+        """
+        ヘッダ境界 y を推定する。
+        アイデア: メール一覧領域の 'tree-item' の最小 y（最初の行）からヘッダ終端を逆算。
+        """
+        item_ys = []
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            if tag != "tree-item":
+                continue
+            bbox = node_bbox_from_raw(n)
+            x, y = bbox["x"], bbox["y"]
+
+            # メール一覧領域だけ見る（左ペイン）
+            if msg_left_x < x < split_x:
+                # あまり上すぎる tree-item（フォルダツリー）を避けたいなら y>=100 など
+                if y >= 80:
+                    item_ys.append(y)
+
+        if not item_ys:
+            return fallback
+
+        first_y = min(item_ys)
+        cut = int(first_y - 5)  # 少しだけ上にずらす
+
+        # 暴走防止（上すぎ/下すぎをクランプ）
+        if cut < 90:
+            cut = 90
+        if cut > 220:
+            cut = 220
+
+        return cut
+
+
+
+
+
+    def _build_mail_view(self, regions: Dict[str, List[Node]]) -> List[str]:
+        """
+        Thunderbird の Mail View（3-Pane レイアウト）専用の圧縮出力を作る。
+        SYSTEM / LAUNCHER / TOOLBAR / TOP_BAR / SPACES などの共通部分は
+        _build_output() 側で出力するため、ここでは出力しない。
+        """
+        lines = []
+
+        # ---------------------------------------------------------
+        # 1) FOLDER_LIST（左ペイン）
+        # ---------------------------------------------------------
+        folder_nodes = regions["FOLDER_TREE"] + regions["SIDEBAR_HEADER"] + regions["SIDEBAR"]
+        folder_list = self._compress_folder_tree(folder_nodes)
+
+        if folder_list:
+            lines.append("=== FOLDER_LIST ===")
+            lines.extend(folder_list)
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 2) メール一覧＋右側ペインを 3 分割する
+        # ---------------------------------------------------------
+        candidates = regions["MESSAGE_LIST"] + regions["PREVIEW"] + regions["MAIL_TOOLBAR"]
+        MSG_LIST_LEFT_X = 340 
+
+        # ★ここが変更点：固定値ではなく推定
+        SPLIT_MSG_LIST_X = self._estimate_split_msg_list_x(candidates, fallback=1040)
+        HEADER_CUT_Y = self._estimate_msg_list_header_cut_y(candidates, MSG_LIST_LEFT_X, SPLIT_MSG_LIST_X, fallback=140)
+
+        msg_list_header = []
+        msg_list_items = []
+        msg_actions = []
+        msg_header = []
+        msg_body = []
+
+        for n in candidates:
+            bbox = node_bbox_from_raw(n)
+            x, y = bbox["x"], bbox["y"]
+            tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or "").strip()
+
+            # ============================
+            # 左 〈メール一覧〉 message list
+            # ============================
+            if MSG_LIST_LEFT_X < x < SPLIT_MSG_LIST_X:
+                if y < HEADER_CUT_Y:
+                    msg_list_header.append(n)
+                    # 任意：デバッグ
+                    # print(f"[DEBUG-ML->HEADER] {tag} {name[:40]} @ ({x:.1f},{y:.1f})")
+                else:
+                    msg_list_items.append(n)
+                    # print(f"[DEBUG-ML->ITEMS] {tag} {name[:40]} @ ({x:.1f},{y:.1f})")
+
+            # ============================
+            # 右 〈メール閲覧〉 reading pane
+            # ============================
+            elif x >= SPLIT_MSG_LIST_X:
+                # 上段（Replyなど）
+                if y < HEADER_CUT_Y:
+                    msg_actions.append(n)
+                    continue
+
+                # 下段（本文）
+                if tag == "document-web" or y > 260:
+                    msg_body.append(n)
+                    continue
+
+                # 中段（From/To/Subject）
+                msg_header.append(n)
+
+
+        # ---------------------------------------------------------
+        # 3) MESSAGE_LIST_HEADER
+        # ---------------------------------------------------------
+        if msg_list_header:
+            lines.append("=== MESSAGE_LIST_HEADER ===")
+            msg_list_header.sort(key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+            for n in msg_list_header:
+                lines.append(self._format_node(n))
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 4) MESSAGE_LIST（メール一覧）
+        # ---------------------------------------------------------
+        if msg_list_items:
+            lines.append("=== MESSAGE_LIST ===")
+
+            items = [n for n in msg_list_items]
+            items.sort(key=lambda n: node_bbox_from_raw(n)["y"])
+
+            seen_list = set()
+            for n in items:
+                raw_name = (n.get("name") or "").strip()
+                if not raw_name:
+                    continue
+                tag = (n.get("tag") or "").lower()
+                formatted = raw_name.replace(", ", " — ") if tag == "tree-item" else raw_name
+
+                n_copy = dict(n)
+                n_copy["name"] = formatted
+
+                l = self._format_node(n_copy)
+                if l and l not in seen_list:
+                    seen_list.add(l)
+                    lines.append(l)
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 5) MESSAGE_ACTIONS（Reply / Forward / Delete）
+        # ---------------------------------------------------------
+        if msg_actions:
+            lines.append("=== MESSAGE_ACTIONS ===")
+            msg_actions.sort(key=lambda n: node_bbox_from_raw(n)["x"])
+            for n in msg_actions:
+                lines.append(self._format_node(n))
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 6) MESSAGE_HEADER（From / To / Subject）
+        # ---------------------------------------------------------
+        if msg_header:
+            lines.append("=== MESSAGE_HEADER ===")
+
+            msg_header.sort(key=lambda n: (node_bbox_from_raw(n)["y"], node_bbox_from_raw(n)["x"]))
+
+            seen_hdr = set()
+            for n in msg_header:
+                tag = (n.get("tag") or "").lower()
+                name = (n.get("name") or "").strip()
+                if not name:
+                    continue
+
+                # 不要な image / section は軽く除外
+                if tag in {"image", "section"} and not name:
+                    continue
+
+                l = self._format_node(n)
+                if l and l not in seen_hdr:
+                    seen_hdr.add(l)
+                    lines.append(l)
+
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 7) MESSAGE_BODY（本文）
+        # ---------------------------------------------------------
+        if msg_body:
+            lines.append("=== MESSAGE_BODY ===")
+            msg_body.sort(key=lambda n: node_bbox_from_raw(n)["y"])
+
+            for n in msg_body:
+                name = (n.get("name") or "").strip()
+                tag = (n.get("tag") or "").lower()
+
+                # ノードに本文が存在する場合は “そのまま全文出力”
+                if name:
+                    lines.append(name)
+                else:
+                    # 名前が無いノード（画像、リンクなど）は最低限フォーマットして出力
+                    lines.append(self._format_node(n))
+
+            lines.append("")
+
+        # ---------------------------------------------------------
+        # 8) STATUSBAR（共通）
+        # ---------------------------------------------------------
+        if r := self._compress_statusbar(regions["STATUSBAR"]):
+            lines.append("=== STATUSBAR ===")
+            lines.extend(r)
+            lines.append("")
+
+        return lines
+
+
+    
+    def _is_inside_mail_area(self, node: Node, mail_area_nodes: List[Node]) -> bool:
+        """
+        modal_nodes のうち「メール本文エリア上に出ているものか」を判定する。
+        ★注意: node["bounds"] ではなく node_bbox_from_raw() を使う。
+        """
+        if not mail_area_nodes:
+            return False
+
+        xs: List[float] = []
+        ys: List[float] = []
+        xe: List[float] = []
+        ye: List[float] = []
+
+        # メール本文エリアの外接矩形を作る
+        for n in mail_area_nodes:
+            bbox = node_bbox_from_raw(n)
+            bx, by, bw, bh = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
+            xs.append(bx)
+            ys.append(by)
+            xe.append(bx + bw)
+            ye.append(by + bh)
+
+        min_x, max_x = min(xs), max(xe)
+        min_y, max_y = min(ys), max(ye)
+
+        # 判定対象ノードの中心座標
+        bbox = node_bbox_from_raw(node)
+        bx, by, bw, bh = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
+        cx = bx + bw / 2.0
+        cy = by + bh / 2.0
+
+        margin = 10  # 少し余白を持たせる
+        return (
+            (min_x - margin) <= cx <= (max_x + margin)
+            and (min_y - margin) <= cy <= (max_y + margin)
         )
-        has_settings_nav = any(
-            (n.get("tag") or "").lower() in {"list-item", "label"}
-            and (n.get("name") or "").strip() in settings_side_candidates
-            for n in nodes
-        )
-        if has_settings_section or has_settings_nav:
-            return "settings"
-
-        # 4) fallback
-        return "generic"
 
 
-    def _build_output(
+
+    def _reclassify_false_modals_in_mail(self, regions: Dict[str, List[Node]], modal_nodes_for_output: List[Node]) -> List[Node]:
+        """
+        MAIL view では、diff modal が誤って MESSAGE_LIST 周辺を MODAL に入れることがある。
+        その場合、3-pane の座標で背景領域へ戻す。
+        """
+        SPLIT_MSG_LIST_X = 1040
+        LEFT_FOLDER_X = 380   # まずは 380〜400 あたり。ログ見る限り 380 が境界近い
+        TOP_Y = 160           # Quick Filter が y=127 なので、header帯は 160 くらいが安全
+
+        # これらは mail UI で普通に出るので modal 扱いしない
+        safe_tags = {"toggle-button", "push-button", "heading", "section", "tree-item", "list-item", "static", "label"}
+
+        def move_to_background(n: Node) -> None:
+            bbox = node_bbox_from_raw(n)
+            x, y = bbox["x"], bbox["y"]
+            tag = (n.get("tag") or "").lower()
+
+            # 上部帯 → MAIL_TOOLBAR（Quick Filter等）
+            if y < TOP_Y:
+                regions.setdefault("MAIL_TOOLBAR", []).append(n)
+                return
+
+            # 左ペイン
+            if x < LEFT_FOLDER_X:
+                regions.setdefault("FOLDER_TREE", []).append(n)
+                return
+
+            # 中央（メール一覧）
+            if x < SPLIT_MSG_LIST_X:
+                regions.setdefault("MESSAGE_LIST", []).append(n)
+                return
+
+            # 右（閲覧ペイン）
+            regions.setdefault("PREVIEW", []).append(n)
+
+        # regions["MODAL"] の誤モーダルを戻す
+        new_modal_region: List[Node] = []
+        for n in regions.get("MODAL", []):
+            tag = (n.get("tag") or "").lower()
+            if tag in safe_tags:
+                move_to_background(n)
+            else:
+                new_modal_region.append(n)
+        regions["MODAL"] = new_modal_region
+
+        # diff由来 modal_nodes_for_output の誤モーダルも戻す
+        kept: List[Node] = []
+        for n in (modal_nodes_for_output or []):
+            tag = (n.get("tag") or "").lower()
+            if tag in safe_tags:
+                move_to_background(n)
+            else:
+                kept.append(n)
+
+        return kept
+
+
+    def _rescue_message_list_from_modal(
         self,
         regions: Dict[str, List[Node]],
-        modal_nodes: List[Node],
-        screen_w: int,
-        screen_h: int,
-    ) -> List[str]:
+        modal_nodes_for_output: List[Node],
+        msg_left_x: int,
+        split_x: int,
+        header_cut_y: int,
+    ):
         """
-        領域ごとの出力順序を定義する。
+        Mail view で MESSAGE_LIST が MODAL に落ちる事故を救済する。
+        - regions["MODAL"] と diff由来 modal_nodes_for_output の両方から救済
+        - 左ペイン（message list）領域にあるノードを rescued として返す
+        戻り値:
+            kept_modal_nodes_for_output, rescued_msg_list_nodes
         """
+        rescued: List[Node] = []
+        kept_modal_out: List[Node] = []
+
+        # 左ペイン判定に使う tag セット（header/rows/操作部品を広めに許容）
+        MSG_TAGS = {
+            "tree-item",
+            "list-item",
+            "section",
+            "heading",
+            "toggle-button",
+            "push-button",
+            "check-box",
+            "entry",
+            "label",
+            "static",
+        }
+
+        def is_left_pane_msg_list_node(n: Node) -> bool:
+            bbox = node_bbox_from_raw(n)
+            x, y = bbox["x"], bbox["y"]
+            tag = (n.get("tag") or "").lower()
+
+            if tag not in MSG_TAGS:
+                return False
+
+            # MESSAGE_LIST はだいたい x が msg_left_x〜split_x に収まる
+            if not (msg_left_x <= x < split_x):
+                return False
+
+            # header(例: Inbox / 2 Messages / Quick Filter) は y が小さい
+            # rows は y が header_cut_y より少し下〜数百pxの範囲
+            if y < 0:
+                return False
+
+            # ざっくり上側に寄っているものを message list とみなす（保守的に）
+            if y <= (header_cut_y + 600):
+                return True
+
+            return False
+
+        # (A) regions["MODAL"] から救済して、MODAL を更新
+        new_modal_region: List[Node] = []
+        for n in regions.get("MODAL", []):
+            if is_left_pane_msg_list_node(n):
+                rescued.append(n)
+            else:
+                new_modal_region.append(n)
+        regions["MODAL"] = new_modal_region
+
+        # (B) diff由来 modal_nodes_for_output から救済
+        for n in (modal_nodes_for_output or []):
+            if is_left_pane_msg_list_node(n):
+                rescued.append(n)
+            else:
+                kept_modal_out.append(n)
+
+        # 重複排除（同一オブジェクトID）
+        seen = set()
+        uniq_rescued: List[Node] = []
+        for n in rescued:
+            nid = id(n)
+            if nid not in seen:
+                seen.add(nid)
+                uniq_rescued.append(n)
+
+        return kept_modal_out, uniq_rescued
+
+
+
+    def _build_output(self, regions, modal_nodes, screen_w, screen_h):
+        import os, sys
+        print("[DEBUG] thunderbird.py path =", os.path.abspath(__file__), file=sys.stderr, flush=True)
+        print("[DEBUG] _build_output called", file=sys.stderr, flush=True)
+
         lines: List[str] = []
 
-        # 全ノードからViewTypeを判定
-        all_nodes_for_detect = []
+        # --- view type detect ---
+        all_nodes_for_detect: List[Node] = []
         for lst in regions.values():
             all_nodes_for_detect.extend(lst)
-        # modal_nodes も判定に加える
         if modal_nodes:
             all_nodes_for_detect.extend(modal_nodes)
-            
+
         view_type = self._detect_view_type(all_nodes_for_detect)
 
-        # ★重要: Account Settings の場合は Modal を強制的に空にする準備
-        # (後続の処理で regions["MODAL"] や modal_nodes を使わせないため、
-        #  専用の圧縮関数に渡して消費させる)
-        detected_modals_to_merge = []
-        if view_type == "account_settings":
-            detected_modals_to_merge = list(modal_nodes) # コピー
-            modal_nodes = [] # 空にする
-            # regions["MODAL"] は _compress_account_settings_view 内で統合されるのでそのままでOK
-            # ただし出力段階で重複しないよう、後で regions["MODAL"] を空にする処理が必要だが、
-            # 下記のロジックでは regions["MODAL"] を個別出力しているので、
-            # view_type分岐内で処理済みフラグを立てるか、regionsを操作する。
-            
-        # --- 共通部分 ---
+        lines.append(f"DEBUG_VIEW_TYPE: {view_type}")
+        print(f"[DEBUG] VIEW_TYPE = {view_type}", file=sys.stderr, flush=True)
+
+
+        # ----------------------------------------
+        # A案: view切替時はMODAL検知を無効化（クールダウン）
+        # ----------------------------------------
+        prev_view = getattr(self, "_prev_view_type", None)
+        cooldown = getattr(self, "_view_change_cooldown", 0)
+
+        # viewが変わったらクールダウン開始（1〜2推奨、まずは2）
+        if prev_view is not None and view_type != prev_view:
+            cooldown = 2
+
+        # クールダウン中は modal を “出力対象から除外”
+        if cooldown > 0:
+            regions["MODAL"] = []
+            modal_nodes = []
+            lines.append(f"DEBUG_MODAL_SUPPRESSED: cooldown={cooldown}, prev={prev_view}, curr={view_type}")
+            print(f"[DEBUG] MODAL_SUPPRESSED cooldown={cooldown} prev={prev_view} curr={view_type}")
+
+        setattr(self, "_prev_view_type", view_type)
+        setattr(self, "_view_change_cooldown", max(0, cooldown - 1))
+
+        # diff 由来のモーダル候補はここで管理
+        modal_nodes_for_output: List[Node] = list(modal_nodes or [])
+
+        # ----------------------------------------
+        # 1) 共通部分 (SYSTEM / LAUNCHER / TOOLBAR / SPACES)
+        # ----------------------------------------
         if regions.get("TOP_BAR"):
             r = self._compress_top_bar(regions["TOP_BAR"])
             if r:
@@ -941,7 +1429,9 @@ class ThunderbirdCompressor(BaseA11yCompressor):
             lines.extend(r)
             lines.append("")
 
-        # 3. メインコンテンツ
+        # ----------------------------------------
+        # 2) メインコンテンツ (View Type ごと)
+        # ----------------------------------------
         if view_type == "home":
             if r := self._compress_folder_tree(
                 regions["FOLDER_TREE"] + regions["SIDEBAR_HEADER"] + regions["SIDEBAR"]
@@ -949,16 +1439,13 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 lines.append("=== FOLDERS ===")
                 lines.extend(r)
                 lines.append("")
-            
-            if r := self._compress_home_dashboard(
-                regions["HOME_DASHBOARD"] + regions["DASHBOARD"]
-            ):
+
+            if r := self._compress_home_dashboard(regions["HOME_DASHBOARD"] + regions["DASHBOARD"]):
                 lines.append("=== HOME DASHBOARD ===")
                 lines.extend(r)
                 lines.append("")
 
         elif view_type == "settings":
-            # 通常のSettings
             settings_lines = self._compress_settings_view(regions, screen_w, screen_h)
             if settings_lines:
                 lines.extend(settings_lines)
@@ -968,21 +1455,125 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                     lines.extend(r)
 
         elif view_type == "account_settings":
-            # ★新規: Account Settings
-            # モーダルとして検出されたものもメインコンテンツとして渡す
+            account_modal_nodes: List[Node] = list(modal_nodes_for_output)
+            modal_nodes_for_output = []
+
             acc_lines = self._compress_account_settings_view(
-                regions, 
-                detected_modals_to_merge, 
-                screen_w, 
-                screen_h
+                regions,
+                account_modal_nodes,
+                screen_w,
+                screen_h,
             )
             if acc_lines:
                 lines.extend(acc_lines)
-            # このビューでは MODAL 領域を表示済みとみなすため、regions["MODAL"] を空にする
-            regions["MODAL"] = [] 
+
+            regions["MODAL"] = []
+
+        elif view_type == "mail":
+            # ----------------------------------------
+            # Mail view 専用ロジック：
+            # - MESSAGE_LIST（左ペイン）が MODAL に落ちた場合の救済（★追加）
+            # - 右ペイン（閲覧ペイン）の本文が MODAL に落ちた場合の救済（既存）
+            # - 3-pane の split_x / header_cut_y を動的推定（★反映）
+            # ----------------------------------------
+
+            MSG_LIST_LEFT_X = getattr(self, "MSG_LIST_LEFT_X", 360)
+
+            candidates = (
+                regions.get("MESSAGE_LIST", [])
+                + regions.get("PREVIEW", [])
+                + regions.get("MAIL_TOOLBAR", [])
+            )
+
+            SPLIT_MSG_LIST_X = self._estimate_split_msg_list_x(candidates, fallback=1040)
+            HEADER_CUT_Y = self._estimate_msg_list_header_cut_y(
+                candidates, MSG_LIST_LEFT_X, SPLIT_MSG_LIST_X, fallback=140
+            )
+            print(f"[DEBUG-ML] SPLIT_MSG_LIST_X={SPLIT_MSG_LIST_X} HEADER_CUT_Y={HEADER_CUT_Y}")
+
+            # (1) 左ペイン救済（★id=11/12対策）
+            modal_nodes_for_output, rescued_msg_list = self._rescue_message_list_from_modal(
+                regions=regions,
+                modal_nodes_for_output=modal_nodes_for_output,
+                msg_left_x=MSG_LIST_LEFT_X,
+                split_x=SPLIT_MSG_LIST_X,
+                header_cut_y=HEADER_CUT_Y,
+            )
+
+            if rescued_msg_list:
+                regions.setdefault("MESSAGE_LIST", [])
+                existing = {id(n) for n in regions["MESSAGE_LIST"]}
+                for n in rescued_msg_list:
+                    if id(n) not in existing:
+                        regions["MESSAGE_LIST"].append(n)
+                print(f"[DEBUG] rescued MESSAGE_LIST nodes: {len(rescued_msg_list)}")
+
+            # (2) mail view の false modal を減らす（既存）
+            modal_nodes_for_output = self._reclassify_false_modals_in_mail(regions, modal_nodes_for_output)
+
+            # (3) 右ペイン本文救済（既存）
+            mail_area_nodes: List[Node] = []
+
+            def add_mail_area_candidates(nodes: List[Node]) -> None:
+                for n in nodes:
+                    bbox = node_bbox_from_raw(n)
+                    x, y = bbox["x"], bbox["y"]
+                    tag = (n.get("tag") or "").lower()
+
+                    if x >= SPLIT_MSG_LIST_X and tag in {
+                        "document-web",
+                        "section",
+                        "label",
+                        "link",
+                        "image",
+                        "paragraph",
+                        "static",
+                    }:
+                        mail_area_nodes.append(n)
+
+            add_mail_area_candidates(regions.get("PREVIEW", []))
+            add_mail_area_candidates(regions.get("MESSAGE_LIST", []))
+            add_mail_area_candidates(regions.get("MAIL_TOOLBAR", []))
+            add_mail_area_candidates(regions.get("MODAL", []))
+            add_mail_area_candidates(modal_nodes_for_output)
+
+            mail_diff_nodes: List[Node] = []
+            seen_ids = set()
+
+            new_modal_region: List[Node] = []
+            for n in regions.get("MODAL", []):
+                if mail_area_nodes and self._is_inside_mail_area(n, mail_area_nodes):
+                    nid = id(n)
+                    if nid not in seen_ids:
+                        seen_ids.add(nid)
+                        mail_diff_nodes.append(n)
+                else:
+                    new_modal_region.append(n)
+            regions["MODAL"] = new_modal_region
+
+            new_modal_nodes_for_output: List[Node] = []
+            for n in modal_nodes_for_output:
+                if mail_area_nodes and self._is_inside_mail_area(n, mail_area_nodes):
+                    nid = id(n)
+                    if nid not in seen_ids:
+                        seen_ids.add(nid)
+                        mail_diff_nodes.append(n)
+                else:
+                    new_modal_nodes_for_output.append(n)
+            modal_nodes_for_output = new_modal_nodes_for_output
+
+            if mail_diff_nodes:
+                regions.setdefault("PREVIEW", [])
+                existing_ids = {id(n) for n in regions["PREVIEW"]}
+                for n in mail_diff_nodes:
+                    if id(n) not in existing_ids:
+                        regions["PREVIEW"].append(n)
+
+            mail_lines = self._build_mail_view(regions)
+            lines.extend(mail_lines)
 
         else:
-            # Generic / Mail View
+            # Generic / その他ビュー (古いメール画面など)
             if r := self._compress_folder_tree(
                 regions["FOLDER_TREE"] + regions["SIDEBAR_HEADER"] + regions["SIDEBAR"]
             ):
@@ -990,32 +1581,46 @@ class ThunderbirdCompressor(BaseA11yCompressor):
                 lines.extend(r)
                 lines.append("")
 
-            if r_msg := self._compress_message_list(regions["MESSAGE_LIST"]):
+            # ★ここ修正：MES　SAGE_LIST (全角スペース) はバグ
+            if r_msg := self._compress_message_list(regions.get("MESSAGE_LIST", [])):
                 lines.append("=== MESSAGE LIST ===")
                 lines.extend(r_msg)
                 lines.append("")
+
             if r_prev := self._compress_preview(regions["PREVIEW"]):
                 lines.append("=== PREVIEW ===")
                 lines.extend(r_prev)
                 lines.append("")
-            
+
             if regions["HOME_DASHBOARD"]:
-                 if r := self._compress_home_dashboard(regions["HOME_DASHBOARD"]):
+                if r := self._compress_home_dashboard(regions["HOME_DASHBOARD"]):
                     lines.append("=== DASHBOARD CONTENT ===")
                     lines.extend(r)
                     lines.append("")
 
-        # 4. 下部ステータスバー (共通)
-        if r := self._compress_statusbar(regions["STATUSBAR"]):
-            lines.append("=== STATUS BAR ===")
-            lines.extend(r)
-            lines.append("")
-        
-        # 5. モーダル
-        # Account Settingsの場合は上で空にされているか、regions["MODAL"]がクリアされている
-        all_modals = regions["MODAL"] + (modal_nodes or [])
-        if r := self._compress_modal(all_modals):
-            lines.append("=== MODAL / DIALOG ===")
-            lines.extend(r)
+        # ----------------------------------------
+        # 3) STATUSBAR (共通) — mail ビューだけは _build_mail_view 側で出力済み
+        # ----------------------------------------
+        if view_type != "mail":
+            if r := self._compress_statusbar(regions["STATUSBAR"]):
+                lines.append("=== STATUS BAR ===")
+                lines.extend(r)
+                lines.append("")
+
+        # ----------------------------------------
+        # 4) モーダル (MODAL / diff-modal の合体)
+        # ----------------------------------------
+        all_modals: List[Node] = []
+
+        if regions.get("MODAL"):
+            all_modals.extend(regions["MODAL"])
+
+        if modal_nodes_for_output:
+            all_modals.extend(modal_nodes_for_output)
+
+        if all_modals:
+            if r := self._compress_modal(all_modals):
+                lines.append("=== MODAL / DIALOG ===")
+                lines.extend(r)
 
         return lines
