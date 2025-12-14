@@ -1,5 +1,6 @@
 import re
 from typing import List, Dict, Tuple, Set, Optional, Any
+from collections import defaultdict
 
 from ..core.engine import BaseA11yCompressor
 from ..core.common_ops import (
@@ -7,9 +8,113 @@ from ..core.common_ops import (
     dedup_horizontal_menu_nodes,
 )
 
+# ----------------------------
+# 記号を落とす
+# ----------------------------
+
+_GLYPH_ONLY_RE = re.compile(r"^[\s\uE000-\uF8FF]+$")  # PUA(私用領域)のアイコンが多い
+
+def _node_disp(n) -> str:
+    return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+
+def _is_glyph_only(s: str) -> bool:
+    if not s:
+        return True
+    # ほぼアイコンのみ（PUA）or 記号1文字だけ、みたいなのを落とす
+    if _GLYPH_ONLY_RE.match(s):
+        return True
+    if len(s) <= 2 and all(not ch.isalnum() for ch in s):
+        return True
+    return False
+
+def _bbox_key(n) -> Tuple[int, int]:
+    b = node_bbox_from_raw(n)
+    return (int(b["x"]), int(b["y"]))
+
+def _pos_key(n, tol: int = 3) -> Tuple[int, int]:
+    b = node_bbox_from_raw(n)
+    x = int(b["x"]); y = int(b["y"])
+    return (x // tol, y // tol)  
+
+
+def drop_glyph_dupes_same_bbox(nodes: List[dict]) -> List[dict]:
+    """
+    同一bboxに「意味のあるテキスト」が存在する場合、
+    同一bboxの glyph-only ノード（section/static 由来のアイコン）を落とす。
+    """
+    groups: Dict[Tuple[int,int], List[dict]] = defaultdict(list)
+    for n in nodes:
+        groups[_pos_key(n, tol=2)].append(n)
+
+    kept: List[dict] = []
+    for k, g in groups.items():
+        # 同じbbox内に “意味あるテキスト” があるか？
+        has_meaningful = any(
+            (disp := _node_disp(n)) and (not _is_glyph_only(disp))
+            for n in g
+        )
+
+        if not has_meaningful:
+            kept.extend(g)
+            continue
+
+        # meaningful があるなら glyph-only を落とす（ただし全部落ちると困るので保険を入れる）
+        g_kept = []
+        for n in g:
+            disp = _node_disp(n)
+            t = (n.get("tag") or "").lower()
+
+            if _is_glyph_only(disp) and t in {"static", "section"}:
+                # 落とす対象
+                continue
+            g_kept.append(n)
+
+        if not g_kept:
+            # 保険：全部消えるなら、最初の1つだけ残す
+            g_kept = [g[0]]
+
+        kept.extend(g_kept)
+
+    return kept
+
 class Vs_codeCompressor(BaseA11yCompressor):
     domain_name = "vs_code"
 
+    def preprocess_nodes(self, nodes: List[Node], *args, **kwargs) -> List[Node]:
+        # 1. 親クラスの処理（あれば）
+        try:
+            nodes = super().preprocess_nodes(nodes, *args, **kwargs)
+        except Exception:
+            pass
+        
+        cleaned_nodes = []
+
+        # 操作に関連するタグ（これらは記号だけでも残す）
+        # ※ 必要に応じて足りないものを追加してください
+        INTERACTIVE_TAGS = {
+            "push-button", "toggle-button", "button", "link", 
+            "entry", "check-box", "combo-box", "menu-item", "menu",
+            "tab", "tree-item", "list-item", "scrollbar",
+            "slider", "spin-button", "radio-button"
+        }
+
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            name = _node_disp(n)
+            
+            # 1. 操作系タグなら無条件で残す（アイコンボタン等を救済）
+            if tag in INTERACTIVE_TAGS:
+                cleaned_nodes.append(n)
+                continue
+
+            # 2. それ以外（static, section, text等）で、かつ記号のみならノイズとして削除
+            if _is_glyph_only(name):
+                continue
+            
+            # 3. テキストがある表示要素は残す
+            cleaned_nodes.append(n)
+            
+        return cleaned_nodes
 
     # ----------------------------
     # セマンティック領域分割 (VS Code)
@@ -433,6 +538,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
         def _name(n: Node) -> str:
             return (n.get("name") or n.get("text") or "").strip()
 
+        # しきい値定義
         STATUS_Y_MIN = h * 0.96
         MENUBAR_Y_MAX = h * 0.12
         TAB_Y_MIN, TAB_Y_MAX = h * 0.07, h * 0.16
@@ -453,19 +559,19 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
             # 1) STATUSBAR救助
             if cy >= STATUS_Y_MIN:
-                regions["STATUSBAR"].append(n)
+                regions.setdefault("STATUSBAR", []).append(n)
                 rescued.append(n)
                 continue
 
             # 2) MENUBAR救助
             if cy <= MENUBAR_Y_MAX and tag in ("menu", "push-button") and lname in MENU_KEYWORDS:
-                regions["MENUBAR"].append(n)
+                regions.setdefault("MENUBAR", []).append(n)
                 rescued.append(n)
                 continue
 
             # 3) ACTIVITY_BAR救助
             if ACT_X_MIN <= cx <= ACT_X_MAX and tag in ("section", "push-button", "toggle-button", "static"):
-                regions["ACTIVITY_BAR"].append(n)
+                regions.setdefault("ACTIVITY_BAR", []).append(n)
                 rescued.append(n)
                 continue
 
@@ -476,25 +582,25 @@ class Vs_codeCompressor(BaseA11yCompressor):
                 or "visual studio code" in lname
                 or any(ext in lname for ext in (".py", ".txt", ".md", ".json", ".yaml", ".yml"))
             ):
-                regions["TAB_BAR"].append(n)
+                regions.setdefault("TAB_BAR", []).append(n)
                 rescued.append(n)
                 continue
 
             # 5) BREADCRUMB救助
             if BREAD_Y_MIN <= cy <= BREAD_Y_MAX and ("/" in name or lname in {"home", "user", "desktop"} or "" in name):
-                regions["BREADCRUMB"].append(n)
+                regions.setdefault("BREADCRUMB", []).append(n)
                 rescued.append(n)
                 continue
 
-            # 6) FIND_REPLACE救助（これが一番重要）
+            # 6) FIND_REPLACE救助
             if FR_Y_MIN <= cy <= FR_Y_MAX and cx >= FR_X_MIN:
                 if tag in ("entry", "check-box", "push-button", "label", "text", "section", "static"):
                     if any(k in lname for k in ("find", "replace", "match", "regex", "previous", "next", "toggle", "selection")):
-                        regions["FIND_REPLACE"].append(n)
+                        regions.setdefault("FIND_REPLACE", []).append(n)
                         rescued.append(n)
                         continue
 
-            # 戻せないものだけ modal として残す
+            # 救出できなかったものは remain へ
             remain.append(n)
 
         return rescued, remain
@@ -517,16 +623,19 @@ class Vs_codeCompressor(BaseA11yCompressor):
         merged_modal = list(regions.get("MODAL") or [])
         if modal_nodes:
             merged_modal.extend(list(modal_nodes))
+        
+        # ★追加: マージしたので、元の regions["MODAL"] は空にしておく（二重参照防止の安全策）
+        regions["MODAL"] = []
 
         # 2) MODAL救助（出力直前に戻す）
-        #    Find/Replaceなどを元の場所に戻す
         if merged_modal:
+            # _rescued は関数内で regions に既に戻されているので使わなくてOK
             _rescued, remaining_modal = self._rescue_from_modal(merged_modal, regions, w, h)
         else:
             remaining_modal = []
 
-        # 3) view判定 (★修正したメソッドを使用)
-        #    CONTENTだけでなく、MODALも含めて判定しないとパレットを見逃す可能性があるため結合して渡す
+        # 3) view判定
+        #    周辺情報(TAB, STATUSBAR, BREADCRUMB)も判定材料に含める
         nodes_for_detection = (
             (regions.get("CONTENT") or []) +
             (regions.get("TAB_BAR") or []) +
@@ -539,14 +648,12 @@ class Vs_codeCompressor(BaseA11yCompressor):
         lines.append(f"=== VIEW === {view_type}")
         lines.append("")
 
-        # ★追加: コマンドパレット特例処理
-        # Viewが "command_palette" なら、MODALに残っている要素（入力欄やリスト）は
-        # 実質的に「コンテンツ」なので、CONTENT領域に移動して専用フォーマッタを通す
+        # コマンドパレットなら、残ったMODAL候補をCONTENTとして扱う
         if view_type == "command_palette":
             regions.setdefault("CONTENT", []).extend(remaining_modal)
             remaining_modal = []
 
-        # ---- 出力：順番固定 ----
+        # ---- 出力 ----
         def _emit(title: str, nodes: List[Node], allow: Optional[Set[str]] = None, max_items: int = 18):
             chunk = self._compress_simple_list(nodes or [], allow_tags=allow, max_items=max_items)
             if chunk:
@@ -562,10 +669,9 @@ class Vs_codeCompressor(BaseA11yCompressor):
         _emit("BREADCRUMB", regions.get("BREADCRUMB", []), allow={"section", "label", "text", "link", "static"}, max_items=10)
         _emit("FIND / REPLACE", regions.get("FIND_REPLACE", []), allow={"entry", "check-box", "push-button", "label", "text", "section", "static"}, max_items=20)
 
-        # CONTENT：viewごとに圧縮方針を変える
+        # CONTENT
         content_lines = self._compress_content_by_view(regions.get("CONTENT", []), view_type=view_type)
         if content_lines:
-            # タイトルも見やすく整形
             title_suffix = view_type.upper().replace("_", " ") if view_type != "generic" else "MAIN"
             lines.append(f"=== CONTENT ({title_suffix}) ===")
             lines.extend(content_lines)
