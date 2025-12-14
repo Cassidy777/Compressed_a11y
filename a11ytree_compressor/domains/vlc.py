@@ -383,6 +383,7 @@ class VlcCompressor(BaseA11yCompressor):
                 "push-button",
                 "entry",
                 "text",
+                "radio-button",
             }:
                 filtered.append(n)
 
@@ -393,7 +394,7 @@ class VlcCompressor(BaseA11yCompressor):
         filtered = self._sort_xy(filtered)
 
         # 3) ラベルとコントロールをペアにする（同一行 & 右側優先）
-        pairs, leftovers = self._pair_label_with_control(filtered, y_tol=18)
+        pairs, leftover_controls, leftover_labels = self._pair_label_with_control(filtered, y_tol=18)
 
         lines: List[str] = []
 
@@ -416,6 +417,8 @@ class VlcCompressor(BaseA11yCompressor):
                 prefix = "[text]"
             elif tag == "label":
                 prefix = "[label]"
+            elif tag == "radio-button":
+                prefix = "[radio]"
             else:
                 prefix = f"[{tag}]"
 
@@ -429,8 +432,15 @@ class VlcCompressor(BaseA11yCompressor):
             # control 側の表示名が label と同じ（spin/button等）なら空でもOK運用にしたい場合はここで調整
             lines.append(f'[field] "{l_name}" -> {c_prefix} "{c_name}" @ ({cx}, {cy})')
 
+        for ln in leftover_labels:
+            text = (ln.get("name") or ln.get("text") or "").strip()
+            if not text:
+                continue
+            if len(text) >= 10 or "settings" in text.lower() or "&" in text:
+                lines.append(f'[label] "{text}" {self._format_center(ln)}')
+
         # 3-2) 残りを列挙（特にチェックボックス・ボタンは重要）
-        for n in leftovers:
+        for n in leftover_controls:
             tag = (n.get("tag") or "").lower()
             name = (n.get("name") or n.get("text") or "").strip()
             if not name:
@@ -478,32 +488,34 @@ class VlcCompressor(BaseA11yCompressor):
 
             if tag == "label":
                 labels.append((n, cx, cy))
-            elif tag in {"combo-box", "spin-button", "check-box", "push-button", "entry", "text"}:
+            elif tag in {"combo-box", "spin-button", "check-box", "push-button", "entry", "text", "radio-button"}:
                 controls.append((n, cx, cy))
 
         pairs = []
-        used = set()
+        used_controls = set()
 
         # ラベルを上から順に見て、右側で同じ行の最も近い control を紐付け
         for ln, lx, ly in labels:
             best = None
             best_dx = 1e18
-
             for cn, cx, cy in controls:
-                if id(cn) in used:
+                if id(cn) in used_controls:
                     continue
                 if abs(cy - ly) <= y_tol and cx > lx:
                     dx = cx - lx
                     if dx < best_dx:
                         best_dx = dx
                         best = cn
-
             if best is not None:
-                used.add(id(best))
+                used_controls.add(id(best))
                 pairs.append((ln, best))
 
-        leftovers = [cn for (cn, _, _) in controls if id(cn) not in used]
-        return pairs, leftovers
+        leftover_controls = [cn for (cn, _, _) in controls if id(cn) not in used_controls]
+        # ★追加：ペアにならなかった label を返す
+        paired_label_ids = {id(ln) for ln, _ in pairs}
+        leftover_labels = [ln for (ln, _, _) in labels if id(ln) not in paired_label_ids]
+
+        return pairs, leftover_controls, leftover_labels
 
 
     # ----------------------------
@@ -518,6 +530,7 @@ class VlcCompressor(BaseA11yCompressor):
         VLC:
         - Directory chooser は残す
         - combo-box のドロップダウン候補(list-item群)は除外する
+        - bottom-right に出る不要な "Home" ラベルは常に除外する
         """
         if not modal_nodes:
             return []
@@ -526,6 +539,14 @@ class VlcCompressor(BaseA11yCompressor):
 
         for n in modal_nodes:
             tag = (n.get("tag") or "").lower()
+            name = (n.get("name") or "").strip().lower()
+            text = (n.get("text") or "").strip().lower()
+
+            # -------------------------------------------------
+            # (0) VLC 固有ノイズ: bottom-right の "Home" ラベル
+            # -------------------------------------------------
+            if tag in {"label", "text"} and (name == "home" or text == "home"):
+                continue
 
             # bbox 取得
             try:
@@ -554,6 +575,7 @@ class VlcCompressor(BaseA11yCompressor):
             filtered.append(n)
 
         return filtered
+
 
 
     
@@ -701,6 +723,40 @@ class VlcCompressor(BaseA11yCompressor):
                 is_vlc_prefs = True
                 pref_nodes = modal_nodes
                 modal_nodes = []
+
+
+        # (B2) diffなし/初回で modal_nodes が空でも、CONTENT 側にPreferencesがあるなら拾う（★追加）
+        if (not is_vlc_prefs):
+            content_nodes = list((regions.get("CONTENT") or []))
+            if content_nodes and self._looks_like_vlc_preferences(content_nodes):
+                filechooser_present = self._looks_like_filechooser(content_nodes)
+
+                if filechooser_present:
+                    chooser_nodes: List[Node] = []
+                    base_pref_nodes: List[Node] = []
+                    for n in content_nodes:
+                        if self._is_filechooser_node(n, screen_w, screen_h, filechooser_present=True):
+                            chooser_nodes.append(n)
+                        else:
+                            base_pref_nodes.append(n)
+
+                    if base_pref_nodes:
+                        is_vlc_prefs = True
+                        pref_nodes = base_pref_nodes
+
+                        # ★Preferences を CONTENT から取り除く（CONTENT に label 群だけ残るのを防ぐ）
+                        regions["CONTENT"] = []
+
+                        # ★filechooser は MODAL 扱いに寄せたいなら、modal_nodes に追加
+                        # （この時点で modal_nodes は空のことが多い）
+                        modal_nodes = list(modal_nodes) + chooser_nodes
+                else:
+                    is_vlc_prefs = True
+                    pref_nodes = content_nodes
+
+                    # ★Preferences を CONTENT から取り除く
+                    regions["CONTENT"] = []
+
 
         # (C) Preferences が確定したら、Preferences用ノードを保存して次回に備える
         if is_vlc_prefs:
