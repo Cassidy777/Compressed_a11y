@@ -9,20 +9,34 @@ from ..core.common_ops import (
 )
 
 # ----------------------------
-# 記号を落とす
+# 文字列処理 / 記号判定
 # ----------------------------
 
-_GLYPH_ONLY_RE = re.compile(r"^[\s\uE000-\uF8FF]+$")  # PUA(私用領域)のアイコンが多い
+# 先頭にある PUA(私用領域)アイコン + 空白 を除去する正規表現
+# 例: "New File..." -> "New File..."
+_PUA_PREFIX_RE = re.compile(r"^[\uE000-\uF8FF\s]+")
+
+# 文字列全体が記号/PUAのみか判定する正規表現
+_GLYPH_ONLY_RE = re.compile(r"^[\s\uE000-\uF8FF]+$")
 
 def _node_disp(n) -> str:
-    return ((n.get("name") or n.get("text") or n.get("description") or "")).strip()
+    """
+    表示用テキストを取得し、先頭の装飾アイコン(PUA)を除去して返す。
+    """
+    raw = (n.get("name") or n.get("text") or n.get("description") or "")
+    cleaned = _PUA_PREFIX_RE.sub("", raw)
+    return cleaned.strip()
 
 def _is_glyph_only(s: str) -> bool:
+    """
+    文字列が「アイコン/記号のみ」で構成されているか判定する。
+    """
     if not s:
         return True
-    # ほぼアイコンのみ（PUA）or 記号1文字だけ、みたいなのを落とす
+    # PUAアイコンのみ
     if _GLYPH_ONLY_RE.match(s):
         return True
+    # 2文字以下の記号のみ (例: ">", "{}")
     if len(s) <= 2 and all(not ch.isalnum() for ch in s):
         return True
     return False
@@ -39,8 +53,7 @@ def _pos_key(n, tol: int = 3) -> Tuple[int, int]:
 
 def drop_glyph_dupes_same_bbox(nodes: List[dict]) -> List[dict]:
     """
-    同一bboxに「意味のあるテキスト」が存在する場合、
-    同一bboxの glyph-only ノード（section/static 由来のアイコン）を落とす。
+    (Baseクラス等で使う汎用関数 - 今回のVS Code特化ロジックとは別だが残しておく)
     """
     groups: Dict[Tuple[int,int], List[dict]] = defaultdict(list)
     for n in nodes:
@@ -48,7 +61,6 @@ def drop_glyph_dupes_same_bbox(nodes: List[dict]) -> List[dict]:
 
     kept: List[dict] = []
     for k, g in groups.items():
-        # 同じbbox内に “意味あるテキスト” があるか？
         has_meaningful = any(
             (disp := _node_disp(n)) and (not _is_glyph_only(disp))
             for n in g
@@ -58,24 +70,21 @@ def drop_glyph_dupes_same_bbox(nodes: List[dict]) -> List[dict]:
             kept.extend(g)
             continue
 
-        # meaningful があるなら glyph-only を落とす（ただし全部落ちると困るので保険を入れる）
         g_kept = []
         for n in g:
             disp = _node_disp(n)
             t = (n.get("tag") or "").lower()
-
             if _is_glyph_only(disp) and t in {"static", "section"}:
-                # 落とす対象
                 continue
             g_kept.append(n)
 
         if not g_kept:
-            # 保険：全部消えるなら、最初の1つだけ残す
             g_kept = [g[0]]
 
         kept.extend(g_kept)
 
     return kept
+
 
 class Vs_codeCompressor(BaseA11yCompressor):
     domain_name = "vs_code"
@@ -90,7 +99,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
         cleaned_nodes = []
 
         # 操作に関連するタグ（これらは記号だけでも残す）
-        # ※ 必要に応じて足りないものを追加してください
         INTERACTIVE_TAGS = {
             "push-button", "toggle-button", "button", "link", 
             "entry", "check-box", "combo-box", "menu-item", "menu",
@@ -100,15 +108,18 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
         for n in nodes:
             tag = (n.get("tag") or "").lower()
-            name = _node_disp(n)
+            
+            # 【修正点】 description も含めて生テキストを取得（情報落ち防止）
+            raw_text = (n.get("name") or n.get("text") or n.get("description") or "").strip()
             
             # 1. 操作系タグなら無条件で残す（アイコンボタン等を救済）
             if tag in INTERACTIVE_TAGS:
                 cleaned_nodes.append(n)
                 continue
 
-            # 2. それ以外（static, section, text等）で、かつ記号のみならノイズとして削除
-            if _is_glyph_only(name):
+            # 2. それ以外（static, section等）で、かつ記号のみならノイズとして削除
+            #    VS Codeにおいては座標判定不要で一律削除してOK
+            if _is_glyph_only(raw_text):
                 continue
             
             # 3. テキストがある表示要素は残す
@@ -122,10 +133,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
     def get_semantic_regions(
         self, nodes: List[Node], w: int, h: int, dry_run: bool = False
     ) -> Dict[str, List[Node]]:
-        """
-        VS Code: まずは「領域分け」だけを安定させる。
-        MODALの救助は _build_output 側でやる（=ここでは極力 MODAL に入れない）。
-        """
         regions: Dict[str, List[Node]] = {
             "APP_LAUNCHER": [],
             "MENUBAR": [],
@@ -136,7 +143,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
             "FIND_REPLACE": [],
             "CONTENT": [],
             "STATUSBAR": [],
-            "MODAL": [],  # 基本空でOK（diff-modalが来た場合はengine側で渡ってくる）
+            "MODAL": [], 
         }
 
         w = max(1, int(w))
@@ -148,26 +155,24 @@ class Vs_codeCompressor(BaseA11yCompressor):
         def _name(n: Node) -> str:
             return (n.get("name") or n.get("text") or "").strip()
 
-        # ---- しきい値（あなたの例の座標に合わせて、比率ベースで置く）----
-        LAUNCHER_X_MAX = w * 0.05          # Ubuntu左端ドック（x=0の列）
-        TOP_Y_MAX = h * 0.20               # 上部バー帯
-        STATUS_Y_MIN = h * 0.96            # 下部ステータスバー帯
+        # しきい値定義
+        LAUNCHER_X_MAX = w * 0.05
+        TOP_Y_MAX = h * 0.20
+        STATUS_Y_MIN = h * 0.96
 
-        MENUBAR_Y_MAX = h * 0.12           # メニューはかなり上
-        TABBAR_Y_MIN = h * 0.07            # タブは上の方（y=89前後）
+        MENUBAR_Y_MAX = h * 0.12
+        TABBAR_Y_MIN = h * 0.07
         TABBAR_Y_MAX = h * 0.16
 
-        ACTIVITY_X_MIN = w * 0.02          # activity bar（x=70付近）
+        ACTIVITY_X_MIN = w * 0.02
         ACTIVITY_X_MAX = w * 0.08
 
-        SIDEBAR_X_MIN = w * 0.06           # 左ペイン（x=118〜360ぐらい）
+        SIDEBAR_X_MIN = w * 0.06
         SIDEBAR_X_MAX = w * 0.22
 
-        # breadcrumb（/home/user/...）が出る帯（y=124付近）
         BREAD_Y_MIN = h * 0.10
         BREAD_Y_MAX = h * 0.18
 
-        # Find/Replace（上部右寄りの帯：例1では y=146 付近、x>1300）
         FR_Y_MIN = h * 0.12
         FR_Y_MAX = h * 0.28
         FR_X_MIN = w * 0.60
@@ -176,7 +181,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
             "file", "edit", "selection", "view", "go", "run", "terminal", "help"
         }
 
-        # ---- 1st pass: 優先度順で分類 ----
         for n in nodes:
             bbox = node_bbox_from_raw(n)
             cx, cy = bbox_to_center_tuple(bbox)
@@ -186,35 +190,32 @@ class Vs_codeCompressor(BaseA11yCompressor):
             name = _name(n)
             lname = name.lower()
 
-            # 1) APP_LAUNCHER（Ubuntu dock）
+            # 1) APP_LAUNCHER
             if x <= LAUNCHER_X_MAX and bw <= w * 0.08 and bh >= 30:
                 if tag in ("push-button", "toggle-button", "launcher-app", "button"):
                     regions["APP_LAUNCHER"].append(n)
                     continue
 
-            # 2) STATUSBAR（最下部）
+            # 2) STATUSBAR
             if cy >= STATUS_Y_MIN:
                 regions["STATUSBAR"].append(n)
                 continue
 
-            # 3) MENUBAR（上部）
+            # 3) MENUBAR
             if cy <= MENUBAR_Y_MAX:
-                # a11yでは push-button / menu の両方があり得るので両対応
                 if tag in ("menu", "push-button") and lname in MENU_KEYWORDS:
                     regions["MENUBAR"].append(n)
                     continue
 
-            # 4) ACTIVITY_BAR（左の縦アイコン列：x=70,w=48）
+            # 4) ACTIVITY_BAR
             if ACTIVITY_X_MIN <= cx <= ACTIVITY_X_MAX and y <= h * 0.93:
-                # section / push-button が混ざる想定
                 if tag in ("section", "push-button", "toggle-button", "button", "static"):
                     regions["ACTIVITY_BAR"].append(n)
                     continue
 
-            # 5) TAB_BAR（Welcome / ファイル名タブ + close）
+            # 5) TAB_BAR
             if TABBAR_Y_MIN <= cy <= TABBAR_Y_MAX:
                 if tag in ("section", "push-button", "tab", "label", "static"):
-                    # 「Close」「Welcome」「拡張子」「- Visual Studio Code」など
                     if (
                         "close (ctrl+w)" in lname
                         or "welcome" in lname
@@ -224,23 +225,21 @@ class Vs_codeCompressor(BaseA11yCompressor):
                         regions["TAB_BAR"].append(n)
                         continue
 
-            # 6) BREADCRUMB（/home/user/...）
+            # 6) BREADCRUMB
             if BREAD_Y_MIN <= cy <= BREAD_Y_MAX:
                 if ("/" in name) or (lname in {"home", "user", "desktop"}) or ("" in name):
-                    # パンくずは section/static/label が混ざる
                     if tag in ("section", "static", "label", "text", "link"):
                         regions["BREADCRUMB"].append(n)
                         continue
 
-            # 7) FIND_REPLACE（上部右寄り）
+            # 7) FIND_REPLACE
             if FR_Y_MIN <= cy <= FR_Y_MAX and cx >= FR_X_MIN:
                 if tag in ("entry", "check-box", "push-button", "toggle-button", "label", "text", "section", "static"):
-                    # Find/Replace 周辺は “Find”“Replace”“Match Case”などが多い
                     if any(k in lname for k in ("find", "replace", "match", "regex", "selection", "previous", "next", "toggle")):
                         regions["FIND_REPLACE"].append(n)
                         continue
 
-            # 8) SIDE_BAR（Explorer/検索/アウトライン等の左ペイン）
+            # 8) SIDE_BAR
             if SIDEBAR_X_MIN <= cx <= SIDEBAR_X_MAX and cy <= h * 0.93:
                 if tag in ("section", "push-button", "toggle-button", "tree-item", "list-item", "heading", "label", "static", "text"):
                     regions["SIDE_BAR"].append(n)
@@ -249,7 +248,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
             # 9) 残りは CONTENT
             regions["CONTENT"].append(n)
 
-        # 軽い後処理：メニューの横並び重複を削る（あれば）
+        # 後処理
         if regions["MENUBAR"]:
             regions["MENUBAR"] = dedup_horizontal_menu_nodes(regions["MENUBAR"])
 
@@ -257,7 +256,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
 
     # ----------------------------
-    # 圧縮（最低限）：各リージョン
+    # 圧縮ロジック
     # ----------------------------
     def _format_center(self, n: Node) -> str:
         bbox = node_bbox_from_raw(n)
@@ -266,14 +265,12 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
 
     def _compress_menubar(self, nodes: List[Node]) -> List[str]:
-        # 横並び重複を落とす（共通関数流用）
         deduped = dedup_horizontal_menu_nodes(nodes)
         order = ["File","Edit","Selection","View","Go","Run","Terminal","Help"]
 
-        # name を優先して、順序は上の order をできるだけ保つ
         bucket = {}
         for n in deduped:
-            name = (n.get("name") or n.get("text") or "").strip()
+            name = _node_disp(n) # PUA除去済み
             if not name:
                 continue
             bucket.setdefault(name.lower(), n)
@@ -283,28 +280,59 @@ class Vs_codeCompressor(BaseA11yCompressor):
             n = bucket.get(k.lower())
             if n:
                 lines.append(f'[menu] "{k}" {self._format_center(n)}')
-        # 取りこぼしも少しだけ追加
+        
         for low, n in bucket.items():
             if low not in {k.lower() for k in order}:
-                name = (n.get("name") or n.get("text") or "").strip()
+                name = _node_disp(n)
                 lines.append(f'[menu] "{name}" {self._format_center(n)}')
         return lines
 
 
     def _compress_simple_list(self, nodes: List[Node], allow_tags: Optional[Set[str]] = None, max_items: int = 25) -> List[str]:
+        # ----------------------------------------------------
+        # Static重複排除ロジック (A1)
+        # ----------------------------------------------------
+        # 優先度の高いタグでテキストが既出の場合、static/section を落とす
+        SEMANTIC_TAGS = {
+            "heading", "push-button", "toggle-button", "button", 
+            "link", "tab", "tree-item", "list-item", "entry", "label"
+        }
+        
+        # 1. Semanticタグのテキストを収集
+        existing_texts = set()
+        for n in nodes:
+            tag = (n.get("tag") or "").lower()
+            text = _node_disp(n).lower()
+            if not text:
+                continue
+            if allow_tags and tag not in allow_tags:
+                continue
+            if tag in SEMANTIC_TAGS:
+                existing_texts.add(text)
+
         lines = []
-        seen = set()
+        seen_keys = set()
+
         for n in nodes:
             tag = (n.get("tag") or "").lower()
             if allow_tags and tag not in allow_tags:
                 continue
-            name = (n.get("name") or n.get("text") or "").strip()
+            
+            name = _node_disp(n) # ここで先頭PUAアイコンは除去される
             if not name:
                 continue
+            
+            # Static重複チェック
+            if tag in {"static", "section", "paragraph", "text"}:
+                if name.lower() in existing_texts:
+                    # Semanticタグ側で既に同じテキストが出ているなら、このstaticは出力しない
+                    continue
+
             key = (tag, name.lower())
-            if key in seen:
+            if key in seen_keys:
                 continue
-            seen.add(key)
+            seen_keys.add(key)
+            
             lines.append(f'[{tag}] "{name}" {self._format_center(n)}')
             if len(lines) >= max_items:
                 break
@@ -312,22 +340,16 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
 
     def _compress_statusbar(self, nodes: List[Node]) -> List[str]:
-        # statusbar は情報量が多いので label/text を優先して短く
         allow = {"label", "text", "status", "statusbar", "push-button"}
         return self._compress_simple_list(nodes, allow_tags=allow, max_items=18)
 
 
     def _compress_editor(self, nodes: List[Node]) -> List[str]:
-        # 最初は “見出し/リンク/ボタン/タブ/重要ラベル” だけ拾う（ノイズ避け）
         allow = {"heading", "label", "text", "link", "push-button", "toggle-button", "tab", "paragraph", "list-item", "tree-item", "entry"}
         return self._compress_simple_list(nodes, allow_tags=allow, max_items=30)
 
     
     def _compress_content_by_view(self, nodes: List[Node], view_type: str) -> List[str]:
-        """
-        CONTENT（中央）を view ごとに圧縮する。
-        ご指摘の通り、section/static/label を広めに許可して取りこぼしを防ぐ。
-        """
         view_type = view_type or "generic"
 
         if view_type == "welcome":
@@ -335,8 +357,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=28)
 
         if view_type == "settings":
-            # Settings: 検索欄(entry) + 項目(tree/list) + チェックボックス
-            # 構造化タグが欠落した場合に備え、section/static/label も許可
             allow = {
                 "entry", "heading", "label", "text", "push-button", 
                 "check-box", "combo-box", "list-item", "tree-item",
@@ -345,7 +365,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=40)
             
         if view_type == "extensions":
-            # Extensions: Installボタン(push-button)や見出し
             allow = {
                 "entry", "push-button", "heading", "label", "paragraph", "link",
                 "section", "static"
@@ -353,12 +372,10 @@ class Vs_codeCompressor(BaseA11yCompressor):
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=30)
 
         if view_type == "command_palette":
-            # Palette: 入力欄 + リスト
             allow = {"entry", "list-item", "label", "text", "static"}
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=20)
 
         if view_type == "editor":
-            # Editor: 本文の行が見えにくい場合があるので entry/label/paragraph を重視
             allow = {
                 "entry", "label", "text", "heading", "paragraph", "push-button", "link",
                 "document-web", "document-frame"
@@ -366,7 +383,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=30)
 
         # generic fallback
-        # なんでも拾う
         allow = {
             "heading", "label", "text", "push-button", "link", "entry", "section", 
             "check-box", "combo-box", "static", "paragraph", "document-web"
@@ -375,145 +391,81 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
 
     # ----------------------------
-    # view 判定
+    # View 判定
     # ----------------------------
-
     def _detect_view_type(self, nodes: List[Node]) -> str:
-        """
-        VS Code View Type Detector (Score-based).
-        bbox依存を排除し、テキストとタグの強固なシグナルのみで判定する。
-        """
         from collections import defaultdict
 
         def tag(n): 
             return (n.get("tag") or "").lower()
 
         def disp(n):
-            return (n.get("name") or n.get("text") or n.get("description") or "").strip()
+            return _node_disp(n) # PUA除去済みを使用
 
         def ldisp(n):
             return disp(n).lower()
 
-        # --- fast text blob (for contains) ---
-        # 全体の傾向を掴むため、有効なテキストを結合して検査用文字列を作る
         blob = " ".join(ldisp(n) for n in nodes if disp(n))
 
-        # ----------------------------
-        # 1) STRONG GUARDS (確定ルール)
-        # ----------------------------
-
-        # --- Command Palette ---
-        # テキストによる強判定 (bbox計算不要でimportエラー回避)
-        if ("type the name of a command" in blob
-            or "show and run commands" in blob
-            or blob.strip().startswith(">")):
+        # 1) STRONG GUARDS
+        if ("type the name of a command" in blob or "show and run commands" in blob or blob.strip().startswith(">")):
             return "command_palette"
 
-        # --- Settings ---
-        # タブ/見出し/ページタイトルで Settings が強く出たら確定
         for n in nodes:
-            t = tag(n)
-            s = ldisp(n)
-            # タブやヘッダに明確に "Settings" がある
-            if t in {"heading", "tab", "label"} and s == "settings":
-                return "settings"
-            # 検索欄 (Search Settings) はかなり強い特徴
-            if t == "entry" and "search settings" in s:
-                return "settings"
+            t = tag(n); s = ldisp(n)
+            if t in {"heading", "tab", "label"} and s == "settings": return "settings"
+            if t == "entry" and "search settings" in s: return "settings"
 
-        # --- Extensions ---
-        # Extensions検索欄 or Marketplace が出たらほぼ確定
         for n in nodes:
-            t = tag(n)
-            s = ldisp(n)
-            if t == "entry" and "search extensions" in s and "marketplace" in s:
-                return "extensions"
-            if "extensions: marketplace" in s:
-                return "extensions"
+            t = tag(n); s = ldisp(n)
+            if t == "entry" and "search extensions" in s and "marketplace" in s: return "extensions"
+            if "extensions: marketplace" in s: return "extensions"
 
-        # ----------------------------
-        # 2) SCORE-BASED (加点方式)
-        # ----------------------------
+        # 2) SCORE-BASED
         score: Dict[str, float] = defaultdict(float)
 
         for n in nodes:
-            t = tag(n)
-            s = ldisp(n)
+            t = tag(n); s = ldisp(n)
 
-            # --- Welcome signals ---
             if s in {"visual studio code", "get started", "walkthroughs", "recent", "start"}:
                 score["welcome"] += 3.0 if t == "heading" else 1.0
-
             if s in {"new file", "open file...", "open folder...", "clone git repository..."}:
-                if t in {"push-button", "link", "label"}:
-                    score["welcome"] += 2.0
+                if t in {"push-button", "link", "label"}: score["welcome"] += 2.0
 
-            # --- Editor signals ---
-            # Statusbar 情報 (Ln, Col, Encode, EOL)
-            if s.startswith("ln ") or " col " in s: # "Ln 1, Col 1" 対応
-                score["editor"] += 2.5
-            if s in {"utf-8", "lf", "crlf", "plain text"} or s.startswith("spaces:") or s.startswith("tab size:"):
-                score["editor"] += 2.0
-            # ★追加: スクリーンリーダーモード未有効時の警告メッセージはエディタ確定級の証拠
-            if "editor is not accessible" in s or "enable screen reader optimized mode" in s:
-                score["editor"] += 5.0
+            if s.startswith("ln ") or " col " in s: score["editor"] += 2.5
+            if s in {"utf-8", "lf", "crlf", "plain text"} or s.startswith("spaces:") or s.startswith("tab size:"): score["editor"] += 2.0
+            if "editor is not accessible" in s or "enable screen reader optimized mode" in s: score["editor"] += 5.0
 
-            # document-web / title suffix (ウィンドウタイトルなど)
-            # document-frame も考慮
-            if t in {"document-web", "document-frame"} and "visual studio code" in s:
-                score["editor"] += 4.0
-            if " - visual studio code" in s:
-                score["editor"] += 3.0
+            if t in {"document-web", "document-frame"} and "visual studio code" in s: score["editor"] += 4.0
+            if " - visual studio code" in s: score["editor"] += 3.0
 
-            # --- Settings signals ---
-            if s in {"user settings", "workspace settings", "text editor", "workbench", "window", "features", "application"}:
-                score["settings"] += 1.5
-            if s in {"font size", "font family", "tab size", "cursor style"}:
-                score["settings"] += 1.5
-            if t == "check-box" and ("settings" in blob or "search settings" in blob):
-                score["settings"] += 0.5
+            if s in {"user settings", "workspace settings", "text editor", "workbench", "window", "features", "application"}: score["settings"] += 1.5
+            if s in {"font size", "font family", "tab size", "cursor style"}: score["settings"] += 1.5
+            if t == "check-box" and ("settings" in blob or "search settings" in blob): score["settings"] += 0.5
 
-            # --- Extensions signals ---
-            if s in {"installed", "recommended", "enabled", "disabled"}:
-                score["extensions"] += 1.5
-            if s in {"install", "uninstall", "reload required"} and t in {"push-button", "button"}:
-                score["extensions"] += 2.5
-            if "publisher" in s or "downloads" in s:
-                score["extensions"] += 0.8
+            if s in {"installed", "recommended", "enabled", "disabled"}: score["extensions"] += 1.5
+            if s in {"install", "uninstall", "reload required"} and t in {"push-button", "button"}: score["extensions"] += 2.5
+            if "publisher" in s or "downloads" in s: score["extensions"] += 0.8
 
-        # ----------------------------
-        # 3) DECISION (決定)
-        # ----------------------------
         top = sorted(score.items(), key=lambda kv: kv[1], reverse=True)
-
-        # 何も根拠がないなら generic (Editorと決めつけない)
         if not top:
             return "generic"
 
         best_view, best_score = top[0]
-
-        # 最低限の確度 (MIN_SCORE)
         MIN_SCORE = 3.0
         if best_score < MIN_SCORE:
-            # 決定打に欠ける場合、「Editorっぽい強い証拠」が一つでもあれば Editor に倒す
-            # 例: ウィンドウタイトルやdocument-webの存在
             is_editor_strong_evidence = (" - visual studio code" in blob) or any(
                 (tag(n) in {"document-web", "document-frame"} and "visual studio code" in ldisp(n))
                 for n in nodes
             )
-            
-            if is_editor_strong_evidence:
-                return "editor"
-            
-            # それ以外は安全に generic
+            if is_editor_strong_evidence: return "editor"
             return "generic"
 
         return best_view
 
 
-
     # ----------------------------
-    # Modal 関連
+    # Modal 救助 / マージ
     # ----------------------------
     def _rescue_from_modal(
         self,
@@ -536,9 +488,9 @@ class Vs_codeCompressor(BaseA11yCompressor):
             return (n.get("tag") or "").lower()
 
         def _name(n: Node) -> str:
-            return (n.get("name") or n.get("text") or "").strip()
+            return _node_disp(n) # PUA除去済みを使用
 
-        # しきい値定義
+        # しきい値
         STATUS_Y_MIN = h * 0.96
         MENUBAR_Y_MAX = h * 0.12
         TAB_Y_MIN, TAB_Y_MAX = h * 0.07, h * 0.16
@@ -546,61 +498,65 @@ class Vs_codeCompressor(BaseA11yCompressor):
         FR_Y_MIN, FR_Y_MAX, FR_X_MIN = h * 0.12, h * 0.28, w * 0.60
         BREAD_Y_MIN, BREAD_Y_MAX = h * 0.10, h * 0.18
 
+        # サイドバー領域 (Extensionsパネル等がここに入る)
+        SIDEBAR_X_MAX = w * 0.25
+        SIDEBAR_Y_MIN = h * 0.08 
+
         MENU_KEYWORDS = {"file", "edit", "selection", "view", "go", "run", "terminal", "help"}
 
         for n in merged_modal:
             bbox = node_bbox_from_raw(n)
             cx, cy = bbox_to_center_tuple(bbox)
-            x, y, bw, bh = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
-
             tag = _tag(n)
             name = _name(n)
             lname = name.lower()
 
-            # 1) STATUSBAR救助
+            # 1) STATUSBAR
             if cy >= STATUS_Y_MIN:
                 regions.setdefault("STATUSBAR", []).append(n)
-                rescued.append(n)
-                continue
+                rescued.append(n); continue
 
-            # 2) MENUBAR救助
+            # 2) MENUBAR
             if cy <= MENUBAR_Y_MAX and tag in ("menu", "push-button") and lname in MENU_KEYWORDS:
                 regions.setdefault("MENUBAR", []).append(n)
-                rescued.append(n)
-                continue
+                rescued.append(n); continue
 
-            # 3) ACTIVITY_BAR救助
+            # 3) ACTIVITY_BAR
             if ACT_X_MIN <= cx <= ACT_X_MAX and tag in ("section", "push-button", "toggle-button", "static"):
                 regions.setdefault("ACTIVITY_BAR", []).append(n)
-                rescued.append(n)
-                continue
+                rescued.append(n); continue
 
-            # 4) TAB_BAR救助
+            # 4) TAB_BAR
             if TAB_Y_MIN <= cy <= TAB_Y_MAX and (
-                "close (ctrl+w)" in lname
-                or "welcome" in lname
-                or "visual studio code" in lname
-                or any(ext in lname for ext in (".py", ".txt", ".md", ".json", ".yaml", ".yml"))
+                "close (ctrl+w)" in lname or "welcome" in lname or "visual studio code" in lname or 
+                any(ext in lname for ext in (".py", ".txt", ".md", ".json", ".yaml", ".yml"))
             ):
                 regions.setdefault("TAB_BAR", []).append(n)
-                rescued.append(n)
-                continue
+                rescued.append(n); continue
 
-            # 5) BREADCRUMB救助
+            # 5) BREADCRUMB
             if BREAD_Y_MIN <= cy <= BREAD_Y_MAX and ("/" in name or lname in {"home", "user", "desktop"} or "" in name):
                 regions.setdefault("BREADCRUMB", []).append(n)
-                rescued.append(n)
-                continue
+                rescued.append(n); continue
 
-            # 6) FIND_REPLACE救助
+            # 6) FIND_REPLACE
             if FR_Y_MIN <= cy <= FR_Y_MAX and cx >= FR_X_MIN:
                 if tag in ("entry", "check-box", "push-button", "label", "text", "section", "static"):
                     if any(k in lname for k in ("find", "replace", "match", "regex", "previous", "next", "toggle", "selection")):
                         regions.setdefault("FIND_REPLACE", []).append(n)
-                        rescued.append(n)
-                        continue
+                        rescued.append(n); continue
 
-            # 救出できなかったものは remain へ
+            # 7) SIDE_BAR (Extensions, ExplorerなどがModal扱いされた場合の救済)
+            if cx <= SIDEBAR_X_MAX and cy >= SIDEBAR_Y_MIN:
+                # 【修正点】通知/Toast系は救出せず MODAL/Background に残すガード
+                if any(k in lname for k in ("update", "notification", "error", "warning", "toast")):
+                    remain.append(n)
+                    continue
+
+                if tag in ("tree-item", "list-item", "section", "push-button", "entry", "heading", "label", "static"):
+                    regions.setdefault("SIDE_BAR", []).append(n)
+                    rescued.append(n); continue
+
             remain.append(n)
 
         return rescued, remain
@@ -619,23 +575,19 @@ class Vs_codeCompressor(BaseA11yCompressor):
         lines: List[str] = []
         w, h = max(1, int(screen_w)), max(1, int(screen_h))
 
-        # 1) merged modal（regions由来 + diff-modal由来）
+        # 1) merged modal
         merged_modal = list(regions.get("MODAL") or [])
         if modal_nodes:
             merged_modal.extend(list(modal_nodes))
-        
-        # ★追加: マージしたので、元の regions["MODAL"] は空にしておく（二重参照防止の安全策）
         regions["MODAL"] = []
 
-        # 2) MODAL救助（出力直前に戻す）
+        # 2) MODAL救助
         if merged_modal:
-            # _rescued は関数内で regions に既に戻されているので使わなくてOK
             _rescued, remaining_modal = self._rescue_from_modal(merged_modal, regions, w, h)
         else:
             remaining_modal = []
 
         # 3) view判定
-        #    周辺情報(TAB, STATUSBAR, BREADCRUMB)も判定材料に含める
         nodes_for_detection = (
             (regions.get("CONTENT") or []) +
             (regions.get("TAB_BAR") or []) +
@@ -648,7 +600,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
         lines.append(f"=== VIEW === {view_type}")
         lines.append("")
 
-        # コマンドパレットなら、残ったMODAL候補をCONTENTとして扱う
         if view_type == "command_palette":
             regions.setdefault("CONTENT", []).extend(remaining_modal)
             remaining_modal = []
@@ -679,7 +630,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
         _emit("STATUSBAR", regions.get("STATUSBAR", []), allow={"push-button", "label", "text", "section", "static"}, max_items=14)
 
-        # MODAL / NOTIFICATION（残ったものだけ）
+        # MODAL / NOTIFICATION
         if remaining_modal:
             modal_lines = self._compress_simple_list(
                 remaining_modal,
