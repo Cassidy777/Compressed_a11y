@@ -28,7 +28,11 @@ class VlcCompressor(BaseA11yCompressor):
         super().__init__()
         # Preferences 継続判定用の状態
         self._vlc_pref_active: bool = False
-        self._vlc_pref_sig: Set[str] = set()   # Preferencesっぽい要素の名前集合（簡易シグネチャ）
+
+        # 「前回のPreferences要素」を保存（tag + 中心座標）
+        # 次ステップでは modal_nodes からこれに近いもの(±20px)をPreferencesとして復元する
+        self._vlc_pref_prev: List[Tuple[str, int, int]] = []  # (tag, cx, cy)
+
 
 
     # ----------------------------
@@ -114,6 +118,131 @@ class VlcCompressor(BaseA11yCompressor):
         bbox = node_bbox_from_raw(n)
         cx, cy = bbox_to_center_tuple(bbox)
         return f"@ ({cx}, {cy})"
+
+    # ----------------------------
+    # Helpers (Preferences / FileChooser split)
+    # ----------------------------
+    @staticmethod
+    def _disp(n: Node) -> str:
+        return (n.get("name") or n.get("text") or "").strip().lower()
+
+    @staticmethod
+    def _center_xy(n: Node) -> Tuple[int, int]:
+        cx, cy = bbox_to_center_tuple(node_bbox_from_raw(n))
+        return int(cx), int(cy)
+
+    @staticmethod
+    def _is_pref_candidate_tag(tag: str) -> bool:
+        # Preferences本体で意味があるもの（必要なら増やす）
+        return tag in {
+            "label", "check-box", "combo-box", "spin-button", "push-button", "entry", "text"
+        }
+
+    def _update_pref_prev(self, pref_nodes: List[Node]) -> None:
+        prev: List[Tuple[str, int, int]] = []
+        for n in pref_nodes:
+            tag = (n.get("tag") or "").lower()
+            if not self._is_pref_candidate_tag(tag):
+                continue
+            name = (n.get("name") or n.get("text") or "").strip()
+            if not name:
+                continue
+            # Home / --:-- はノイズになりがち
+            if tag == "label" and name.strip().lower() in {"home", "--:--"}:
+                continue
+            cx, cy = self._center_xy(n)
+            prev.append((tag, cx, cy))
+        self._vlc_pref_prev = prev
+
+    def _split_pref_by_prev(self, modal_nodes: List[Node], tol_px: int = 20) -> Tuple[List[Node], List[Node]]:
+        """
+        modal_nodes の中から「前回Preferences座標に近いもの」をPreferencesとして回収し、
+        残りをMODALとして返す。
+        """
+        if not self._vlc_pref_prev:
+            return [], list(modal_nodes or [])
+
+        pref_nodes: List[Node] = []
+        rest_nodes: List[Node] = []
+
+        prev = self._vlc_pref_prev
+
+        for n in modal_nodes or []:
+            tag = (n.get("tag") or "").lower()
+            if not self._is_pref_candidate_tag(tag):
+                rest_nodes.append(n)
+                continue
+
+            name = (n.get("name") or n.get("text") or "").strip()
+            if not name:
+                rest_nodes.append(n)
+                continue
+
+            if tag == "label" and name.lower() in {"home", "--:--"}:
+                rest_nodes.append(n)
+                continue
+
+            cx, cy = self._center_xy(n)
+
+            # tag が同じで、中心座標が近い（±tol）なら Preferences とみなす
+            matched = False
+            for ptag, px, py in prev:
+                if ptag != tag:
+                    continue
+                if abs(cx - px) <= tol_px and abs(cy - py) <= tol_px:
+                    matched = True
+                    break
+
+            if matched:
+                pref_nodes.append(n)
+            else:
+                rest_nodes.append(n)
+
+        return pref_nodes, rest_nodes
+
+    @staticmethod
+    def _filechooser_markers() -> Set[str]:
+        return {
+            "look in:",
+            "files of type:",
+            "parent directory",
+            "create new folder",
+            "list view",
+            "detail view",
+            "choose",
+            "directories",
+        }
+
+    def _looks_like_filechooser(self, nodes: List[Node]) -> bool:
+        texts = [self._disp(n) for n in nodes if self._disp(n)]
+        hits = sum(1 for t in texts if t in self._filechooser_markers())
+        return hits >= 2
+
+    def _is_filechooser_node(self, n: Node, w: int, h: int, filechooser_present: bool) -> bool:
+        """
+        filechooser が出てるときだけ使う「ノード単位の振り分け」。
+        markers一致を最優先、次に table/list の領域っぽいものを拾う。
+        """
+        if not filechooser_present:
+            return False
+
+        tag = (n.get("tag") or "").lower()
+        t = self._disp(n)
+
+        # 1) marker一致は即 chooser
+        if t in self._filechooser_markers():
+            return True
+
+        b = node_bbox_from_raw(n)
+        cx, cy = bbox_to_center_tuple(b)
+
+        # 2) chooser の“典型領域”にいる要素をまとめて chooser 扱い
+        in_chooser_panel = (w * 0.30) <= cx <= (w * 0.78) and (h * 0.20) <= cy <= (h * 0.82)
+        if in_chooser_panel and tag in {"table-cell", "list-item", "combo-box", "push-button", "label", "text"}:
+            return True
+
+        return False
+
 
     # ----------------------------
     # 圧縮：MENUBAR
@@ -386,45 +515,60 @@ class VlcCompressor(BaseA11yCompressor):
 
     def _filter_modal_nodes(self, modal_nodes: List[Node], w: int, h: int) -> List[Node]:
         """
-        VLC: まずは何もしない。必要になったらここに
-        - 上部メニューの複製除外
-        - 画面外/異常座標除外
-        などを追加する。
+        VLC:
+        - Directory chooser は残す
+        - combo-box のドロップダウン候補(list-item群)は除外する
         """
-        return list(modal_nodes or [])
+        if not modal_nodes:
+            return []
+
+        filtered: List[Node] = []
+
+        for n in modal_nodes:
+            tag = (n.get("tag") or "").lower()
+
+            # bbox 取得
+            try:
+                b = node_bbox_from_raw(n)
+                cx, cy = bbox_to_center_tuple(b)
+            except Exception:
+                # bbox 取れないやつは安全側で残す
+                filtered.append(n)
+                continue
+
+            # ----------------------------
+            # (A) ドロップダウン候補(list-item)を除外
+            # ----------------------------
+            if tag == "list-item":
+                # combo-box の候補リストは左上に固まりがち
+                is_dropdown_candidate = (
+                    cx < w * 0.45 and   # 画面左寄り
+                    cy < h * 0.35       # 画面上寄り
+                )
+                if is_dropdown_candidate:
+                    continue  # ← 捨てる
+
+            # ----------------------------
+            # (B) それ以外は残す
+            # ----------------------------
+            filtered.append(n)
+
+        return filtered
+
 
     
 
 
     def _looks_like_vlc_preferences(self, nodes: List[Node]) -> bool:
-        def disp(n: Node) -> str:
-            return (n.get("name") or n.get("text") or "").strip().lower()
+        texts = [self._disp(n) for n in nodes if self._disp(n)]
 
-        texts = [disp(n) for n in nodes if disp(n)]
-
-        # --- 1) FileChooser / Directory chooser を検知したら Preferences 扱いしない ---
-        filechooser_markers = {
-            "look in:",
-            "files of type:",
-            "parent directory",
-            "create new folder",
-            "list view",
-            "detail view",
-            "choose",
-            "directories",
-        }
-        filechooser_hits = sum(1 for t in texts if t in filechooser_markers)
-        if filechooser_hits >= 2:
-            return False
-
-        # --- 2) Preferences 本体の確定ワード ---
+        # Preferences 本体の確定ワード（これがあれば優先して Preferences 扱い）
         keys_exact = {"reset preferences", "save", "cancel", "preferences"}
         hits = sum(1 for t in texts if t in keys_exact)
-
-        # セクション名（部分一致）
         hits += sum(1 for t in texts if "input & codecs settings" in t)
 
         return hits >= 2
+
 
     def _disp(self, n: Node) -> str:
         return (n.get("name") or n.get("text") or "").strip().lower()
@@ -517,42 +661,55 @@ class VlcCompressor(BaseA11yCompressor):
     ) -> List[str]:
         lines: List[str] = []
 
-
         # ----------------------------
         # VLC: Preferences 継続 / 置換 / 残差を MODAL に分離（★追加）
         # ----------------------------
+        is_vlc_prefs = False
         pref_nodes: List[Node] = []
-        remain_modal: List[Node] = list(modal_nodes or [])
+        modal_nodes = list(modal_nodes or [])
 
-        if modal_nodes:
+        # (A) 前回Preferencesがアクティブなら、modal_nodes から「前回に近い要素」をPreferencesとして回収
+        if self._vlc_pref_active and modal_nodes:
+            recovered_pref, remaining_modal = self._split_pref_by_prev(modal_nodes, tol_px=20)
+            if recovered_pref:
+                is_vlc_prefs = True
+                pref_nodes = recovered_pref
+                modal_nodes = remaining_modal  # 残りはMODALとして残す
+            else:
+                # ほぼ回収できないなら、Preferences継続は切る（必要ならここを緩めてOK）
+                self._vlc_pref_active = False
+                self._vlc_pref_prev = []
+
+        # (B) まだPreferencesでないなら、今回の modal_nodes が Preferencesっぽいか判定（初回）
+        if (not is_vlc_prefs) and modal_nodes and self._looks_like_vlc_preferences(modal_nodes):
             filechooser_present = self._looks_like_filechooser(modal_nodes)
 
-            # (A) Preferences “開始” 判定
-            starts_pref = (not filechooser_present) and self._looks_like_vlc_preferences(modal_nodes)
+            if filechooser_present:
+                chooser_nodes: List[Node] = []
+                base_pref_nodes: List[Node] = []
+                for n in modal_nodes:
+                    if self._is_filechooser_node(n, screen_w, screen_h, filechooser_present=True):
+                        chooser_nodes.append(n)
+                    else:
+                        base_pref_nodes.append(n)
 
-            # (B) Preferences “継続” 判定（filechooser が混ざってても救う）
-            # - 前回 prefs が active なら、今回 modal の中に prefs の指紋が少しでも残ってれば継続扱い
-            curr_sig_all = self._make_pref_signature(modal_nodes)
-            overlap = len(curr_sig_all & (self._vlc_pref_sig or set()))
-            continues_pref = self._vlc_pref_active and (overlap >= 2)
-
-            if starts_pref or continues_pref:
-                # Preferences として取り込む（filechooserノードは除外）
-                pref_nodes = [n for n in modal_nodes if not self._is_filechooser_node(n, screen_w, screen_h, filechooser_present)]
-
-                # “置換”：Preferences のシグネチャを今回のものに更新
-                self._vlc_pref_active = True
-                self._vlc_pref_sig = self._make_pref_signature(pref_nodes)
-
-                # 置換できなかった（= prefsに入らなかった）ものを新規 MODAL とみなす
-                pref_ids = {id(n) for n in pref_nodes}
-                remain_modal = [n for n in modal_nodes if id(n) not in pref_ids]
+                if base_pref_nodes:
+                    is_vlc_prefs = True
+                    pref_nodes = base_pref_nodes
+                    modal_nodes = chooser_nodes  # chooser だけ MODAL に残す
             else:
-                # Preferences じゃない modal。prefs 状態は落としてOK（必要なら保持でも良い）
-                self._vlc_pref_active = False
-                self._vlc_pref_sig = set()
-                pref_nodes = []
-                remain_modal = list(modal_nodes)
+                is_vlc_prefs = True
+                pref_nodes = modal_nodes
+                modal_nodes = []
+
+        # (C) Preferences が確定したら、Preferences用ノードを保存して次回に備える
+        if is_vlc_prefs:
+            self._vlc_pref_active = True
+            self._update_pref_prev(pref_nodes)
+        else:
+            self._vlc_pref_active = False
+            self._vlc_pref_prev = []
+
 
         # SYSTEM(TOP_BAR)
         topbar_lines = self._compress_top_bar(regions.get("TOP_BAR", []))
@@ -582,9 +739,11 @@ class VlcCompressor(BaseA11yCompressor):
             lines.append("")
 
         # CONTENT / PREFERENCES
-        if pref_nodes:
+        if is_vlc_prefs:
             lines.append("=== VLC PREFERENCES ===")
-            lines.extend(self._compress_vlc_preferences(pref_nodes))
+            pref_lines = self._compress_vlc_preferences(pref_nodes)
+            if pref_lines:
+                lines.extend(pref_lines)
             lines.append("")
         else:
             content_lines = self._compress_content(regions.get("CONTENT", []))
@@ -593,12 +752,11 @@ class VlcCompressor(BaseA11yCompressor):
                 lines.extend(content_lines)
                 lines.append("")
 
-        # MODAL / POPUP（Preferences本体は上で吸い込むが、FileChooser等はここに残る）
-        if remain_modal:
-            remain_modal = self._filter_modal_nodes(remain_modal, screen_w, screen_h)
-            if remain_modal:
+        # MODAL / POPUP（Preferences本体は上で吸う。残り=FileChooser等がここに出る）
+        if modal_nodes:
+            modal_nodes = self._filter_modal_nodes(modal_nodes, screen_w, screen_h)
+            if modal_nodes:
                 lines.append("=== MODAL / POPUP ===")
-                lines.extend(self._compress_modal(remain_modal, screen_w, screen_h))
-
+                lines.extend(self._compress_modal(modal_nodes, screen_w, screen_h))
 
         return lines
