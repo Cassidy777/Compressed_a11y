@@ -117,3 +117,4 @@ DOCKS (Right Panel):
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
 STATUSBAR:
+[status] "Home" @ (1721, 1045)

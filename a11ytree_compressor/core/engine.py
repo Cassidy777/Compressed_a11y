@@ -35,6 +35,12 @@ class BaseA11yCompressor:
     # 追加：近接 static 行のマージ（"A / B / C" みたいにまとめるか）
     enable_static_line_merge: bool = True
 
+    os_menu_blacklist: Set[str] = {
+        "system",
+        "google chrome",
+        "__macosx",
+    }
+
     def __init__(self):
         self.diff_detector = DiffModalDetector()
         # instruction 用の状態を初期化しておくと安心
@@ -177,14 +183,7 @@ class BaseA11yCompressor:
         # 1. タグ・ラベル・座標が完全一致する重複ノードをまとめる
         nodes = dedup_same_label_same_pos(nodes)
 
-        # 2. OSメニュー用ブラックリスト（menuタグ専用）
-        os_menu_blacklist = {
-            "system",
-            "google chrome",
-            "__macosx",
-        }
-
-        # 3. OSノイズラベル（タグに依存しない）
+        # 2. OSノイズラベル（タグに依存しない）
         OS_NOISE_LABELS = {
             "__macosx",
             ".ds_store",
@@ -203,11 +202,11 @@ class BaseA11yCompressor:
             for ch in ("\u200b", "\u200e", "\u200f"):
                 label = label.replace(ch, "")
 
-            # 2-a) GNOMEのSystemメニューなど、OSトップバー由来のmenu
-            if tag == "menu" and label in os_menu_blacklist:
+            # ★ 変更点3: self.os_menu_blacklist を参照するように変更
+            if tag == "menu" and label in self.os_menu_blacklist:
                 continue
 
-            # 3-a) __MACOSX, .DS_Store など、OSファイル由来のラベルはタグに関係なく弾く
+            # 3-a) __MACOSX, .DS_Store など
             if label in OS_NOISE_LABELS:
                 continue
 
@@ -274,6 +273,8 @@ class BaseA11yCompressor:
             # 判定のために「全ノード (modal + bg)」を渡して get_semantic_regions を呼ぶ。
             # これにより、アドレスバー等の位置関係が正しく認識され、
             # "Reload" ボタンなどが正確に "BROWSER_UI" に分類されるようになる。
+            modal_ids = {id(n) for n in modal_nodes}
+            print("[DEBUG ENGINE] modal_ids BEFORE region filter:", len(modal_ids))
             
             # ※ ID(メモリ番地)で追跡するために、一旦リストを結合
             check_nodes = modal_nodes + bg_nodes
@@ -313,14 +314,18 @@ class BaseA11yCompressor:
             modal_nodes = safe_modal_nodes
             if rejected_nodes:
                 bg_nodes.extend(rejected_nodes)
+            print(f"[DEBUG ENGINE] modal_nodes count AFTER safety filter: {len(modal_nodes)}, "f"rejected={len(rejected_nodes)}")
 
         # =========================================================================
         # ★ 共通クリーニング (重複除去・ゴミ除去)
         # =========================================================================
         if modal_nodes:
+            before_clean = len(modal_nodes)
             modal_nodes = clean_modal_nodes(modal_nodes)
+            print(f"[DEBUG ENGINE] modal_nodes AFTER clean_modal_nodes: {len(modal_nodes)} "f"(before={before_clean})")
             
             if not modal_nodes:
+                print("[DEBUG ENGINE] All modal_nodes removed by clean_modal_nodes")
                 return [], nodes, "none"
 
         return modal_nodes, bg_nodes, mode
@@ -348,7 +353,7 @@ class BaseA11yCompressor:
         zero_width_chars = re.compile(r'[\u200b\u200c\u200d\ufeff]')
 
         # 2. 特定のデスクトップアイコン名を除外するセットを定義
-        ignored_names = {"home", "helloextension", "trash"}
+        ignored_names = {"helloextension"}
 
         for n in nodes:
             tag = (n.get("tag") or "").lower()
@@ -408,6 +413,8 @@ class BaseA11yCompressor:
         # ゼロ幅スペースなどを削除するためのパターン
         zero_width_chars = re.compile(r'[\u200b\u200c\u200d\ufeff]')
 
+        use_statusbar = getattr(self, "use_statusbar", True)
+
         for n in nodes:
             bbox = node_bbox_from_raw(n)
             x, y, width, height = bbox["x"], bbox["y"], bbox["w"], bbox["h"]
@@ -420,41 +427,41 @@ class BaseA11yCompressor:
             # ラベル正規化（ゼロ幅文字削除＋小文字）
             normalized_label = zero_width_chars.sub("", label).lower()
 
-            if tag == "label" and name in ("home", "helloextension"):
-                n["tag"] = "status"
-                status.append(n)
-                continue
-
-            # ==== ① __MACOSX は無条件にステータス扱い ====
-            if normalized_label == "__macosx":
-                n["tag"] = "status"
-                status.append(n)
-                continue
-
-            # ==== Launcher ====
+            # ==== Launcher (共通で使いたいのでそのまま) ====
             if x <= LAUNCHER_X_MAX and width <= ICON_W_MAX and height >= 40:
                 if tag in ("push-button", "toggle-button"):
                     n["tag"] = "launcher-app"
                     launcher.append(n)
                     continue
-        
-            # ==== Statusbar or Desktop Icons at bottom ====
-            # ここは y ではなく中心 cy で判定した方が確実
-            if cy >= STATUS_Y_MIN:
-                # ファイル名っぽいものや Home / Trash を status に寄せる
-                is_file = (
-                    bool(file_ext_pattern.search(label))
-                    or name == "home"
-                    or "trash" in name
-                    or label.startswith(".~lock")
-                )
 
-                if is_file or tag in ("label", "static") or tag == "status-bar":
+            # ==== 以下は use_statusbar が True のときだけ ====
+            if use_statusbar:
+                # ① Home / HelloExtension を status 扱い
+                if tag == "label" and name in ("home", "helloextension"):
                     n["tag"] = "status"
                     status.append(n)
                     continue
 
-            # どれでもないものは通常の UI / コンテンツとして残す
+                # ② __MACOSX は無条件に status
+                if normalized_label == "__macosx":
+                    n["tag"] = "status"
+                    status.append(n)
+                    continue
+
+                # ③ 右下のステータス（ファイル名っぽいラベルなど）
+                if cy >= STATUS_Y_MIN:
+                    is_file = (
+                        bool(file_ext_pattern.search(label))
+                        or name == "home"
+                        or "trash" in name
+                        or label.startswith(".~lock")
+                    )
+                    if is_file or tag in ("label", "static") or tag == "status-bar":
+                        n["tag"] = "status"
+                        status.append(n)
+                        continue
+
+            # どれでもないものは main に残す
             main.append(n)
 
         return launcher, status, main

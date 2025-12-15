@@ -1,0 +1,67 @@
+============================================================
+SAMPLE: domain=os, id=4 (os-4), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Home	""			(188, 201)	(82, 32)
+label	/	/			(270, 201)	(6, 32)
+push-button	project	""			(276, 201)	(326, 32)
+toggle-button	Menu	""			(602, 200)	(36, 34)
+toggle-button	Menu	""			(793, 194)	(26, 46)
+toggle-button	Menu	""			(825, 194)	(36, 46)
+label	Recent	Recent			(142, 245)	(136, 36)
+label	Starred	Starred			(142, 283)	(136, 36)
+label	Home	Home			(142, 321)	(136, 36)
+labe...
+
+INSTRUCTION:
+Use terminal command to count all the lines of all php files in current directory recursively, show the result on the terminal
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 25
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Files" @ (143, 13)
+DESKTOP_ICONS:
+[desktop-icon] "project" @ (439, 217)
+CONTENT:
+[content-item] "Home" @ (229, 217)
+[content-item] "/" @ (273, 217)
+[content-item] "Menu" @ (620, 217)
+[content-item] "Menu" @ (806, 217)
+[content-item] "Menu" @ (843, 217)
+[content-item] "Recent" @ (210, 263)
+[content-item] "Starred" @ (210, 301)
+[content-item] "Desktop" @ (210, 377)
+[content-item] "Documents" @ (210, 415)
+[content-item] "Downloads" @ (210, 453)
+[content-item] "Music" @ (210, 491)
+[content-item] "Pictures" @ (210, 529)
+[content-item] "Videos" @ (210, 567)
+[content-item] "Trash" @ (210, 605)
+[content-item] "Other Locations" @ (210, 652)

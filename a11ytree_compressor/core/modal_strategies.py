@@ -358,9 +358,14 @@ def calculate_modal_score(
                 score += 0.8    # そこまで強くないボーナス
                 break
 
-    # 強い role / 強いボタンが 1 つも無いなら大きめに減点
-    if not has_strong_role:
-        score -= 5.0
+        if tag in {"menu", "menu-item"}:
+            score += 0.7
+            # ラベルが "save", "export", "open", "format" などなら「strong」とみなす
+            for kw in {"save", "export", "open", "format"}:
+                if kw in lower:
+                    has_strong_role = True
+                    score += 1.0
+                    break
 
     # --- 2. 差分ノードの数 ---
     n_diff = len(diff_nodes)
@@ -368,6 +373,13 @@ def calculate_modal_score(
         score -= 3.0
     elif n_diff >= 6:
         score += 1.0  # まとまった UI の出現
+
+    # 強い role / 強いボタンが 1 つも無いなら大きめに減点
+    if not has_strong_role:
+        if n_diff >= 5:
+            score -= 2.0  # いきなり -5 ではなく -2 くらいにする
+        else:
+            score -= 5.0
 
     # --- 3. 直前クリックとの距離（Causal Proximity） ---
     if last_action_point and diff_nodes:
@@ -831,29 +843,6 @@ def detect_modal_from_diff(
                 matched_prev[i] = True
                 matched_curr[j] = True
                 break
-
-    
-    # ========================================================
-    # ★ DEBUG: Applyボタンの追跡コード (ここから)
-    # ========================================================
-    target_indices = []
-    for i, n in enumerate(curr_nodes):
-        label = (n.get("name") or n.get("text") or "").strip().lower()
-        if "apply" in label:
-            target_indices.append(i)
-            print(f"[DEBUG TRACE] Found 'Apply' at index {i}: {n}")
-
-    for idx in target_indices:
-        is_matched = matched_curr[idx]
-        print(f"[DEBUG TRACE] Index {idx} ('Apply') matched_curr = {is_matched}")
-        if is_matched:
-            print(f"  -> 判定: '既存ノード' (Diffではない)")
-            # 既存と判定された場合、どのノードとマッチしたか知りたい場合はここを拡張可能
-        else:
-            print(f"  -> 判定: '新規ノード' (Diff候補)")
-    # ========================================================
-    # ★ DEBUG: Applyボタンの追跡コード (ここまで)
-    # ========================================================
 
 
     num_prev = len(prev_nodes)

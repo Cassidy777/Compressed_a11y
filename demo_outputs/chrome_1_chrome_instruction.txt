@@ -14,6 +14,18 @@ label	woman_​sitting_​...
 INSTRUCTION:
 Browse the natural products database.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 120 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -63,11 +75,12 @@ BROWSER_UI:
 MODAL:
 [link] "Home" @ (421, 399)
 [link] "Search" @ (481, 399)
-[static] "7,586 results" @ (562, 399)
+[list-item] "7,586 results" @ (556, 399)
 [link] "Español" @ (1185, 399)
-[link] "...Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 525)
+[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 525)
 [heading] "Drugs & Medications A to Z" @ (805, 449)
-[static] "/drug_information.html" @ (483, 484)
+[section] "/drug_information.html" @ (805, 484)
+[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 562)
 [static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 522)
 [static] "Database" @ (1027, 522)
 [static] "International Drug" @ (786, 535)
@@ -75,9 +88,10 @@ MODAL:
 [static] "Natural" @ (792, 549)
 [static] "Products" @ (863, 549)
 [static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 576)
-[link] "...Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 748)
+[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 748)
 [heading] "Drugs & Medications A to Z" @ (805, 672)
-[static] "/rootdocs/a-to-z-drug-list.html" @ (506, 707)
+[section] "/rootdocs/a-to-z-drug-list.html" @ (805, 707)
+[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 785)
 [static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 745)
 [static] "Database" @ (1027, 745)
 [static] "International Drug" @ (786, 758)
@@ -85,14 +99,14 @@ MODAL:
 [static] "Natural" @ (792, 772)
 [static] "Products" @ (863, 772)
 [static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 799)
-[link] "...Side Effects /npc/shark-liver-oil.html Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011...." @ (805, 944)
+[link] "...ark Liver Oil Uses, Benefits & Side Effects /npc/shark-liver-oil.html Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 944)
 [heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
-[static] "/npc/shark-liver-oil.html" @ (484, 930)
+[section] "/npc/shark-liver-oil.html" @ (805, 930)
+[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 981)
 [static] "Products" @ (440, 967)
 [static] ". Facts & Comparisons [" @ (564, 967)
 [static] "database" @ (689, 967)
-[static] "online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011...." @ (787, 981)
-[link] "...1. Bovine Colostrum. Review of Natural Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; December 2012...." @ (805, 1126)
+[link] "...cattle have been resolved. References 1. Bovine Colostrum. Review of Natural Products. Facts & Comparisons [database online]. St. Louis, MO: Wolte..." @ (805, 1126)
 [heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
 [push-button] " Close menu" @ (430, 154)
 CONTENT:
@@ -144,4 +158,7 @@ CONTENT:
 [link] "Help & Support" @ (1513, 225)
 [static] "Resources" @ (1286, 223)
 [static] "More" @ (1228, 224)
+[/BLOCK]
+[BLOCK]
+[label] "Home" @ (1721, 1045)
 [/BLOCK]

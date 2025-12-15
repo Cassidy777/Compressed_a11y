@@ -22,7 +22,7 @@ DOMAIN SCORES (from domain_detector):
   - chrome: 15
   - vsc: 20
   - libreoffice_calc: 34
-  - libreoffice_impress: 65 <-- selected
+  - libreoffice_impress: 100 <-- selected
   - libreoffice_writer: 20
 
 DETECTED DOMAIN: libreoffice_impress
@@ -55,6 +55,8 @@ APP_LAUNCHER:
 ---
 [launcher-app] "Show Applications" @ (35, 1045)
 STATUSBAR:
+[status] Horizontal scroll bar @ (886, 1053)
+[status] Home @ (1853, 1045)
 [status] Slide 2 of 2 @ (110, 1070)
 [status] Blank Slide @ (836, 1070)
 [status] -3.43 / 2.22 0.00 x 0.00 @ (1131, 1070)
@@ -117,33 +119,48 @@ TOOLBAR:
 [toolbar] Delete Slide @ (1245, 108)
 [toolbar] Slide Layout @ (1292, 108)
 [toolbar] Cancel @ (439, 164)
+SLIDE_LIST:
+[slide-list] Slides View @ (166, 629)
+PROPERTIES:
+[property] Master View @ (1739, 469)
+[property] Orientation: @ (1613, 271)
+[property] Master Background @ (1739, 413)
+[property] Insert Image... @ (1739, 345)
+[property] Master Slide: @ (1610, 382)
+[property] Master Objects @ (1739, 438)
+[property] Background: @ (1612, 308)
+[property] Format: @ (1627, 234)
 CONTENT:
-[content] "LibreOffice Impress" @ (194, 13)
-[content] "Master View" @ (1739, 469)
-[content] "Orientation:" @ (1613, 271)
-[content] "Master Background" @ (1739, 413)
-[content] "Insert Image..." @ (1739, 345)
-[content] "Master Slide:" @ (1610, 382)
-[content] "Master Objects" @ (1739, 438)
-[content] "Background:" @ (1612, 308)
-[content] "Format:" @ (1627, 234)
-[content] "Layouts" @ (1695, 501)
-[content] "Insert Image" @ (995, 163)
-[content] "Recent" @ (486, 210)
-[content] "Desktop" @ (486, 286)
-[content] "Documents" @ (486, 324)
-[content] "Downloads" @ (486, 362)
-[content] "Music" @ (486, 400)
-[content] "Pictures" @ (486, 438)
-[content] "Videos" @ (486, 476)
-[content] "Other Locations" @ (486, 561)
-[content] "Desktop" @ (707, 211)
-[content] "user" @ (623, 211)
-[content] "Up Path" @ (575, 211)
-[content] "none.png" @ (990, 272)
-[content] "292.8 kB" @ (1429, 272)
-[content] "Image" @ (1493, 272)
-[content] "04‎∶20" @ (1561, 272)
-[content] "Preview" @ (458, 927)
-[content] "Insert as Link" @ (458, 949)
-[content] "<All images>" @ (1433, 933)
+[menu] "LibreOffice Impress" @ (194, 13)
+[document-presentation] "31_2 - LibreOffice Presentation" @ (885, 606)
+[paragraph] "Marketing Strategies" @ (744, 285)
+[paragraph] "Search Engine Optimization (SEO)" @ (837, 479)
+[paragraph] "Social Media Marketing (SMM)" @ (786, 550)
+[paragraph] "Email Marketing" @ (610, 620)
+[paragraph] "Content Marketing" @ (640, 691)
+[paragraph] "Pay-Per-Click Advertising (PPC)" @ (796, 761)
+[scroll-bar] "Vertical scroll bar" @ (1505, 607)
+[toggle-button] "Desktop" @ (707, 211)
+[table-cell] "none.png" @ (990, 272)
+[table-cell] "292.8 kB" @ (1429, 272)
+MODAL:
+[push-button] "Open" @ (1552, 164)
+[label] "Insert Image" @ (995, 163)
+[label] "Recent" @ (486, 210)
+[push-button] "Up Path" @ (575, 211)
+[toggle-button] "user" (UNCHECKED) @ (623, 211)
+[label] "Home" @ (486, 248)
+[table-cell] "Image" @ (1493, 272)
+[label] "Desktop" @ (486, 286)
+[label] "Documents" @ (486, 324)
+[label] "Downloads" @ (486, 362)
+[label] "Music" @ (486, 400)
+[label] "Pictures" @ (486, 438)
+[label] "Videos" @ (486, 476)
+[label] "Trash" @ (486, 514)
+---
+[label] "Other Locations" @ (486, 561)
+---
+[check-box] "Preview" (UNCHECKED) @ (458, 927)
+[combo-box] "<All images>" @ (1433, 933)
+[check-box] "Insert as Link" (UNCHECKED) @ (458, 949)

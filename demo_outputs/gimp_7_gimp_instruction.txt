@@ -71,4 +71,5 @@ TOOLBOX (Left Panel):
 [text] "66.7 %" @ (242, 1064)
 [/BLOCK]
 STATUSBAR:
+[status] "Home" @ (1721, 1045)
 [status] "berry.png (17.0 MB)" @ (1101, 1064)

@@ -1,0 +1,107 @@
+============================================================
+SAMPLE: domain=thunderbird, id=17 (thunderbird-17), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Mail (Ctrl+1)	""			(77, 71)	(30, 30)
+push-button	Address Book (Ctrl+2)	""			(77, 116)	(30, 30)
+push-button	Calendar (Ctrl+3)	""			(77, 161)	(30, 30)
+push-button	Tasks (Ctrl+4)	""			(77, 206)	(30, 30)
+push-button	Chat (Ctrl+5)	""			(77, 251)	(30, 30)
+push-button	Settings	""			(77, 998)	(30, 30)
+push-button	Hide Spaces Toolbar	""			(77, 1043)	(30, 30)
+entry	Search:	""		...
+
+INSTRUCTION:
+Considering I work late into the night and use Thunderbird frequently, I find that a full dark mode would be easier on my eyes during those hours. Can you help me enable a complete dark mode in Thunderbird?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 22
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 70 <-- selected
+  - os: 0
+
+DETECTED DOMAIN: thunderbird
+
+=== COMPRESSED A11Y ===
+DEBUG_VIEW_TYPE: addons_manager
+DEBUG_MODAL_SUPPRESSED: cooldown=2, prev=settings, curr=addons_manager
+=== SYSTEM ===
+[menu] "Thunderbird Mail" @ (185, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== TOOLBAR ===
+[entry] "Search:" @ (979, 86)
+[push-button] "Search" @ (1428, 86)
+
+=== SPACES ===
+[push-button] "Mail (Ctrl+1)" @ (92, 86)
+[push-button] "Address Book (Ctrl+2)" @ (92, 131)
+[push-button] "Calendar (Ctrl+3)" @ (92, 176)
+[push-button] "Tasks (Ctrl+4)" @ (92, 221)
+[push-button] "Chat (Ctrl+5)" @ (92, 266)
+[push-button] "Settings" @ (92, 1013)
+[push-button] "Hide Spaces Toolbar" @ (92, 1058)
+
+=== TABS ===
+[section] "Settings" @ (494, 128)
+[section] "Add-ons Manager" @ (745, 128)
+[push-button] "Close Tab" @ (602, 129)
+
+=== ADDONS SIDENAV ===
+[section] "Recommendations" @ (272, 239)
+[section] "Extensions" @ (272, 287)
+[section] "Themes" @ (272, 335)
+[section] "Languages" @ (272, 383)
+[link] "Thunderbird Settings" @ (260, 963)
+[link] "Add-ons Support" @ (260, 1001)
+
+=== ADDONS TOOLBAR ===
+[entry] "Search addons.thunderbird.net" @ (929, 180)
+[label] "Find more add-ons" @ (699, 181)
+[push-button] "Tools for all add-ons" @ (1085, 242)
+
+=== ADDONS CONTENT ===
+[heading] "Personalize Your Thunderbird" @ (587, 242)
+[paragraph] "Extensions and themes are like apps for your browser, and they let you protect passwords, download videos, find deals, block annoying ads, change how your browser looks, and much more. These small software programs are often developed by a third party. Here’s a selection Thunderbird  for exceptional security, performance, and functionality." @ (765, 339)
+[link] "recommends" @ (645, 359)
+[heading] "Add-on Compatibility Check" @ (696, 430)
+[push-button] "Add to Thunderbird" @ (990, 440)
+[section] "by" @ (696, 451)
+[link] "Thunderbird Services" @ (595, 451)
+[heading] "Extract 'Em!" @ (696, 604)
+[link] "tmccoid.tech" @ (565, 625)
+[heading] "Textmarker" @ (696, 797)
+[link] "C-E" @ (530, 818)
+[heading] "Mail Merge" @ (696, 990)
+[link] "Alexander Bergmann" @ (595, 1011)
+[label] "Home" @ (1853, 1045)
+[list-item] "Important" @ (776, 2691)
+[list-item] "Work" @ (776, 2729)
+[list-item] "Personal" @ (776, 2768)
+[list-item] "To Do" @ (776, 2807)
+[list-item] "Later" @ (776, 2845)
+
+=== STATUS BAR ===
+[push-button] "You are currently online." @ (129, 1068)
+[label] "https://support.thunderbird.net/thunderbird/115.6.0/Linux/en-US/addons-help" @ (1032, 1068)

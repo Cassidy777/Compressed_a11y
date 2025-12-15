@@ -1,0 +1,81 @@
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+push-button	Minimize	""			(1714, 64)	(34, 30)
+push-button	Close	""			(1754, 64)	(34, 30)
+label	Preferences – Profile “Unnamed”	Preferences – Profile “Unnamed”			(1265, 70)	(258, 17)
+push-button	Help	""			(1000, 56)	(65, 46)
+label	General	General			(1003, 158)	(65, 34)
+label	Shortcuts	Shortcuts			(1003, 208)	(65, 34)
+label	Unnamed	Unnamed			(1003, 304)	(65, 34)
+toggle-button	Menu	""			(1102, 304)	(36, 34)
+label	Profile ID:	Profile ID:			(1432, 649)	(66, 17)
+label	b1dcc9dd-5262-4d8d-a863-c897e6d979b9	b1dcc9dd-5262-4d8d-a863-c897e6d979b9			(1504, 649)	(277, 17)
+check-box	Terminal bell	""			(1172, 486)	(609, 22)
+label	Sound	Sound			(1160, 463)	(621, 17)
+combo-box	Default	""			(1315, 411)	(466, 34)
+label	Cursor blinking:	Cursor blinking:			(1172, 411)	(131, 34)
+combo-box	Block	""			(1315, 371)	(466, 34)
+label	Cursor shape:	Cursor shape:			(1172, 371)	(131, 34)
+label	Cursor	Cursor			(1160, 348)	(621, 17)
+combo-box	Always	""			(1315, 296)	(466, 34)
+label	Allow blinking text:	Allow blinking text:			(1172, 296)	(131, 34)
+push-button	Reset	""			(1696, 256)	(85, 34)
+spin-button		1.00			(1507, 256)	(118, 34)
+label	× height	× height			(1631, 256)	(53, 34)
+spin-button		1.00			(1315, 256)	(118, 34)
+label	× width	× width			(1439, 256)	(49, 34)
+label	Cell spacing:	Cell spacing:			(1172, 256)	(131, 34)
+check-box	Custom font:	""			(1172, 216)	(131, 34)
+push-button	Reset	""			(1696, 176)	(85, 34)
+spin-button		24			(1507, 176)	(118, 34)
+label	rows	rows			(1631, 176)	(32, 34)
+spin-button		80			(1315, 176)	(118, 34)
+label	columns	columns			(1439, 176)	(56, 34)
+label	Initial terminal size:	Initial terminal size:			(1172, 176)	(131, 34)
+label	Text Appearance	Text Appearance			(1160, 153)	(621, 17)
+menu	Terminal	""			(99, 0)	(116, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
+push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
+push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
+push-button	Files	""			(0, 577)	(70, 64)
+push-button	Ubuntu Software	""			(0, 645)	(70, 64)
+push-button	Help	""			(0, 713)	(70, 64)
+push-button	Terminal	""			(0, 784)	(70, 64)
+push-button	Trash	""			(0, 852)	(70, 64)
+toggle-button	Show Applications	""			(0, 1010)	(70, 70)

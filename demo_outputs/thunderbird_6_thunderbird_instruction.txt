@@ -1,0 +1,133 @@
+============================================================
+SAMPLE: domain=thunderbird, id=6 (thunderbird-6), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Mail (Ctrl+1)	""			(77, 71)	(30, 30)
+push-button	Address Book (Ctrl+2)	""			(77, 116)	(30, 30)
+push-button	Calendar (Ctrl+3)	""			(77, 161)	(30, 30)
+push-button	Tasks (Ctrl+4)	""			(77, 206)	(30, 30)
+push-button	Chat (Ctrl+5)	""			(77, 251)	(30, 30)
+push-button	Settings	""			(77, 998)	(30, 30)
+push-button	Hide Spaces Toolbar	""			(77, 1043)	(30, 30)
+entry	Search:	""		...
+
+INSTRUCTION:
+I've got a bunch of email accounts in Thunderbird, and it's a hassle to check them one by one. Can you show me how to set up a unified inbox so I can see all my emails in one place?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 17
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 50 <-- selected
+  - os: 0
+
+DETECTED DOMAIN: thunderbird
+
+=== COMPRESSED A11Y ===
+DEBUG_VIEW_TYPE: account_settings
+=== SYSTEM ===
+[menu] "Thunderbird Mail" @ (185, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== TOOLBAR ===
+[entry] "Search:" @ (979, 86)
+[push-button] "Search" @ (1428, 86)
+
+=== SPACES ===
+[push-button] "Mail (Ctrl+1)" @ (92, 86)
+[push-button] "Address Book (Ctrl+2)" @ (92, 131)
+[push-button] "Calendar (Ctrl+3)" @ (92, 176)
+[push-button] "Tasks (Ctrl+4)" @ (92, 221)
+[push-button] "Chat (Ctrl+5)" @ (92, 266)
+[push-button] "Settings" @ (92, 1013)
+[push-button] "Hide Spaces Toolbar" @ (92, 1058)
+
+=== ACCOUNT SETTINGS ===
+=== ACCOUNT SETTINGS SIDEBAR ===
+[tree-item] "anonym-x2024@outlook.com" @ (259, 289)
+[tree-item] "Server Settings" @ (259, 224)
+[list-item] "General" @ (259, 239)
+[tree-item] "Copies & Folders" @ (259, 250)
+[tree-item] "Composition & Addressing" @ (259, 276)
+[list-item] "Composition" @ (259, 287)
+[tree-item] "Junk Settings" @ (259, 302)
+[list-item] "Privacy & Security" @ (259, 335)
+[tree-item] "Synchronization & Storage" @ (259, 328)
+[tree-item] "End-To-End Encryption" @ (259, 354)
+[list-item] "Chat" @ (259, 383)
+[tree-item] "Return Receipts" @ (259, 380)
+[tree-item] "Local Folders" @ (259, 432)
+[tree-item] "Junk Settings" @ (259, 432)
+[tree-item] "Disk Space" @ (259, 458)
+[tree-item] "Outgoing Server (SMTP)" @ (259, 484)
+[push-button] "Account Actions" @ (259, 896)
+[link] "Thunderbird Settings" @ (259, 963)
+    [label] "Thunderbird Settings" @ (277, 963)
+[link] "Add-ons and Themes" @ (259, 1001)
+    [label] "Add-ons and Themes" @ (277, 1001)
+=== ACCOUNT SETTINGS MAIN ===
+[section] "Account Settings" @ (745, 128)
+[push-button] "Close Tab" @ (853, 129)
+[menu-item] "Normal password" @ (495, 162)
+[menu-item] "File per folder (mbox)" @ (511, 162)
+[label] "Server Settings" @ (508, 200)
+[menu-item] "SSL/TLS" @ (495, 215)
+[label] "Server Type:" @ (474, 245)
+[label] "IMAP Mail Server" @ (594, 245)
+[entry] "Server Name:" @ (742, 280)
+[spin-button] "Port:" @ (1040, 280)
+[label] "Server Name:" @ (478, 280)
+[label] "Port:" @ (975, 280)
+[label] "Default:" @ (1116, 280)
+[label] "993" @ (1163, 280)
+[entry] "User Name:" @ (742, 319)
+[label] "User Name:" @ (471, 319)
+[label] "Security Settings" @ (504, 392)
+[combo-box] "Connection security:" @ (709, 433)
+[label] "Connection security:" @ (507, 433)
+[combo-box] "Authentication method:" @ (709, 480)
+[label] "Authentication method:" @ (519, 480)
+[label] "Server Settings" @ (497, 533)
+[check-box] "Check for new messages at startup" @ (568, 569)
+[spin-button] "Check for new messages every minutes 10 minutes" @ (722, 609)
+[check-box] "Check for new messages every" @ (552, 609)
+[label] "minutes" @ (798, 609)
+[check-box] "Allow immediate server notifications when new messages arrive" @ (674, 648)
+[label] "When I delete a message:" @ (522, 690)
+[combo-box] "Move it to this folder:" @ (799, 726)
+[radio-button] "Move it to this folder:" @ (543, 726)
+[radio-button] "Just mark it as deleted" @ (547, 764)
+[radio-button] "Remove it immediately" @ (548, 797)
+[push-button] "Advanced…" @ (1116, 836)
+[label] "Message Storage" @ (504, 886)
+[check-box] "Clean up ("Expunge") Inbox on Exit" @ (567, 922)
+[check-box] "Empty Trash on Exit" @ (512, 961)
+[combo-box] "Message Store Type:" @ (685, 1002)
+[label] "Message Store Type:" @ (504, 1002)
+[entry] "Local Directory:" @ (806, 1054)
+[push-button] "Browse…" @ (1122, 1054)
+[label] "Home" @ (1853, 1045)
+[label] "Local Directory:" @ (486, 1054)
+=== STATUS BAR ===
+[push-button] "You are currently online." @ (129, 1068)
+[label] "Done" @ (1032, 1068)

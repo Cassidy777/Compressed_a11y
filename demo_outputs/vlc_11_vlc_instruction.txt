@@ -1,0 +1,146 @@
+============================================================
+SAMPLE: domain=vlc, id=11 (vlc-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Baby Justin Bieber.​mp4	Baby Justin Bieber.​mp4			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu-item	Media	""			(76, 64)	(44, 20)
+menu-item	Playback	""			(126, 64)	(62, 20)
+menu-item	Audio	""			(194, 64)	(43, 20)
+menu-item	Video	""			(243, 64)	(42, 20)
+menu-item	Subtitle	""			(291, 64)	(55, 20)
+menu-item	Tools	""			(352, 64)	(38, 20)
+menu-item	View	""			(396, 64)	(37, 20)
+menu-item	Help	""			...
+
+INSTRUCTION:
+Could you convert the song from this music video as an MP3 file? I'd like to have it on my device to play whenever I want. Please save the file just on the desktop and title the file "Baby Justin Bieber.mp3." I really appreciate your help!
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 44
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 104 <-- selected
+
+DETECTED DOMAIN: vlc
+
+=== COMPRESSED A11Y ===
+=== SYSTEM ===
+[menu] "VLC media player" @ (185, 13)
+[menu] "vlc" @ (1794, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[menu-item] "Media" @ (98, 74)
+[menu-item] "Playback" @ (157, 74)
+[menu-item] "Audio" @ (215, 74)
+[menu-item] "Video" @ (264, 74)
+[menu-item] "Subtitle" @ (318, 74)
+[menu-item] "Tools" @ (371, 74)
+[menu-item] "View" @ (414, 74)
+[menu-item] "Help" @ (457, 74)
+
+=== PLAYER STATUS ===
+[time-elapsed] "--:--" @ (88, 1037)
+[time-duration] "--:--" @ (1901, 1037)
+
+=== VLC PREFERENCES ===
+[field] "File name:" -> [text] "File name:" @ (983, 665)
+[label] "You can select local files with the following list and buttons." @ (995, 454)
+[label] "Baby Justin Bieber.​mp4" @ (1853, 937)
+[button] "Add..." @ (1184, 480)
+[check-box] "Show more options" @ (812, 722)
+
+=== MODAL / POPUP ===
+[label] "Look in:" @ (722, 330)
+[combo-box] "/home/user" @ (939, 330)
+[push-button] "Parent Directory" @ (1187, 329)
+[push-button] "Create New Folder" @ (1216, 329)
+[push-button] "List View" @ (1245, 329)
+[push-button] "Detail View" @ (1274, 329)
+[list-item] "/home/user" @ (996, 330)
+[list-item] "Desktop" @ (874, 362)
+[table-cell] "Desktop" @ (906, 378)
+[table-cell] "Folder" @ (1129, 378)
+[table-cell] "25/11/2025 4:25 AM" @ (1216, 378)
+[list-item] "user" @ (729, 388)
+[table-cell] "Documents" @ (906, 396)
+[table-cell] "Folder" @ (1129, 396)
+[table-cell] "21/11/2025 12:06 AM" @ (1216, 396)
+[table-cell] "Downloads" @ (906, 414)
+[table-cell] "Folder" @ (1129, 414)
+[table-cell] "23/11/2025 1:16 AM" @ (1216, 414)
+[table-cell] "MathFunShortcut.desktop" @ (906, 432)
+[table-cell] "Folder" @ (1129, 432)
+[table-cell] "12/11/2025 6:11 PM" @ (1216, 432)
+[table-cell] "Music" @ (906, 450)
+[table-cell] "Folder" @ (1129, 450)
+[table-cell] "17/12/2023 2:46 PM" @ (1216, 450)
+[table-cell] "Pictures" @ (906, 468)
+[table-cell] "Folder" @ (1129, 468)
+[table-cell] "12/11/2025 6:09 PM" @ (1216, 468)
+[table-cell] "Public" @ (906, 486)
+[table-cell] "Folder" @ (1129, 486)
+[table-cell] "17/12/2023 2:46 PM" @ (1216, 486)
+[table-cell] "screenshots" @ (906, 504)
+[table-cell] "Folder" @ (1129, 504)
+[table-cell] "11/3/2024 3:04 PM" @ (1216, 504)
+[table-cell] "server" @ (906, 522)
+[table-cell] "Folder" @ (1129, 522)
+[table-cell] "19/11/2025 1:00 AM" @ (1216, 522)
+[table-cell] "snap" @ (906, 540)
+[table-cell] "Folder" @ (1129, 540)
+[table-cell] "30/1/2024 2:00 AM" @ (1216, 540)
+[table-cell] "Templates" @ (906, 558)
+[table-cell] "Folder" @ (1129, 558)
+[table-cell] "17/12/2023 2:46 PM" @ (1216, 558)
+[table-cell] "Videos" @ (906, 576)
+[table-cell] "Folder" @ (1129, 576)
+[table-cell] "17/12/2023 2:46 PM" @ (1216, 576)
+[table-cell] "fullvideo.mp4" @ (906, 594)
+[table-cell] "370.52 KiB" @ (1065, 594)
+[table-cell] "mp4 File" @ (1129, 594)
+[table-cell] "20/11/2025 5:14 PM" @ (1216, 594)
+[table-cell] "trimmed_video.mp4" @ (906, 612)
+[table-cell] "262 bytes" @ (1065, 612)
+[table-cell] "mp4 File" @ (1129, 612)
+[table-cell] "10/11/2025 5:57 AM" @ (1216, 612)
+---
+[combo-box] "Media Files ( *.3g2 *.3gp *.3gp2 *.3gpp *.amv *.asf *.avi *.bik *.bin *.crf *.divx *.drc *.dv *.dvr-ms *.evo *.f4v *.flv..." @ (983, 695)
+[push-button] "Cancel" @ (1246, 696)
+[label] "Files of type:" @ (722, 695)
+---
+[push-button] "Cancel" @ (1207, 751)

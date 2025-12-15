@@ -1,0 +1,123 @@
+============================================================
+SAMPLE: domain=thunderbird, id=15 (thunderbird-15), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Mail (Ctrl+1)	""			(77, 71)	(30, 30)
+push-button	Address Book (Ctrl+2)	""			(77, 116)	(30, 30)
+push-button	Calendar (Ctrl+3)	""			(77, 161)	(30, 30)
+push-button	Tasks (Ctrl+4)	""			(77, 206)	(30, 30)
+push-button	Chat (Ctrl+5)	""			(77, 251)	(30, 30)
+push-button	Settings	""			(77, 998)	(30, 30)
+push-button	Hide Spaces Toolbar	""			(77, 1043)	(30, 30)
+entry	Search:	""		...
+
+INSTRUCTION:
+Considering I work late into the night and use Thunderbird frequently, I find that a full dark mode would be easier on my eyes during those hours. Can you help me enable a complete dark mode in Thunderbird?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 20
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 103 <-- selected
+  - os: 0
+
+DETECTED DOMAIN: thunderbird
+
+=== COMPRESSED A11Y ===
+DEBUG_VIEW_TYPE: home
+=== SYSTEM ===
+[menu] "Thunderbird Mail" @ (185, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== TOOLBAR ===
+[entry] "Search:" @ (979, 86)
+[push-button] "Search" @ (1428, 86)
+
+=== SPACES ===
+[push-button] "Mail (Ctrl+1)" @ (92, 86)
+[push-button] "Address Book (Ctrl+2)" @ (92, 131)
+[push-button] "Calendar (Ctrl+3)" @ (92, 176)
+[push-button] "Tasks (Ctrl+4)" @ (92, 221)
+[push-button] "Chat (Ctrl+5)" @ (92, 266)
+[push-button] "Settings" @ (92, 1013)
+[push-button] "Hide Spaces Toolbar" @ (92, 1058)
+
+=== FOLDERS ===
+[tree-item] "anonym-x2024@outlook.com" @ (247, 288)
+  [tree-item] "Inbox" @ (247, 197)
+  [tree-item] "Drafts" @ (247, 223)
+  [tree-item] "Sent" @ (247, 249)
+  [tree-item] "Junk" @ (247, 275)
+  [tree-item] "Deleted" @ (247, 314)
+  [tree-item] "POP" @ (247, 327)
+  [tree-item] "Notes" @ (247, 353)
+  [tree-item] "Outbox" @ (247, 379)
+  [tree-item] "封存" @ (247, 405)
+[tree-item] "Local Folders" @ (247, 470)
+  [tree-item] "Trash" @ (247, 457)
+  [tree-item] "Outbox" @ (247, 483)
+  [tree-item] "Bills" @ (247, 509)
+
+=== HOME DASHBOARD ===
+[push-button] "Account Settings" @ (1815, 138)
+[push-button] "Read messages" @ (471, 210)
+[push-button] "Write a new message" @ (644, 210)
+[push-button] "Search messages" @ (821, 210)
+[push-button] "Manage message filters" @ (1007, 210)
+[push-button] "End-to-end Encryption" @ (1212, 210)
+
+[heading] "Set Up Another Account" @ (1150, 282)
+[push-button] "Email" @ (480, 332)
+[push-button] "Address Book" @ (645, 332)
+[push-button] "Calendar" @ (811, 332)
+[push-button] "Chat" @ (971, 332)
+[push-button] "Filelink" @ (1131, 332)
+[push-button] "Feeds" @ (1291, 332)
+[push-button] "Newsgroups" @ (1451, 332)
+[paragraph] "Thunderbird lets you connect to your existing email account, to read your emails conveniently and efficiently from within the application." @ (875, 374)
+[paragraph] "Thunderbird lets you organize all your contacts in an address book. You can also connect to a remote address book to keep all your contacts in sync." @ (909, 374)
+[paragraph] "Thunderbird lets you handle events and keeps you organized. Connecting to a remote calendar will keep all your events in sync across all your devices." @ (918, 374)
+[paragraph] "Thunderbird lets you connect to multiple instant messaging accounts, offering support for various platforms." @ (783, 374)
+[paragraph] "Thunderbird lets you set up a convenient filelink cloud account to easily send large attachments." @ (741, 374)
+[paragraph] "Thunderbird lets you connect to RSS/Atom feeds to get news and updates from all around." @ (722, 374)
+[paragraph] "Thunderbird lets you connect to all the newsgroups you want." @ (627, 374)
+
+[heading] "Import from Another Program" @ (1150, 420)
+[paragraph] "Thunderbird lets you import mail messages, address book entries, feed subscriptions, settings, and/or filters from other mail programs and common address book formats." @ (685, 476)
+[push-button] "Import data from other programs" @ (480, 541)
+
+[heading] "About Mozilla Thunderbird" @ (1150, 609)
+[paragraph] "Thunderbird is the leading open source, cross-platform email and calendaring client, free for business and personal use. We want it to stay secure and become even better. A donation will allow us to hire developers, pay for infrastructure, and continue to improve." @ (685, 674)
+[paragraph] "Thunderbird is funded by users like you! If you like Thunderbird, please consider making a donation. The best way for you to ensure Thunderbird remains available is to ." @ (1255, 674)
+[link] "make a donation" @ (1130, 682)
+
+[heading] "Resources" @ (1150, 768)
+[link] "Explore Features" @ (477, 807)
+[link] "Support" @ (621, 807)
+[link] "Get Involved" @ (751, 807)
+[link] "Developer Documentation" @ (941, 807)
+
+
+=== STATUS BAR ===
+[push-button] "You are currently online." @ (129, 1068)
+[label] "Done" @ (1032, 1068)

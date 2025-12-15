@@ -1,0 +1,142 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=11 (libreoffice_impress-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	CPD_​Background_​Investigation_​Process.​pptx	CPD_​Background_​Investigation_​Process.​pptx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#	.​~lock.​CPD_​Background_​Investigation_​Process.​pptx#			(1793, 803)	(120, 34)
+menu	LibreOffice Impress	""			(99, 0)	(191, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, ...
+
+INSTRUCTION:
+I want to turn the rectangular image of Columbus on the first page into a cover page. Could you help me stretch this image to fill the entire page, keeping its proportion and centering the image?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 100 <-- selected
+  - libreoffice_writer: 20
+
+DETECTED DOMAIN: libreoffice_impress
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+STATUSBAR:
+[status] Horizontal scroll bar @ (886, 1053)
+[status] Home @ (1853, 1045)
+[status] Slide 1 of 4 (3) @ (119, 1070)
+[status] Image with transparency 'Picture 2' selected @ (438, 1070)
+[status] Title Slide @ (889, 1070)
+[status] 2.59 / 0.43 8.84 x 15.36 @ (1175, 1070)
+[status] English (USA) @ (1521, 1070)
+[status] 118% @ (1895, 1070)
+MENUBAR:
+[menu] File @ (90, 76)
+[menu] Edit @ (131, 76)
+[menu] View @ (177, 76)
+[menu] Insert @ (229, 76)
+[menu] Format @ (290, 76)
+[menu] Slide @ (347, 76)
+[menu] Slide Show @ (415, 76)
+[menu] Tools @ (485, 76)
+[menu] Window @ (546, 76)
+[menu] Help @ (604, 76)
+TOOLBAR:
+[toolbar] Close Pane @ (252, 186)
+[toolbar] Menu @ (1892, 188)
+[toolbar] Zoom & Pan @ (123, 147)
+[toolbar] Line Color @ (170, 147)
+[toolbar] Fill Color @ (214, 147)
+[toolbar] Line @ (260, 147)
+[toolbar] Rectangle @ (293, 147)
+[toolbar] Ellipse @ (326, 147)
+[toolbar] Lines and Arrows @ (373, 147)
+[toolbar] Curves and Polygons @ (417, 147)
+[toolbar] Connectors @ (461, 147)
+[toolbar] Basic Shapes @ (513, 147)
+[toolbar] Symbol Shapes @ (557, 147)
+[toolbar] Arrow Shapes @ (601, 147)
+[toolbar] Flowchart Shapes @ (645, 147)
+[toolbar] Callout Shapes @ (689, 147)
+[toolbar] Star Shapes @ (733, 147)
+[toolbar] 3D Objects @ (777, 147)
+[toolbar] Rotate @ (823, 147)
+[toolbar] Align Objects @ (862, 147)
+[toolbar] Arrange @ (906, 147)
+[toolbar] Distribution @ (950, 147)
+[toolbar] Shadow @ (996, 147)
+[toolbar] Crop @ (1029, 147)
+[toolbar] Filter @ (1068, 147)
+[toolbar] Edit Points @ (1114, 147)
+[toolbar] Gluepoints @ (1147, 147)
+[toolbar] Export Directly as PDF @ (230, 108)
+[toolbar] Cut @ (304, 108)
+[toolbar] Copy @ (337, 108)
+[toolbar] Clone @ (422, 108)
+[toolbar] Find and Replace @ (559, 108)
+[toolbar] Spelling @ (592, 108)
+[toolbar] Grid @ (633, 108)
+[toolbar] Display Views @ (676, 108)
+[toolbar] Master Slide @ (718, 108)
+[toolbar] Start from First Slide @ (759, 108)
+[toolbar] Start from Current Slide @ (792, 108)
+[toolbar] Table @ (839, 108)
+[toolbar] Image @ (877, 108)
+[toolbar] Media @ (910, 108)
+[toolbar] Chart @ (943, 108)
+[toolbar] Text Box @ (984, 108)
+[toolbar] Insert Fontwork @ (1061, 108)
+[toolbar] Hyperlink @ (1094, 108)
+[toolbar] Draw Functions @ (1127, 108)
+[toolbar] New Slide @ (1174, 108)
+[toolbar] Duplicate Slide @ (1212, 108)
+[toolbar] Delete Slide @ (1245, 108)
+[toolbar] Slide Layout @ (1292, 108)
+SLIDE_LIST:
+[slide-list] Slides View @ (166, 629)
+PROPERTIES:
+[property] Transparency: @ (1573, 383)
+[property] Color mode: @ (1573, 272)
+[property] Contrast: @ (1573, 346)
+[property] Brightness: @ (1573, 309)
+[property] Line: @ (1573, 471)
+[property] Line Style @ (1791, 471)
+CONTENT:
+[menu] "LibreOffice Impress" @ (194, 13)
+[document-presentation] "CPD_Background_Investigation_Process - LibreOffice Presentation" @ (885, 606)
+[image] "Picture 2" @ (1047, 434)
+[image] "Picture 7" @ (515, 922)
+[paragraph] "The Background Investigation" @ (909, 934)
+[paragraph] "Process" @ (788, 1025)
+[image] "Picture 2" @ (628, 541)
+[scroll-bar] "Vertical scroll bar" @ (1505, 607)

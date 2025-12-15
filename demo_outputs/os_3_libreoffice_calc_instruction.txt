@@ -1,0 +1,57 @@
+============================================================
+SAMPLE: domain=os, id=3 (os-3), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	dir1	dir1			(1839, 920)	(27, 17)
+label	dir3	dir3			(1839, 803)	(27, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	"Represent_in_millions_bi...
+
+INSTRUCTION:
+Copy directory hierarchy from "$sourceDir" to "$targetDir"
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30 <-- selected
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 25
+
+DETECTED DOMAIN: libreoffice_calc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Terminal" @ (35, 816)
+[launcher-app] "Trash" @ (35, 884)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Terminal" @ (157, 13)
+DESKTOP_ICONS:
+[desktop-icon] "user@user-virtual-machine: ~" @ (627, 78)
+[desktop-icon] "Minimize" @ (891, 79)
+[desktop-icon] "Maximize" @ (931, 79)
+[desktop-icon] "Close" @ (971, 79)
+[desktop-icon] "dir3" @ (1852, 811)
+[desktop-icon] "dir1" @ (1852, 928)
+CONTENT:
+[content-item] "Menu" @ (843, 79)

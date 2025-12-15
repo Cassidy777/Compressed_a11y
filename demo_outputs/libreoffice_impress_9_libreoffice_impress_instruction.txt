@@ -1,0 +1,120 @@
+============================================================
+SAMPLE: domain=libreoffice_impress, id=9 (libreoffice_impress-9), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+label	multimedia_​classroom_​podium-​2020.​pptx	multimedia_​classroom_​podium-​2020.​pptx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#	.​~lock.​multimedia_​classroom_​podium-​2020.​pptx#			(1793, 803)	(120, 34)
+menu	File	""			(70, 64)	(40, 25)
+menu	Edit	""			(110, 64)	(43, 25)
+menu	View	""			(153, 64)	(49, 25)
+menu	Insert	""			(202, 64)	(55, 25)
+menu	Format	""			(257, 64)	(66, 25)
+menu	Slide	""			(323, 64)	(49, 25)
+menu...
+
+INSTRUCTION:
+On it Whenever I launch a LibreOffice Impress, it uses both screens, one for current slide and next slide and another for actual presentation. What I want is to use only one monitor which shows presentation. I dont want the screen with Current slide and Next slide so that it can be used for other purposes. How should I achieve this?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 0
+  - vsc: 0
+  - libreoffice_calc: 0
+  - libreoffice_impress: 95 <-- selected
+  - libreoffice_writer: 0
+
+DETECTED DOMAIN: libreoffice_impress
+
+=== COMPRESSED A11Y ===
+STATUSBAR:
+[status] Tips and Help Line @ (980, 1331)
+[status] Home @ (1853, 1045)
+MENUBAR:
+[menu] File @ (90, 76)
+[menu] Edit @ (131, 76)
+[menu] View @ (177, 76)
+[menu] Insert @ (229, 76)
+[menu] Format @ (290, 76)
+[menu] Slide @ (347, 76)
+[menu] Slide Show @ (415, 76)
+[menu] Tools @ (485, 76)
+[menu] Window @ (546, 76)
+[menu] Help @ (604, 76)
+TOOLBAR:
+[toolbar] Close Pane @ (252, 161)
+[toolbar] Menu @ (1892, 188)
+[toolbar] Slide @ (1683, 201)
+SLIDE_LIST:
+[slide-list] USB @ (357, 679)
+[slide-list] Document Camera @ (379, 734)
+[slide-list] Slides View @ (160, 604)
+[slide-list] Vertical scroll bar @ (253, 604)
+PROPERTIES:
+[property] Master View @ (1739, 469)
+[property] Orientation: @ (1613, 271)
+[property] Master Background @ (1739, 413)
+[property] Insert Image... @ (1739, 345)
+[property] Master Slide: @ (1610, 382)
+[property] Master Objects @ (1739, 438)
+[property] Background: @ (1612, 308)
+[property] Format: @ (1627, 234)
+CONTENT:
+[document-presentation] "multimedia_classroom_podium-2020 - LibreOffice Presentation" @ (885, 581)
+[paragraph] "Button Style Podium" @ (654, 407)
+[paragraph] "Multimedia Classroom Podium Tutorial and User Guide" @ (325, 77)
+[paragraph] "Button Style Podium" @ (444, 326)
+[paragraph] "On/Off Button" @ (390, 375)
+[paragraph] "Volume Control" @ (394, 395)
+[paragraph] "Display Mute/Unmute             Lectern Computer" @ (420, 445)
+[paragraph] "Laptop Image" @ (391, 494)
+[paragraph] "Doc. Camera Image" @ (414, 514)
+[paragraph] "HDMI Laptop" @ (388, 535)
+[paragraph] "USB Connection" @ (402, 556)
+[paragraph] "SuperPlate Panel" @ (410, 599)
+[paragraph] "HDMI Laptop" @ (391, 620)
+[paragraph] "VGA Laptop" @ (387, 639)
+[paragraph] "VGA /Audio" @ (385, 659)
+[paragraph] "Power Button" @ (393, 767)
+[paragraph] "Freeze Image" @ (393, 786)
+[paragraph] "Zoom In/Out" @ (390, 806)
+[paragraph] "Rotate Image" @ (393, 826)
+[paragraph] "Lamp Options" @ (395, 846)
+[paragraph] "Iris (Brightness)" @ (402, 866)
+[paragraph] "Adjustments" @ (389, 885)
+[paragraph] "Tips and Help Line" @ (407, 925)
+[image] "Picture 15" @ (412, 227)
+[paragraph] "Currently, Information Technology Services (ITS) manages approximately 200 Multimedia Classrooms. Of these, most have the  button style control panels. The remaining are large auditoriums with “touch” style podium controls." @ (730, 595)
+[paragraph] "These controllers are IP based and can be controlled and monitored from our Himes locations." @ (971, 712)
+[paragraph] "This feature is used for support and maintenance of the classroom devices that they control." @ (981, 765)
+[image] "Picture 5" @ (1180, 537)
+[scroll-bar] "Horizontal scroll bar" @ (886, 1028)
+[scroll-bar] "Vertical scroll bar" @ (1505, 582)
+[document-presentation] "multimedia_classroom_podium-2020 - LibreOffice Presentation" @ (959, 539)
+[paragraph] "Button Style Podium" @ (1259, 679)
+[paragraph] "Multimedia Classroom Podium Tutorial and User Guide" @ (627, 232)
+[paragraph] "Lectern Computer" @ (1295, 1066)
+[paragraph] "“PC”" @ (1184, 1104)
+[paragraph] "Button Style Podium" @ (1022, 661)
+[paragraph] "On/Off Button" @ (961, 716)
+[paragraph] "Volume Control" @ (966, 739)
+[paragraph] "Display Mute/Unmute             Lectern Computer" @ (995, 794)
+[paragraph] "Laptop Image" @ (962, 849)
+[paragraph] "Doc. Camera Image" @ (988, 872)
+[paragraph] "HDMI Laptop" @ (959, 895)
+[paragraph] "USB Connection" @ (974, 918)
+[paragraph] "SuperPlate Panel" @ (984, 966)
+[paragraph] "HDMI Laptop" @ (963, 990)
+[paragraph] "VGA Laptop" @ (958, 1012)
+[paragraph] "VGA /Audio" @ (956, 1034)
+[paragraph] "USB" @ (924, 1056)
+[paragraph] "Document Camera" @ (949, 1118)
+[paragraph] "Power Button" @ (964, 1154)
+[paragraph] "Freeze Image" @ (965, 1176)
+[paragraph] "Zoom In/Out" @ (961, 1198)
+[paragraph] "Rotate Image" @ (965, 1221)
+[paragraph] "Lamp Options" @ (967, 1243)
+[paragraph] "Iris (Brightness)" @ (975, 1265)
+[paragraph] "Adjustments" @ (960, 1287)
+[image] "Picture 17" @ (985, 545)

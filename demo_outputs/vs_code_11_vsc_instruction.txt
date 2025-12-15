@@ -1,0 +1,113 @@
+============================================================
+SAMPLE: domain=vs_code, id=11 (vs_code-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+document-web	main.py - Visual Studio Code	""			(70, 89)	(1850, 991)
+section	Explorer (Ctrl+Shift+E)	""			(70, 89)	(48, 48)
+section					(82, 101)	(24, 24)
+static					(82, 101)	(24, 24)
+section	Search (Ctrl+Shift+F)	""			(70, 137)	(48, 48)
+section					(82, 149)	(24, 24)
+static					(82, 149)	(24, 24)
+section	Source Control (Ctrl+Shift+G)	""			(70, 185)	(48, 48)
+section					(8...
+
+INSTRUCTION:
+Please help me visualize all numpy arrays in current python file within VS Code.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 60 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 60
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+=== VIEW === editor
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[push-button] "File" @ (88, 76)
+[push-button] "Edit" @ (125, 76)
+[push-button] "Selection" @ (182, 76)
+[push-button] "View" @ (243, 76)
+[push-button] "Go" @ (281, 76)
+[push-button] "Run" @ (316, 76)
+[push-button] "Terminal" @ (372, 76)
+[push-button] "Help" @ (430, 76)
+
+=== ACTIVITY_BAR ===
+[section] "Explorer (Ctrl+Shift+E)" @ (94, 113)
+[section] "Search (Ctrl+Shift+F)" @ (94, 161)
+[section] "Source Control (Ctrl+Shift+G)" @ (94, 209)
+[section] "Run and Debug (Ctrl+Shift+D)" @ (94, 257)
+[section] "Extensions (Ctrl+Shift+X)" @ (94, 305)
+[section] "Accounts" @ (94, 986)
+[section] "/home" @ (151, 135)
+[section] "home" @ (151, 135)
+[static] "home" @ (151, 135)
+
+=== TAB_BAR ===
+[section] "~/main.py" @ (168, 106)
+[section] "main.py" @ (179, 106)
+[static] "main.py" @ (173, 106)
+[push-button] "Close (Ctrl+W)" @ (223, 106)
+
+=== BREADCRUMB ===
+[section] "/home/user" @ (196, 135)
+[section] "user" @ (196, 135)
+[static] "user" @ (196, 135)
+
+=== CONTENT (EDITOR) ===
+[push-button] "Split Editor Right (Ctrl+\) [Alt] Split Editor Down" @ (1871, 106)
+[push-button] "More Actions..." @ (1897, 106)
+[push-button] "Install" @ (1705, 1017)
+[push-button] "Show Recommendations" @ (1820, 1017)
+[push-button] "Clear Notification (Delete)" @ (1888, 960)
+[entry] "import numpy as np X = np.random.randn(100) N = 1000 idx = np.random.randint(0, X.size (N, X.size)) means = X[idx].mean[axis=1] confint = np.percentile(means, [2.5, 97.5])" @ (550, 269)
+
+=== STATUSBAR ===
+[label] "Home" @ (1853, 1045)
+[section] "1" @ (102, 1042)
+[static] "1" @ (102, 1042)
+[push-button] "remote" @ (87, 1069)
+[push-button] "No Problems" @ (137, 1069)
+[static] "0" @ (132, 1068)
+[push-button] "No Ports Forwarded" @ (189, 1069)
+[push-button] "Notifications" @ (1898, 1069)
+[push-button] "Python" @ (1855, 1069)
+[push-button] "LF" @ (1813, 1069)
+[push-button] "UTF-8" @ (1775, 1069)
+[push-button] "Spaces: 4" @ (1718, 1069)
+[push-button] "Ln 7, Col 44 (172 selected)" @ (1606, 1069)
+[push-button] "Screen Reader Optimized" @ (1448, 1069)
+
+=== MODAL / NOTIFICATION ===
+[push-button] "Open Settings" @ (1848, 893)
+[section] "Accessibility support is enabled for you. For the most accessible experience, we recommend the custom title bar style." @ (1681, 850)
+[static] "Accessibility support is enabled for you. For the most accessible experience, we recommend the custom title bar style." @ (1676, 847)
+[push-button] "Clear Notification (Delete)" @ (1888, 836)

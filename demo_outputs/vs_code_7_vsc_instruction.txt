@@ -1,0 +1,130 @@
+============================================================
+SAMPLE: domain=vs_code, id=7 (vs_code-7), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+document-web	Welcome - Visual Studio Code	""			(70, 89)	(1850, 991)
+section	Explorer (Ctrl+Shift+E)	""			(70, 89)	(48, 48)
+section					(82, 101)	(24, 24)
+static					(82, 101)	(24, 24)
+section	Search (Ctrl+Shift+F)	""			(70, 137)	(48, 48)
+section					(82, 149)	(24, 24)
+static					(82, 149)	(24, 24)
+section	Source Control (Ctrl+Shift+G)	""			(70, 185)	(48, 48)
+section					(8...
+
+INSTRUCTION:
+Please help me install the autoDocstring extension in VS Code.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 100 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 100
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+=== VIEW === welcome
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[push-button] "File" @ (88, 76)
+[push-button] "Edit" @ (125, 76)
+[push-button] "Selection" @ (182, 76)
+[push-button] "View" @ (243, 76)
+[push-button] "Go" @ (281, 76)
+[push-button] "Run" @ (316, 76)
+[push-button] "Terminal" @ (372, 76)
+[push-button] "Help" @ (430, 76)
+
+=== ACTIVITY_BAR ===
+[section] "Explorer (Ctrl+Shift+E)" @ (94, 113)
+[section] "Search (Ctrl+Shift+F)" @ (94, 161)
+[section] "Source Control (Ctrl+Shift+G)" @ (94, 209)
+[section] "Run and Debug (Ctrl+Shift+D)" @ (94, 257)
+[section] "Extensions (Ctrl+Shift+X)" @ (94, 305)
+[section] "Accounts" @ (94, 986)
+
+=== SIDE_BAR ===
+[push-button] "Views and More Actions..." @ (350, 106)
+[static] "Start" @ (649, 374)
+[static] "Recent" @ (658, 563)
+[heading] "EXTENSIONS: MARKETPLACE" @ (211, 106)
+[push-button] "Refresh" @ (324, 106)
+[entry] "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4" @ (229, 132)
+[push-button] "Clear Extensions Search Results" @ (328, 142)
+[push-button] "Filter Extensions..." @ (350, 142)
+[list-item] "autoDocstring - Python Docstring Generator, 0.6.1, Publisher Nils Werner, Generates python docstrings automatically , Rated 4.91 out of 5 stars by 67 users" @ (245, 201)
+[section] "autoDocstring - Python Docstring Generator15M" @ (276, 185)
+[static] "autoDocstring - Python Docstring Generator" @ (241, 184)
+[static] "15M" @ (324, 184)
+[section] "Average rating: 5 out of 5" @ (351, 185)
+[static] "5" @ (359, 184)
+[section] "Generates python docstrings automatically" @ (281, 201)
+[static] "Generates python docstrings automatically" @ (275, 201)
+[section] "Nils Werner" @ (223, 217)
+[push-button] "Install" @ (337, 218)
+
+=== TAB_BAR ===
+[section] "Welcome" @ (424, 106)
+[static] "Welcome" @ (432, 106)
+
+=== CONTENT (WELCOME) ===
+[section] "Manage - New Code update available." @ (94, 1034)
+[push-button] "Split Editor Right (Ctrl+\) [Alt] Split Editor Down" @ (1871, 106)
+[push-button] "More Actions..." @ (1897, 106)
+[heading] "Visual Studio Code" @ (1147, 272)
+[paragraph] "Editing evolved" @ (1147, 319)
+[static] "Editing evolved" @ (718, 319)
+[heading] "Start" @ (867, 375)
+[push-button] "New File..." @ (673, 404)
+[push-button] "Open File..." @ (676, 433)
+[push-button] "Open Folder..." @ (684, 462)
+[push-button] "Clone Git Repository..." @ (709, 491)
+[push-button] "Connect to..." @ (680, 520)
+[heading] "Recent" @ (867, 564)
+[section] "You have no recent folders,to start." @ (867, 592)
+[static] "You have no recent folders," @ (707, 592)
+[push-button] "open a folder" @ (829, 592)
+[static] "to start." @ (894, 592)
+[heading] "Walkthroughs" @ (1427, 375)
+[push-button] "Get Started with VS Code Customize your editor, learn the basics, and start coding" @ (1419, 427)
+[heading] "Get Started with VS Code" @ (1303, 414)
+[section] "Customize your editor, learn the basics, and start coding" @ (1433, 433)
+[static] "Customize your editor, learn the basics, and start coding" @ (1385, 433)
+[push-button] "Learn the Fundamentals" @ (1419, 485)
+[heading] "Learn the Fundamentals" @ (1299, 485)
+[label] "Show welcome page on startup" @ (1161, 1035)
+
+=== STATUSBAR ===
+[label] "Home" @ (1853, 1045)
+[section] "1" @ (102, 1042)
+[static] "1" @ (102, 1042)
+[push-button] "remote" @ (87, 1069)
+[push-button] "No Problems" @ (137, 1069)
+[static] "0" @ (132, 1068)
+[push-button] "No Ports Forwarded" @ (189, 1069)
+[push-button] "Notifications" @ (1898, 1069)

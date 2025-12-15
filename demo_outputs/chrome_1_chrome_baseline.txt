@@ -11,6 +11,14 @@ label	low_​resolution.​xcf	low_​resolution.​xcf			(1265, 920)	(120, 34)
 label	Triangle_​On_​The_​Side.​png~	Triangle_​On_​The_​Side.​png~			(1265, 452)	(120, 34)
 label	woman_​sitting_​...
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 120 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -57,9 +65,45 @@ BROWSER_UI:
 [browser-button] "View site information" @ (207, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
+MODAL:
+[link] "Home" @ (421, 399)
+[link] "Search" @ (481, 399)
+[list-item] "7,586 results" @ (556, 399)
+[link] "Español" @ (1185, 399)
+[link] "Drugs & Medications A to Z /drug_information.html Pharma Company Generic Drug Status Veterinary D..." @ (805, 525)
+[heading] "Drugs & Medications A to Z" @ (805, 449)
+[static] "/drug_information.html" @ (483, 484)
+[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug..." @ (805, 562)
+[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 522)
+[static] "Database" @ (1027, 522)
+[static] "International Drug" @ (786, 535)
+[static] "Medical Q & A Compare Drugs" @ (642, 549)
+[static] "Natural" @ (792, 549)
+[static] "Products" @ (863, 549)
+[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searche..." @ (801, 576)
+[link] "Drugs & Medications A to Z /rootdocs/a-to-z-drug-list.html Pharma Company Generic Drug Status Vet..." @ (805, 748)
+[heading] "Drugs & Medications A to Z" @ (805, 672)
+[static] "/rootdocs/a-to-z-drug-list.html" @ (506, 707)
+[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug..." @ (805, 785)
+[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 745)
+[static] "Database" @ (1027, 745)
+[static] "International Drug" @ (786, 758)
+[static] "Medical Q & A Compare Drugs" @ (642, 772)
+[static] "Natural" @ (792, 772)
+[static] "Products" @ (863, 772)
+[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searche..." @ (801, 799)
+[link] "Shark Liver Oil Uses, Benefits & Side Effects /npc/shark-liver-oil.html Products. Facts & Compari..." @ (805, 944)
+[heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
+[static] "/npc/shark-liver-oil.html" @ (484, 930)
+[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; Januar..." @ (805, 981)
+[static] "Products" @ (440, 967)
+[static] ". Facts & Comparisons [" @ (564, 967)
+[static] "database" @ (689, 967)
+[link] "Bovine colostrum Uses, Benefits & Side Effects /npc/bovine-colostrum.html ...concerns about the t..." @ (805, 1126)
+[heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
+[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
-[document-web] "Natural products database - Search results. Page 1 of about 7586 results" @ (995, 597)
 [link] "Drugs.com - Go to homepage" @ (473, 163)
 [entry] "Search Drugs.com" @ (1012, 158)
 [combo-box] "Select the section you want to search in" @ (1298, 158)
@@ -105,38 +149,6 @@ CONTENT:
 [link] "Pro Edition" @ (1134, 225)
 [link] "More Resources …" @ (1236, 225)
 [link] "Help & Support" @ (1513, 225)
-[static] "Resources / More" @ (1286, 223)
-[/BLOCK]
-[BLOCK "Drugs & Medications A to Z"]
-[link] "Home" @ (421, 399)
-[link] "Search" @ (481, 399)
-[static] "7,586 results" @ (556, 399)
-[link] "Español" @ (1185, 399)
-[heading] "Drugs & Medications A to Z" @ (805, 449)
-[link] "Drugs & Medications A to Z /drug_information.html Pharma Company Generic Drug..." @ (805, 525)
-[static] "/drug_information.html" @ (483, 484)
-[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Databas..." @ (805, 562)
-[static] "International Drug / Pharma Company Generic Drug Status Veterinary Drugs OTC ..." @ (786, 535)
-[static] "Database" @ (1027, 522)
-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) ..." @ (801, 576)
-[/BLOCK]
-[BLOCK "Drugs & Medications A to Z"]
-[heading] "Drugs & Medications A to Z" @ (805, 672)
-[link] "Drugs & Medications A to Z /rootdocs/a-to-z-drug-list.html Pharma Company Gen..." @ (805, 748)
-[static] "/rootdocs/a-to-z-drug-list.html" @ (506, 707)
-[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Databas..." @ (805, 785)
-[static] "International Drug / Pharma Company Generic Drug Status Veterinary Drugs OTC ..." @ (786, 758)
-[static] "Database" @ (1027, 745)
-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) ..." @ (801, 799)
-[/BLOCK]
-[BLOCK "Shark Liver Oil Uses, Benefits & Side Effects"]
-[heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
-[link] "Shark Liver Oil Uses, Benefits & Side Effects /npc/shark-liver-oil.html Produ..." @ (805, 944)
-[static] "/npc/shark-liver-oil.html" @ (484, 930)
-[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwe..." @ (805, 981)
-[static] "Products / online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011......" @ (440, 967)
-[/BLOCK]
-[BLOCK "Bovine colostrum Uses, Benefits & Side Effects"]
-[heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
-[link] "Bovine colostrum Uses, Benefits & Side Effects /npc/bovine-colostrum.html ......" @ (805, 1126)
+[static] "Resources" @ (1286, 223)
+[static] "More" @ (1228, 224)
 [/BLOCK]

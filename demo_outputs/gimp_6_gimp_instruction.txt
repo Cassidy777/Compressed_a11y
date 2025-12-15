@@ -92,6 +92,7 @@ DOCKS (Right Panel):
 [spin-button] "100.0" @ (1726, 508)
 [/BLOCK]
 MODAL:
+[label] "Home" @ (1721, 1045)
 [table-cell] "System Resources" @ (226, 88)
 [table-cell] "Debugging" @ (226, 111)
 [table-cell] "Color Management" @ (226, 134)

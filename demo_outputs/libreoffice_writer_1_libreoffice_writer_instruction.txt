@@ -1,0 +1,138 @@
+============================================================
+SAMPLE: domain=libreoffice_writer, id=1 (libreoffice_writer-1), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	04 CHIN9505 EBook Purchasing info 2021 Jan.​docx	04 CHIN9505 EBook Purchasing info 2021 Jan.​docx			(1793, 920)	(120, 34)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	.​~lock.​04 CHIN9505 EBook Purchasing info 2021 Jan.​docx#	.​~lock.​04 CHIN9505 EBook Purchasing info 2021 Jan.​docx#			(1793, 803)	(120, 34)
+menu	LibreOffice Writer	""			(99, 0)	(180, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chr...
+
+INSTRUCTION:
+I would like to make the first three words of the sentence left-aligned and the rest right-aligned. I basically want to have some empty space in the middle to add some photos. Assume that every sentence will have at least three words. Could you help me on alignment for me using tabstops?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 30
+  - libreoffice_impress: 20
+  - libreoffice_writer: 61 <-- selected
+
+DETECTED DOMAIN: libreoffice_writer
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+MENUBAR:
+[menu] "File" @ (90, 76)
+[menu] "Edit" @ (131, 76)
+[menu] "View" @ (177, 76)
+[menu] "Insert" @ (229, 76)
+[menu] "Format" @ (290, 76)
+[menu] "Styles" @ (351, 76)
+[menu] "Table" @ (405, 76)
+[menu] "Form" @ (458, 76)
+[menu] "Tools" @ (510, 76)
+[menu] "Window" @ (571, 76)
+[menu] "Help" @ (629, 76)
+TOOLBAR:
+[toolbar-toggle] "Menu" @ (1892, 188)
+[toolbar-btn] "Export Directly as PDF" @ (230, 83)
+[toolbar-btn] "Clone" @ (455, 83)
+[toolbar-toggle] "Find and Replace" @ (592, 83)
+[toolbar-btn] "Spelling" @ (625, 83)
+[toolbar-toggle] "Formatting Marks" @ (658, 83)
+[toolbar-btn] "Table" @ (705, 83)
+[toolbar-btn] "Image" @ (743, 83)
+[toolbar-btn] "Chart" @ (776, 83)
+[toolbar-btn] "Text Box" @ (809, 83)
+[toolbar-btn] "Page Break" @ (850, 83)
+[toolbar-btn] "Field" @ (889, 83)
+[toolbar-btn] "Symbol" @ (933, 83)
+[toolbar-toggle] "Hyperlink" @ (979, 83)
+[toolbar-btn] "Footnote" @ (1012, 83)
+[toolbar-btn] "Endnote" @ (1045, 83)
+[toolbar-btn] "Bookmark" @ (1078, 83)
+[toolbar-btn] "Cross-reference" @ (1111, 83)
+[toolbar-btn] "Comment" @ (1152, 83)
+[toolbar-toggle] "Track Changes Functions" @ (1185, 83)
+[toolbar-btn] "Line" @ (1226, 83)
+[toolbar-btn] "Basic Shapes" @ (1265, 83)
+[toolbar-toggle] "Draw Functions" @ (1303, 83)
+[style-preset] "Normal (Web)" @ (157, 147)
+[toolbar-btn] "Update" @ (292, 122)
+[toolbar-btn] "New" @ (325, 122)
+[font] "Calibri" @ (442, 147)
+[font-size] "12 pt" @ (611, 147)
+[toolbar-toggle] "Bold" @ (704, 122)
+[toolbar-toggle] "Italic" @ (737, 122)
+[toolbar-btn] "Underline" @ (776, 122)
+[toolbar-toggle] "Strikethrough" @ (814, 122)
+[toolbar-toggle] "Superscript" @ (855, 122)
+[toolbar-toggle] "Subscript" @ (888, 122)
+[toolbar-btn] "Clear" @ (929, 122)
+[toolbar-btn] "Font Color" @ (976, 122)
+[toolbar-btn] "Character Highlighting Color" @ (1020, 122)
+[toolbar-toggle] "Left" @ (1066, 122)
+[toolbar-toggle] "Center" @ (1099, 122)
+[toolbar-toggle] "Right" @ (1132, 122)
+[toolbar-toggle] "Justified" @ (1165, 122)
+[toolbar-btn] "Unordered List" @ (1212, 122)
+[toolbar-btn] "Ordered List" @ (1256, 122)
+[toolbar-btn] "No List" @ (1294, 122)
+[toolbar-btn] "Increase" @ (1335, 122)
+[toolbar-btn] "Decrease" @ (1368, 122)
+[toolbar-btn] "Line Spacing" @ (1415, 122)
+[toolbar-btn] "Increase" @ (1453, 122)
+[toolbar-btn] "Decrease" @ (1486, 122)
+STATUSBAR:
+[status] "Page 1 of 1" @ (234, 1045)
+[status] "71 words, 424 characters" @ (540, 1045)
+[status] "Default Page Style" @ (870, 1045)
+[status] "English (USA)" @ (1167, 1045)
+[status] "173%" @ (1895, 1045)
+CONTENT:
+[paragraph-1] "Please find the E-book purchase option for your reference:" @ (959, 381)
+[paragraph-2] "How to use BLCUP eBook for PC" @ (959, 430)
+[paragraph-3] "Make payment for this eBook online." @ (959, 494)
+[paragraph-4] "Enter User center (Your BLCUP ID." @ (959, 559)
+[paragraph-5] "Download and install Windows eBook Reader (flipviewer) on your PC." @ (959, 623)
+[paragraph-6] "Enter User center (Your BLCUP ID." @ (959, 688)
+[paragraph-7] "Support Contact: service blcup.com" @ (959, 817)
+[paragraph-8] "This product is protected by copyright." @ (959, 882)
+[paragraph-9] "Use only on paying PC." @ (959, 946)
+MODAL:
+[push-button] "Open" @ (140, 83)
+[push-button] "Save" @ (184, 83)
+[push-button] "Print" @ (263, 83)
+[toggle-button] "Print Preview" (UNCHECKED) @ (296, 83)
+---
+[paragraph] "Download eBook and input Subscription ID online to open the OPZ file." @ (959, 753)

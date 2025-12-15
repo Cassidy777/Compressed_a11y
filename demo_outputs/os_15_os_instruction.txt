@@ -1,0 +1,72 @@
+============================================================
+SAMPLE: domain=os, id=15 (os-15), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+toggle-button	Search	""			(400, 111)	(36, 46)
+radio-button	Explore	""			(806, 111)	(125, 46)
+radio-button	Installed	""			(931, 111)	(125, 46)
+radio-button	Updates	""			(1056, 111)	(125, 46)
+text	Search	Spotify			(744, 164)	(500, 34)
+icon	edit-clear-symbolic	""			(1219, 173)	(16, 16)
+label	Olivia Cloud Music Player	Olivia Cloud Music Player			(657, 248)	(151, 34)
+label	Elegant Clo...
+
+INSTRUCTION:
+I want to install Spotify on my current system. Could you please help me?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 25 <-- selected
+
+DETECTED DOMAIN: os
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Ubuntu Software" @ (185, 13)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (1853, 1045)
+CONTENT:
+=== Window: Ubuntu Software ===
+[check] "Explore" @ (868, 134)
+[check] "Installed" @ (993, 134)
+[check] "Updates" @ (1118, 134)
+[btn] "Search" @ (418, 134)
+[input] "Search" @ (994, 181)
+[text] "Olivia Cloud Music Player" @ (732, 265)
+[text] "Elegant Cloud Music Player for Linux Desktop" @ (1104, 275)
+[text] "Calaboka" @ (732, 353)
+[text] "Ad silencer for Spotify" @ (1104, 364)
+[text] "MusicRadar - Identify music" @ (732, 443)
+[text] "Music Recognition app for Linux Desktop" @ (1104, 453)
+[text] "ncspot" @ (732, 531)
+[text] "Cross-platform ncurses Spotify client written in Rust" @ (1104, 542)
+[text] "spotify" @ (732, 620)
+[text] "Music for everyone" @ (1104, 631)
+[text] "Qortal UI" @ (732, 709)
+[text] "Qortal UI - Your interface to the digital future - Powered by Qortal" @ (1104, 720)
+[text] "Tizonia" @ (732, 798)
+[text] "Cloud music from the Linux terminal" @ (1104, 809)
+[text] "psst-gui" @ (732, 887)
+[text] "Unofficial Spotify client with a fast native GUI" @ (1104, 898)

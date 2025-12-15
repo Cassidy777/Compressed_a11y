@@ -22,7 +22,7 @@ DOMAIN SCORES (from domain_detector):
   - chrome: 15
   - vsc: 20
   - libreoffice_calc: 30
-  - libreoffice_impress: 65 <-- selected
+  - libreoffice_impress: 100 <-- selected
   - libreoffice_writer: 20
 
 DETECTED DOMAIN: libreoffice_impress
@@ -55,6 +55,8 @@ APP_LAUNCHER:
 ---
 [launcher-app] "Show Applications" @ (35, 1045)
 STATUSBAR:
+[status] Horizontal scroll bar @ (886, 1053)
+[status] Home @ (1853, 1045)
 [status] Slide 2 of 2 @ (110, 1070)
 [status] Blank Slide @ (836, 1070)
 [status] -3.43 / 2.22 0.00 x 0.00 @ (1131, 1070)
@@ -116,15 +118,25 @@ TOOLBAR:
 [toolbar] Duplicate Slide @ (1212, 108)
 [toolbar] Delete Slide @ (1245, 108)
 [toolbar] Slide Layout @ (1292, 108)
+SLIDE_LIST:
+[slide-list] Slides View @ (166, 629)
+[slide-list] Marketing Strategies @ (176, 478)
+PROPERTIES:
+[property] Master View @ (1739, 469)
+[property] Orientation: @ (1613, 271)
+[property] Master Background @ (1739, 413)
+[property] Insert Image... @ (1739, 345)
+[property] Master Slide: @ (1610, 382)
+[property] Master Objects @ (1739, 438)
+[property] Background: @ (1612, 308)
+[property] Format: @ (1627, 234)
 CONTENT:
-[content] "LibreOffice Impress" @ (194, 13)
-[content] "Master View" @ (1739, 469)
-[content] "Orientation:" @ (1613, 271)
-[content] "Master Background" @ (1739, 413)
-[content] "Insert Image..." @ (1739, 345)
-[content] "Master Slide:" @ (1610, 382)
-[content] "Master Objects" @ (1739, 438)
-[content] "Background:" @ (1612, 308)
-[content] "Format:" @ (1627, 234)
-[content] "Layouts" @ (1695, 501)
-[content] "Marketing Strategies" @ (176, 478)
+[menu] "LibreOffice Impress" @ (194, 13)
+[document-presentation] "31_2 - LibreOffice Presentation" @ (885, 606)
+[paragraph] "Marketing Strategies" @ (744, 285)
+[paragraph] "Search Engine Optimization (SEO)" @ (837, 479)
+[paragraph] "Social Media Marketing (SMM)" @ (786, 550)
+[paragraph] "Email Marketing" @ (610, 620)
+[paragraph] "Content Marketing" @ (640, 691)
+[paragraph] "Pay-Per-Click Advertising (PPC)" @ (796, 761)
+[scroll-bar] "Vertical scroll bar" @ (1505, 607)

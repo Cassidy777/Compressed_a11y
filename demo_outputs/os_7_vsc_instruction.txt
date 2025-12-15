@@ -1,0 +1,66 @@
+============================================================
+SAMPLE: domain=os, id=7 (os-7), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+label	photos	photos			(1829, 920)	(48, 17)
+label	cpjpg	cpjpg			(1834, 803)	(37, 17)
+push-button	Home	""			(188, 201)	(414, 32)
+toggle-button	Menu	""			(602, 200)	(36, 34)
+toggle-button	Menu	""			(793, 194)	(26, 46)
+toggle-button	Menu	""			(825, 194)	(36, 46)
+label	Recent	Recent			(142, 245)	(136, 36)
+label	Starred	Starred			(142, 283)	(136, 36)
+label	Home	Home			(142, 321)	(136, ...
+
+INSTRUCTION:
+Recursively go through the folders of the 'photos' directory and copy any .jpg files found into another directory named 'cpjpg'.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 10
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (395, 217)
+[desktop-icon] "cpjpg" @ (1852, 811)
+[desktop-icon] "photos" @ (1853, 928)
+CONTENT:
+=== Window: Unknown Window (Menu) ===
+[btn] "Menu" @ (620, 217)
+[btn] "Menu" @ (806, 217)
+[btn] "Menu" @ (843, 217)
+[text] "Recent" @ (210, 263)
+[text] "Starred" @ (210, 301)
+[text] "Home" @ (210, 339)
+[text] "Desktop" @ (210, 377)
+[text] "Documents" @ (210, 415)
+[text] "Downloads" @ (210, 453)
+[text] "Music" @ (210, 491)
+[text] "Pictures" @ (210, 529)
+[text] "Videos" @ (210, 567)
+[text] "Trash" @ (210, 605)
+[text] "Other Locations" @ (210, 652)

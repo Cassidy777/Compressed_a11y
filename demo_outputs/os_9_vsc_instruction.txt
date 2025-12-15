@@ -1,0 +1,123 @@
+============================================================
+SAMPLE: domain=os, id=9 (os-9), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+toggle-button	Primary Men...
+
+INSTRUCTION:
+Could you set the 'Dim screen when inactive' to off in setting?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 10
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Settings" @ (35, 816)
+[launcher-app] "Terminal" @ (35, 884)
+[launcher-app] "Trash" @ (35, 952)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Settings" @ (155, 13)
+DESKTOP_ICONS:
+[desktop-icon] "user@user-virtual-machine: ~" @ (627, 78)
+[desktop-icon] "Minimize" @ (891, 79)
+[desktop-icon] "Maximize" @ (931, 79)
+[desktop-icon] "Close" @ (971, 79)
+[desktop-icon] "Settings" @ (625, 164)
+[desktop-icon] "About" @ (1116, 164)
+[desktop-icon] "Network" @ (640, 211)
+[desktop-icon] "Bluetooth" @ (640, 256)
+[desktop-icon] "Background" @ (640, 302)
+[desktop-icon] "Appearance" @ (640, 347)
+[desktop-icon] "Device Name" @ (1028, 365)
+[desktop-icon] "user-virtual-machine" @ (1294, 365)
+[desktop-icon] "Notifications" @ (640, 392)
+[desktop-icon] "Search" @ (640, 437)
+[desktop-icon] "Hardware Model" @ (981, 442)
+[desktop-icon] "VMware, Inc. VMware Virtual Platform" @ (1261, 442)
+[desktop-icon] "Multitasking" @ (640, 482)
+[desktop-icon] "Memory" @ (1087, 488)
+[desktop-icon] "3.8 GiB" @ (1367, 488)
+[desktop-icon] "Applications" @ (626, 528)
+[desktop-icon] "Processor" @ (976, 534)
+[desktop-icon] "AMD® Epyc 7302p 16-core processor × 4" @ (1256, 534)
+[desktop-icon] "Privacy" @ (626, 573)
+[desktop-icon] "Graphics" @ (1004, 580)
+[desktop-icon] "llvmpipe (LLVM 15.0.7, 256 bits)" @ (1284, 580)
+[desktop-icon] "Online Accounts" @ (640, 618)
+[desktop-icon] "Disk Capacity" @ (1085, 626)
+[desktop-icon] "53.7 GB" @ (1365, 626)
+[desktop-icon] "Sharing" @ (640, 663)
+[desktop-icon] "OS Name" @ (1047, 703)
+[desktop-icon] "Ubuntu 22.04.3 LTS" @ (1327, 703)
+[desktop-icon] "Sound" @ (640, 709)
+[desktop-icon] "OS Type" @ (1090, 749)
+[desktop-icon] "64-bit" @ (1370, 749)
+[desktop-icon] "Power" @ (640, 754)
+[desktop-icon] "GNOME Version" @ (1096, 795)
+[desktop-icon] "42.9" @ (1376, 795)
+[desktop-icon] "Displays" @ (640, 799)
+[desktop-icon] "Windowing System" @ (1097, 841)
+[desktop-icon] "X11" @ (1377, 841)
+[desktop-icon] "Mouse & Touchpad" @ (640, 844)
+[desktop-icon] "Virtualization" @ (1082, 887)
+[desktop-icon] "VMware" @ (1362, 887)
+[desktop-icon] "Keyboard" @ (640, 889)
+[desktop-icon] "Software Updates" @ (1096, 933)
+[desktop-icon] "Printers" @ (640, 934)
+CONTENT:
+[content-item] "Menu" @ (843, 79)
+[content-item] "Primary Menu" @ (723, 165)
+[content-item] "Search" @ (529, 165)

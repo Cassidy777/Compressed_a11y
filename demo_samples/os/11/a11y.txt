@@ -1,0 +1,81 @@
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Minimize	""			(874, 64)	(34, 30)
+push-button	Maximize	""			(914, 64)	(34, 30)
+push-button	Close	""			(954, 64)	(34, 30)
+toggle-button	Menu	""			(825, 56)	(36, 46)
+label	user@user-virtual-machine: ~	user@user-virtual-machine: ~			(511, 70)	(232, 17)
+terminal	Terminal	user@user-virtual-machine:~$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			(260, 103)	(722, 434)
+toggle-button	Primary Menu	""			(705, 142)	(36, 46)
+label	Settings	Settings			(583, 156)	(85, 17)
+toggle-button	Search	""			(511, 142)	(36, 46)
+push-button	Minimize	""			(1365, 150)	(34, 30)
+push-button	Maximize	""			(1405, 150)	(34, 30)
+push-button	Close	""			(1445, 150)	(34, 30)
+label	Power	Power			(1082, 156)	(68, 17)
+label	Privacy	Privacy			(547, 206)	(158, 17)
+icon	Forward	""			(717, 206)	(16, 17)
+label	Online Accounts	Online Accounts			(547, 251)	(186, 17)
+label	Sharing	Sharing			(547, 296)	(186, 17)
+label	Sound	Sound			(547, 342)	(186, 17)
+label	Power	Power			(547, 387)	(186, 17)
+label	Displays	Displays			(547, 432)	(186, 17)
+label	Mouse & Touchpad	Mouse & Touchpad			(547, 477)	(186, 17)
+label	Keyboard	Keyboard			(547, 522)	(186, 17)
+label	Printers	Printers			(547, 567)	(186, 17)
+label	Removable Media	Removable Media			(547, 612)	(186, 17)
+label	Color	Color			(547, 657)	(186, 17)
+label	Region & Language	Region & Language			(547, 703)	(186, 17)
+label	Accessibility	Accessibility			(547, 748)	(186, 17)
+label	Users	Users			(547, 793)	(186, 17)
+label	Default Applications	Default Applications			(547, 838)	(186, 17)
+label	Date & Time	Date & Time			(547, 883)	(186, 17)
+label	About	About			(547, 928)	(186, 17)
+icon	About	""			(519, 928)	(16, 17)
+label	Standard performance and power usage.	Standard performance and power usage.			(882, 294)	(244, 19)
+label	Balanced	Balanced			(882, 274)	(61, 20)
+label	Reduced performance and power usage.	Reduced performance and power usage.			(882, 350)	(241, 18)
+label	Power Saver	Power Saver			(882, 330)	(81, 20)
+list-item	Automatic suspend	""			(827, 486)	(578, 56)
+label	Off	Off			(1368, 489)	(22, 50)
+menu	Settings	""			(99, 0)	(113, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Google Chrome	""			(0, 33)	(70, 64)
+push-button	Thunderbird Mail	""			(0, 101)	(70, 64)
+push-button	Visual Studio Code	""			(0, 169)	(70, 64)
+push-button	VLC media player	""			(0, 237)	(70, 64)
+push-button	LibreOffice Writer	""			(0, 305)	(70, 64)
+push-button	LibreOffice Calc	""			(0, 373)	(70, 64)
+push-button	LibreOffice Impress	""			(0, 441)	(70, 64)
+push-button	GNU Image Manipulation Program	""			(0, 509)	(70, 64)
+push-button	Files	""			(0, 577)	(70, 64)
+push-button	Ubuntu Software	""			(0, 645)	(70, 64)
+push-button	Help	""			(0, 713)	(70, 64)
+push-button	Settings	""			(0, 784)	(70, 64)
+push-button	Terminal	""			(0, 852)	(70, 64)
+push-button	Trash	""			(0, 920)	(70, 64)
+toggle-button	Show Applications	""			(0, 1010)	(70, 70)

@@ -1,0 +1,87 @@
+============================================================
+SAMPLE: domain=thunderbird, id=11 (thunderbird-11), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Mail (Ctrl+1)	""			(77, 71)	(30, 30)
+push-button	Address Book (Ctrl+2)	""			(77, 116)	(30, 30)
+push-button	Calendar (Ctrl+3)	""			(77, 161)	(30, 30)
+push-button	Tasks (Ctrl+4)	""			(77, 206)	(30, 30)
+push-button	Chat (Ctrl+5)	""			(77, 251)	(30, 30)
+push-button	Settings	""			(77, 998)	(30, 30)
+push-button	Hide Spaces Toolbar	""			(77, 1043)	(30, 30)
+entry	Search:	""		...
+
+INSTRUCTION:
+Could you help me back up all the email files in my inbox to ~/emails.bak? Please save them separately in eml format.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 21
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 78 <-- selected
+  - os: 0
+
+DETECTED DOMAIN: thunderbird
+
+=== COMPRESSED A11Y ===
+DEBUG_VIEW_TYPE: mail
+DEBUG_MODAL_SUPPRESSED: cooldown=2, prev=account_settings, curr=mail
+=== SYSTEM ===
+[menu] "Thunderbird Mail" @ (185, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== TOOLBAR ===
+[entry] "Search:" @ (979, 86)
+[push-button] "Search" @ (1428, 86)
+
+=== SPACES ===
+[push-button] "Mail (Ctrl+1)" @ (92, 86)
+[push-button] "Address Book (Ctrl+2)" @ (92, 131)
+[push-button] "Calendar (Ctrl+3)" @ (92, 176)
+[push-button] "Tasks (Ctrl+4)" @ (92, 221)
+[push-button] "Chat (Ctrl+5)" @ (92, 266)
+[push-button] "Settings" @ (92, 1013)
+[push-button] "Hide Spaces Toolbar" @ (92, 1058)
+
+=== FOLDER_LIST ===
+[tree-item] "anonym-x2024@outlook.com" @ (247, 288)
+  [tree-item] "Inbox" @ (247, 197)
+  [tree-item] "Drafts" @ (247, 223)
+  [tree-item] "Sent" @ (247, 249)
+  [tree-item] "Junk" @ (247, 275)
+  [tree-item] "Deleted" @ (247, 314)
+  [tree-item] "POP" @ (247, 327)
+  [tree-item] "Notes" @ (247, 353)
+  [tree-item] "Outbox" @ (247, 379)
+  [tree-item] "封存" @ (247, 405)
+[tree-item] "Local Folders" @ (247, 470)
+  [tree-item] "Trash" @ (247, 457)
+  [tree-item] "Outbox" @ (247, 483)
+  [tree-item] "Bills" @ (247, 509)
+
+=== MESSAGE_BODY ===
+Home
+
+=== STATUSBAR ===
+[push-button] "You are currently online." @ (129, 1068)
+[label] "anonym-x2024@outlook.com: Connecting to outlook.office365.com…" @ (954, 1068)

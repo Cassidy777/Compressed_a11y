@@ -1,0 +1,57 @@
+============================================================
+SAMPLE: domain=os, id=14 (os-14), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+toggle-button	Search	""			(400, 111)	(36, 46)
+radio-button	Explore	""			(806, 111)	(125, 46)
+radio-button	Installed	""			(931, 111)	(125, 46)
+radio-button	Updates	""			(1056, 111)	(125, 46)
+text	Search	Spotify			(744, 164)	(500, 34)
+icon	edit-clear-symbolic	""			(1219, 173)	(16, 16)
+menu	Ubuntu Software	""			(99, 0)	(172, 27)
+menu	System	""			(1814, 0)	(106, 27)
+push-button	Googl...
+
+INSTRUCTION:
+I want to install Spotify on my current system. Could you please help me?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - os: 25 <-- selected
+
+DETECTED DOMAIN: os
+
+=== COMPRESSED A11Y ===
+APP_LAUNCHER:
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+TOP_BAR:
+[top-item] "Ubuntu Software" @ (185, 13)
+DESKTOP_ICONS:
+[desktop-icon] "Home" @ (1853, 1045)
+CONTENT:
+=== Window: Ubuntu Software ===
+[check] "Explore" @ (868, 134)
+[check] "Installed" @ (993, 134)
+[check] "Updates" @ (1118, 134)
+[btn] "Search" @ (418, 134)
+[input] "Search" @ (994, 181)
