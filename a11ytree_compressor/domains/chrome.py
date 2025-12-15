@@ -8,7 +8,8 @@ from ..core.common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
     merge_fragmented_static_lines, build_hierarchical_content_lines
 )
-from ..core.modal_strategies import ( ModalDetector, DiffModalDetector )
+from ..core.modal_strategies import ( ModalDetector, DiffModalDetector, _modal_diff_cache )
+
 
 
 # ============================================================================
@@ -40,6 +41,16 @@ BROWSER_UI_ANCHOR_BUTTONS = {
 BROWSER_UI_ANCHOR_ENTRIES = {"address and search bar"}
 BROWSER_TAB_ANCHORS = {"search tabs", "new tab", "close"}
 WINDOW_CONTROL_NAMES = {"minimise", "minimize", "restore", "maximize", "close"}
+
+# --- Layout shift rescue thresholds ---
+LAYOUT_SHIFT_DX_TH = 60
+LAYOUT_SHIFT_DY_TH = 120
+
+# tag互換（見た目は同じで tag だけ変わるケースを許容）
+TAG_COMPAT_GROUPS = {
+    "text": {"paragraph", "static", "section", "label", "heading"},
+    "action": {"push-button", "link", "button", "toggle-button", "radio-button", "check-box"},
+}
 
 
 # ============================================================================
@@ -595,6 +606,183 @@ class ChromeCompressor(BaseA11yCompressor):
                 return [], nodes
 
         return modal, bg
+
+    
+    # ========================================================================
+    # Layout Shift Rescue (MODAL誤爆をCONTENTへ戻す)
+    # ========================================================================
+
+    _OVERLAY_KEYWORDS = {
+        # cookie
+        "cookie", "cookies", "cookie preferences", "accept all", "reject all",
+        # survey / feedback
+        "survey", "start survey", "we'd love your feedback", "feedback", "tell us about your experience",
+    }
+
+    def _norm_label(self, n: Node) -> str:
+        s = (n.get("name") or n.get("text") or "").strip().lower()
+        s = re.sub(r"\s+", " ", s)
+        return s
+
+    def _tag_group(self, tag: str) -> str:
+        tag = (tag or "").lower()
+        for g, tags in TAG_COMPAT_GROUPS.items():
+            if tag in tags:
+                return g
+        return tag  # fallback: exact compare
+
+    def _tags_compatible(self, tag_a: str, tag_b: str) -> bool:
+        ta, tb = (tag_a or "").lower(), (tag_b or "").lower()
+        if ta == tb:
+            return True
+        return self._tag_group(ta) == self._tag_group(tb)
+
+    def _is_overlay_important(self, n: Node) -> bool:
+        label = self._norm_label(n)
+        if not label:
+            return False
+        return any(kw in label for kw in self._OVERLAY_KEYWORDS)
+
+    def _estimate_global_shift(self, modal_nodes: List[Node], prev_nodes: List[Node]) -> Tuple[Optional[int], Optional[int], int]:
+        """
+        ラベル一致するノードの中心差分から、全体のdx/dy(代表値)を推定する。
+        """
+        if not modal_nodes or not prev_nodes:
+            return None, None, 0
+
+        prev_index: Dict[str, List[Node]] = {}
+        for p in prev_nodes:
+            k = self._norm_label(p)
+            if k:
+                prev_index.setdefault(k, []).append(p)
+
+        dxs, dys = [], []
+        pairs = 0
+
+        for n in modal_nodes:
+            k = self._norm_label(n)
+            if not k or k not in prev_index:
+                continue
+
+            tag = (n.get("tag") or "").lower()
+            nb = node_bbox_from_raw(n)
+            ncx = nb["x"] + nb["w"] // 2
+            ncy = nb["y"] + nb["h"] // 2
+
+            # 同ラベルのprev候補から、tag互換 & xが近いものを優先
+            best = None
+            best_score = 10**18
+            for p in prev_index[k]:
+                ptag = (p.get("tag") or "").lower()
+                if not self._tags_compatible(tag, ptag):
+                    continue
+                pb = node_bbox_from_raw(p)
+                pcx = pb["x"] + pb["w"] // 2
+                pcy = pb["y"] + pb["h"] // 2
+                score = abs(ncx - pcx) + abs(ncy - pcy)
+                if score < best_score:
+                    best_score = score
+                    best = (pcx, pcy)
+
+            if best is None:
+                continue
+
+            pcx, pcy = best
+            dxs.append(ncx - pcx)
+            dys.append(ncy - pcy)
+            pairs += 1
+
+        if pairs < 8:
+            return None, None, pairs
+
+        return int(median(dxs)), int(median(dys)), pairs
+
+    def _is_layout_shift_same_content(self, n: Node, prev_nodes: List[Node], dx0: int, dy0: int) -> bool:
+        """
+        解決策①②：
+        - 多少のずれ(dx/dy)はモーダル扱いしない
+        - ずれていてもラベル・x帯・tag互換が同じならCONTENTに戻す
+        """
+        label = self._norm_label(n)
+        if not label:
+            return False
+
+        tag = (n.get("tag") or "").lower()
+        nb = node_bbox_from_raw(n)
+        ncx = nb["x"] + nb["w"] // 2
+        ncy = nb["y"] + nb["h"] // 2
+
+        # prev側をラベルで引けるようにする（軽量化したいなら呼び出し側でindex化してもOK）
+        for p in prev_nodes:
+            if self._norm_label(p) != label:
+                continue
+            ptag = (p.get("tag") or "").lower()
+            if not self._tags_compatible(tag, ptag):
+                continue
+
+            pb = node_bbox_from_raw(p)
+            pcx = pb["x"] + pb["w"] // 2
+            pcy = pb["y"] + pb["h"] // 2
+
+            # “全体シフト(dx0,dy0)” を考慮して、期待位置との差を見る
+            dx = abs(ncx - (pcx + dx0))
+            dy = abs(ncy - (pcy + dy0))
+
+            # x帯がほぼ同じ + dx/dyが閾値以内なら「同じコンテンツが押し下げられただけ」
+            if dx <= LAYOUT_SHIFT_DX_TH and dy <= LAYOUT_SHIFT_DY_TH:
+                # xの左端も軽くチェック（列が変わってないこと）
+                if abs(nb["x"] - pb["x"]) <= 30:
+                    return True
+
+        return False
+
+    def _detect_modals(self, nodes: List[Node], w: int, h: int, instruction: str):
+        """
+        親クラスのモーダル検出後に、
+        - Cookie / Survey / Feedback を最優先で MODAL に残す
+        - それ以外で “押し下げシフトで同一” なものを CONTENT(bg) に救出する
+        """
+        # super呼び出し前に prev を確保（super内部でcacheが更新され得るため）
+        prev_base_nodes = None
+        try:
+            prev_base_nodes = _modal_diff_cache.get("base_nodes")
+        except Exception:
+            prev_base_nodes = None
+
+        modal_nodes, bg_nodes, mode = super()._detect_modals(nodes, w, h, instruction)
+
+        if not modal_nodes or not prev_base_nodes:
+            return modal_nodes, bg_nodes, mode
+
+        # 重要overlayが一つも無いなら、無理に救出せず現状維持でもよい
+        important = [n for n in modal_nodes if self._is_overlay_important(n)]
+
+        # 全体シフト推定（cookie/surveyで押し下げられるケースを拾う）
+        dx0, dy0, pairs = self._estimate_global_shift(modal_nodes, prev_base_nodes)
+        if dx0 is None or dy0 is None:
+            dx0, dy0 = 0, 0
+
+        rescued = []
+        kept = []
+
+        for n in modal_nodes:
+            # 1) Cookie / Survey / Feedback は絶対に MODAL に残す（あなたの設計）
+            if self._is_overlay_important(n):
+                kept.append(n)
+                continue
+
+            # 2) 重要overlayが存在する時だけ、shift救出を強めに発動（誤爆を抑える）
+            if important and self._is_layout_shift_same_content(n, prev_base_nodes, dx0, dy0):
+                rescued.append(n)
+            else:
+                kept.append(n)
+
+        if rescued:
+            bg_nodes.extend(rescued)
+            modal_nodes = kept
+
+        return modal_nodes, bg_nodes, mode
+
 
     def split_static_ui(self, nodes: List[Node], screen_w: int, screen_h: int) -> Tuple[List[Node], List[Node]]:
         """
