@@ -21,8 +21,19 @@ _GLYPH_ONLY_RE = re.compile(r"^[\s\uE000-\uF8FF]+$")
 
 def _node_disp(n) -> str:
     """
-    表示用テキストを取得し、先頭の装飾アイコン(PUA)を除去して返す。
+    表示用テキストを取得する。
+    修正: [entry]タグの場合は、name(ファイル名など)よりも text(中身) を優先して返す。
     """
+    tag = (n.get("tag") or "").lower()
+    
+    # 1. entryタグで text(中身) がある場合はそれを優先 (エディタのコード本文など)
+    if tag == "entry":
+        val = n.get("text")
+        if val and val.strip():
+            cleaned = _PUA_PREFIX_RE.sub("", val)
+            return cleaned.strip()
+
+    # 2. 通常の優先順位
     raw = (n.get("name") or n.get("text") or n.get("description") or "")
     cleaned = _PUA_PREFIX_RE.sub("", raw)
     return cleaned.strip()
@@ -167,8 +178,11 @@ class Vs_codeCompressor(BaseA11yCompressor):
         ACTIVITY_X_MIN = w * 0.02
         ACTIVITY_X_MAX = w * 0.08
 
-        SIDEBAR_X_MIN = w * 0.06
-        SIDEBAR_X_MAX = w * 0.22
+        # ---------------------------------------------------------
+        # 【修正点】Side Bar境界を 0.30w に拡大 (view非依存で左側をカバー)
+        # ---------------------------------------------------------
+        SIDEBAR_X_MAX = w * 0.30
+        # SIDEBAR_X_MIN は削除 (Activity Barの右から自然に始まるものとする)
 
         BREAD_Y_MIN = h * 0.10
         BREAD_Y_MAX = h * 0.18
@@ -191,14 +205,15 @@ class Vs_codeCompressor(BaseA11yCompressor):
             lname = name.lower()
 
             # 1) APP_LAUNCHER
-            if x <= LAUNCHER_X_MAX and bw <= w * 0.08 and bh >= 30:
+            if x <= 5 and bw >= w * 0.03 and bh >= 30:
                 if tag in ("push-button", "toggle-button", "launcher-app", "button"):
                     regions["APP_LAUNCHER"].append(n)
                     continue
 
             # 2) STATUSBAR
             if cy >= STATUS_Y_MIN:
-                regions["STATUSBAR"].append(n)
+                if bw >= w * 0.20 and bh <= h * 0.05:
+                    regions["STATUSBAR"].append(n)
                 continue
 
             # 3) MENUBAR
@@ -208,8 +223,13 @@ class Vs_codeCompressor(BaseA11yCompressor):
                     continue
 
             # 4) ACTIVITY_BAR
-            if ACTIVITY_X_MIN <= cx <= ACTIVITY_X_MAX and y <= h * 0.93:
-                if tag in ("section", "push-button", "toggle-button", "button", "static"):
+            name = (n.get("name") or "").strip().lower()
+
+            if cx <= ACTIVITY_X_MAX and MENUBAR_Y_MAX <= cy <= h * 0.97:
+                if tag in ("section", "push-button"):
+                    if ("manage" in name) or (name == "accounts"):
+                        regions["ACTIVITY_BAR"].append(n)
+                        continue
                     regions["ACTIVITY_BAR"].append(n)
                     continue
 
@@ -239,9 +259,19 @@ class Vs_codeCompressor(BaseA11yCompressor):
                         regions["FIND_REPLACE"].append(n)
                         continue
 
-            # 8) SIDE_BAR
-            if SIDEBAR_X_MIN <= cx <= SIDEBAR_X_MAX and cy <= h * 0.93:
-                if tag in ("section", "push-button", "toggle-button", "tree-item", "list-item", "heading", "label", "static", "text"):
+            # 8) SIDE_BAR (General)
+            # 0.35w以下の左側にあるリスト・ツリー的なものは SIDE_BAR へ
+            if cx <= SIDEBAR_X_MAX and (MENUBAR_Y_MAX <= cy <= h * 0.93):
+                # 【修正】entryタグで中身が長い(コード本文など)場合は、座標に関わらずCONTENT(EDITOR)扱いにする
+                if tag == "entry":
+                    txt = (n.get("text") or "")
+                    # 改行を含む、またはある程度長いテキストを持つentryはエディタ本文とみなす
+                    if "\n" in txt or len(txt) > 40:
+                        regions["CONTENT"].append(n)
+                        continue
+
+                # 誤爆防止のためタグはある程度絞るが、構造要素は拾う
+                if tag in ("section", "push-button", "toggle-button", "tree-item", "list-item", "heading", "label", "static", "text", "entry", "input"):
                     regions["SIDE_BAR"].append(n)
                     continue
 
@@ -292,7 +322,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
         # ----------------------------------------------------
         # Static重複排除ロジック (A1)
         # ----------------------------------------------------
-        # 優先度の高いタグでテキストが既出の場合、static/section を落とす
         SEMANTIC_TAGS = {
             "heading", "push-button", "toggle-button", "button", 
             "link", "tab", "tree-item", "list-item", "entry", "label"
@@ -325,7 +354,6 @@ class Vs_codeCompressor(BaseA11yCompressor):
             # Static重複チェック
             if tag in {"static", "section", "paragraph", "text"}:
                 if name.lower() in existing_texts:
-                    # Semanticタグ側で既に同じテキストが出ているなら、このstaticは出力しない
                     continue
 
             key = (tag, name.lower())
@@ -353,8 +381,8 @@ class Vs_codeCompressor(BaseA11yCompressor):
         view_type = view_type or "generic"
 
         if view_type == "welcome":
-            allow = {"heading", "paragraph", "push-button", "link", "label", "text", "section", "static"}
-            return self._compress_simple_list(nodes, allow_tags=allow, max_items=28)
+            allow = {"heading", "paragraph", "push-button", "link", "label", "text", "section", "static", "check-box", "toggle-button"}
+            return self._compress_simple_list(nodes, allow_tags=allow, max_items=40)
 
         if view_type == "settings":
             allow = {
@@ -370,6 +398,13 @@ class Vs_codeCompressor(BaseA11yCompressor):
                 "section", "static"
             }
             return self._compress_simple_list(nodes, allow_tags=allow, max_items=30)
+            
+        if view_type == "extensions_detail":
+            allow = {
+                "heading", "push-button", "link", "label", "paragraph", "entry",
+                "section", "static", "text"
+            }
+            return self._compress_simple_list(nodes, allow_tags=allow, max_items=35)
 
         if view_type == "command_palette":
             allow = {"entry", "list-item", "label", "text", "static"}
@@ -418,8 +453,15 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
         for n in nodes:
             t = tag(n); s = ldisp(n)
+            # Extension Marketplace List
             if t == "entry" and "search extensions" in s and "marketplace" in s: return "extensions"
             if "extensions: marketplace" in s: return "extensions"
+            
+            # 【追加】Extension Details
+            if s in {"uninstall", "disable", "enable", "switch to pre-release version"}:
+                return "extensions_detail"
+            if s == "runtime status" or s == "feature contributions" or s == "changelog":
+                return "extensions_detail"
 
         # 2) SCORE-BASED
         score: Dict[str, float] = defaultdict(float)
@@ -446,6 +488,9 @@ class Vs_codeCompressor(BaseA11yCompressor):
             if s in {"installed", "recommended", "enabled", "disabled"}: score["extensions"] += 1.5
             if s in {"install", "uninstall", "reload required"} and t in {"push-button", "button"}: score["extensions"] += 2.5
             if "publisher" in s or "downloads" in s: score["extensions"] += 0.8
+            
+            if s in {"changelog", "feature contributions", "runtime status", "categories", "resources"}: score["extensions_detail"] += 2.0
+            if s == "extension: ": score["extensions_detail"] += 2.0
 
         top = sorted(score.items(), key=lambda kv: kv[1], reverse=True)
         if not top:
@@ -473,10 +518,12 @@ class Vs_codeCompressor(BaseA11yCompressor):
         regions: Dict[str, List[Node]],
         w: int,
         h: int,
+        force_distribute: bool = False,
     ) -> Tuple[List[Node], List[Node]]:
         """
         diff-modal が誤って吸った要素を、幾何＋軽い文字判定で救助して適切な領域へ戻す。
-        戻せないものだけ MODAL/NOTIFICATION に残す。
+        force_distribute=True の場合は、match_ratioや数が多いと判断されたため、
+        Modalに残さず全て geometry ベースで SIDE_BAR / CONTENT に振り分ける。
         """
         rescued: List[Node] = []
         remain: List[Node] = []
@@ -499,7 +546,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
         BREAD_Y_MIN, BREAD_Y_MAX = h * 0.10, h * 0.18
 
         # サイドバー領域 (Extensionsパネル等がここに入る)
-        SIDEBAR_X_MAX = w * 0.25
+        SIDEBAR_X_MAX = w * 0.30
         SIDEBAR_Y_MIN = h * 0.08 
 
         MENU_KEYWORDS = {"file", "edit", "selection", "view", "go", "run", "terminal", "help"}
@@ -510,6 +557,23 @@ class Vs_codeCompressor(BaseA11yCompressor):
             tag = _tag(n)
             name = _name(n)
             lname = name.lower()
+
+            # ----------------------------------------------------
+            # 【修正点】大量Modal検出時は強制的に左右へ振り分ける
+            # ----------------------------------------------------
+            if force_distribute:
+                # 0.35w より左なら SIDE_BAR
+                if cx <= SIDEBAR_X_MAX:
+                    regions.setdefault("SIDE_BAR", []).append(n)
+                    rescued.append(n)
+                    continue
+                # それ以外は CONTENT
+                else:
+                    regions.setdefault("CONTENT", []).append(n)
+                    rescued.append(n)
+                    continue
+
+            # --- 通常救出ロジック ---
 
             # 1) STATUSBAR
             if cy >= STATUS_Y_MIN:
@@ -548,10 +612,16 @@ class Vs_codeCompressor(BaseA11yCompressor):
 
             # 7) SIDE_BAR (Extensions, ExplorerなどがModal扱いされた場合の救済)
             if cx <= SIDEBAR_X_MAX and cy >= SIDEBAR_Y_MIN:
-                # 【修正点】通知/Toast系は救出せず MODAL/Background に残すガード
+                # 通知/Toast系は救出せず MODAL/Background に残す
                 if any(k in lname for k in ("update", "notification", "error", "warning", "toast")):
                     remain.append(n)
                     continue
+
+                if tag == "entry":
+                     txt = n.get("text") or ""
+                     if "\n" in txt or len(txt) > 40:
+                         regions.setdefault("CONTENT", []).append(n)
+                         rescued.append(n); continue
 
                 if tag in ("tree-item", "list-item", "section", "push-button", "entry", "heading", "label", "static"):
                     regions.setdefault("SIDE_BAR", []).append(n)
@@ -581,9 +651,17 @@ class Vs_codeCompressor(BaseA11yCompressor):
             merged_modal.extend(list(modal_nodes))
         regions["MODAL"] = []
 
+        # ----------------------------------------------------------------
+        # 【修正点】大量のDiff Modalが発生している場合はModal扱いをキャンセルする
+        # (match_ratio >= 0.7 相当の判定として、ノード数 40以上 を閾値とする)
+        # ----------------------------------------------------------------
+        is_massive_modal = (len(merged_modal) >= 40)
+
         # 2) MODAL救助
         if merged_modal:
-            _rescued, remaining_modal = self._rescue_from_modal(merged_modal, regions, w, h)
+            _rescued, remaining_modal = self._rescue_from_modal(
+                merged_modal, regions, w, h, force_distribute=is_massive_modal
+            )
         else:
             remaining_modal = []
 
@@ -615,7 +693,7 @@ class Vs_codeCompressor(BaseA11yCompressor):
         _emit("LAUNCHER", regions.get("APP_LAUNCHER", []), max_items=20)
         _emit("MENUBAR", regions.get("MENUBAR", []), allow={"menu", "push-button"}, max_items=12)
         _emit("ACTIVITY_BAR", regions.get("ACTIVITY_BAR", []), allow={"section", "push-button", "toggle-button", "static"}, max_items=14)
-        _emit("SIDE_BAR", regions.get("SIDE_BAR", []), allow={"section", "tree-item", "list-item", "push-button", "heading", "label", "static", "text"}, max_items=18)
+        _emit("SIDE_BAR", regions.get("SIDE_BAR", []), allow={"section", "tree-item", "list-item", "push-button", "heading", "label", "static", "text", "entry", "input"}, max_items=18)
         _emit("TAB_BAR", regions.get("TAB_BAR", []), allow={"section", "push-button", "tab", "label", "static"}, max_items=10)
         _emit("BREADCRUMB", regions.get("BREADCRUMB", []), allow={"section", "label", "text", "link", "static"}, max_items=10)
         _emit("FIND / REPLACE", regions.get("FIND_REPLACE", []), allow={"entry", "check-box", "push-button", "label", "text", "section", "static"}, max_items=20)

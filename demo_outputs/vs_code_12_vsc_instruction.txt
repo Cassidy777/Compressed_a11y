@@ -1,0 +1,70 @@
+============================================================
+SAMPLE: domain=vs_code, id=12 (vs_code-12), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+document-web	● main.py - Visual Studio Code	""			(70, 89)	(1850, 991)
+section	Explorer (Ctrl+Shift+E) - 1 unsaved file	""			(70, 89)	(48, 48)
+section					(82, 101)	(24, 24)
+static					(82, 101)	(24, 24)
+section	Explorer (Ctrl+Shift+E) - 1 unsaved file	""			(70, 89)	(48, 48)
+section		1			(94, 113)	(16, 16)
+static	1	1			(99, 116)	(6, 10)
+section	Search (Ctrl+Shift+F)	""			(70, 1...
+
+INSTRUCTION:
+Please help me visualize all numpy arrays in current python file within VS Code.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 40 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 40
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+=== VIEW === generic
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== ACTIVITY_BAR ===
+[section] "Search (Ctrl+Shift+F)" @ (94, 161)
+[section] "Source Control (Ctrl+Shift+G)" @ (94, 209)
+[section] "Run and Debug (Ctrl+Shift+D)" @ (94, 257)
+[section] "Extensions (Ctrl+Shift+X)" @ (94, 305)
+[section] "Accounts" @ (94, 986)
+[section] "Explorer (Ctrl+Shift+E) - 1 unsaved file" @ (94, 113)
+[section] "1" @ (102, 121)
+
+=== TAB_BAR ===
+[section] "~/main.py" @ (168, 106)
+
+=== CONTENT (MAIN) ===
+[section] "Manage - New Code update available." @ (94, 1034)
+
+=== STATUSBAR ===
+[label] "Home" @ (1853, 1045)
+[section] "1" @ (102, 1042)
+[static] "1" @ (102, 1042)

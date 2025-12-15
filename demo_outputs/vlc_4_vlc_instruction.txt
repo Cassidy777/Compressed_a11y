@@ -1,0 +1,101 @@
+============================================================
+SAMPLE: domain=vlc, id=4 (vlc-4), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu-item	Media	""			(76, 64)	(44, 20)
+menu-item	Playback	""			(126, 64)	(62, 20)
+menu-item	Audio	""			(194, 64)	(43, 20)
+menu-item	Video	""			(243, 64)	(42, 20)
+menu-item	Subtitle	""			(291, 64)	(55, 20)
+menu-item	Tools	""			(352, 64)	(38, 20)
+menu-item	View	""			(396, 64)	(37, 20)
+menu-item	Help	""			(439, 64)	(36, 20)
+label	 --:-- 	""			(70, 1028)	(44, 18)
+label	 --:-- 	""			(...
+
+INSTRUCTION:
+My VLC Media Player has been auto-closing once the video ends. It is very annoying. Could you help me prevent the VLC Media Player from auto-closing once the video ends?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 104 <-- selected
+
+DETECTED DOMAIN: vlc
+
+=== COMPRESSED A11Y ===
+=== SYSTEM ===
+[menu] "VLC media player" @ (185, 13)
+[menu] "vlc" @ (1794, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[menu-item] "Media" @ (98, 74)
+[menu-item] "Playback" @ (157, 74)
+[menu-item] "Audio" @ (215, 74)
+[menu-item] "Video" @ (264, 74)
+[menu-item] "Subtitle" @ (318, 74)
+[menu-item] "Tools" @ (371, 74)
+[menu-item] "View" @ (414, 74)
+[menu-item] "Help" @ (457, 74)
+
+=== PLAYER STATUS ===
+[time-elapsed] "--:--" @ (92, 1037)
+[time-duration] "--:--" @ (1898, 1037)
+
+=== VLC PREFERENCES ===
+[field] "Output module:" -> [combo-box] "Automatic" @ (1123, 495)
+[field] "Replay gain mode:" -> [combo-box] "None" @ (1123, 618)
+[field] "Visualization:" -> [combo-box] "Disable" @ (1123, 656)
+[field] "Preferred audio language:" -> [text] "Preferred audio language:" @ (1123, 727)
+[label] "Audio Settings" @ (995, 328)
+[check-box] "Interface" @ (649, 269)
+[check-box] "Audio" @ (738, 269)
+[check-box] "Video" @ (827, 269)
+[check-box] "Subtitles / OSD" @ (925, 269)
+[check-box] "Input / Codecs" @ (1031, 269)
+[check-box] "Hotkeys" @ (1128, 269)
+[check-box] "Enable audio" @ (666, 374)
+[check-box] "Enable Time-Stretching audio" @ (728, 560)
+[check-box] "Normalize volume to:" @ (703, 588)
+[check-box] "Submit played tracks stats to Last.fm" @ (751, 755)
+[radio] "Simple" @ (642, 896)
+[radio] "All" @ (698, 896)
+[button] "Reset Preferences" @ (805, 901)
+[button] "Save" @ (1260, 901)
+[button] "Cancel" @ (1346, 901)

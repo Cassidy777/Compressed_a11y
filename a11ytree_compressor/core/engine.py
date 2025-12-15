@@ -35,6 +35,12 @@ class BaseA11yCompressor:
     # 追加：近接 static 行のマージ（"A / B / C" みたいにまとめるか）
     enable_static_line_merge: bool = True
 
+    os_menu_blacklist: Set[str] = {
+        "system",
+        "google chrome",
+        "__macosx",
+    }
+
     def __init__(self):
         self.diff_detector = DiffModalDetector()
         # instruction 用の状態を初期化しておくと安心
@@ -177,14 +183,7 @@ class BaseA11yCompressor:
         # 1. タグ・ラベル・座標が完全一致する重複ノードをまとめる
         nodes = dedup_same_label_same_pos(nodes)
 
-        # 2. OSメニュー用ブラックリスト（menuタグ専用）
-        os_menu_blacklist = {
-            "system",
-            "google chrome",
-            "__macosx",
-        }
-
-        # 3. OSノイズラベル（タグに依存しない）
+        # 2. OSノイズラベル（タグに依存しない）
         OS_NOISE_LABELS = {
             "__macosx",
             ".ds_store",
@@ -203,11 +202,11 @@ class BaseA11yCompressor:
             for ch in ("\u200b", "\u200e", "\u200f"):
                 label = label.replace(ch, "")
 
-            # 2-a) GNOMEのSystemメニューなど、OSトップバー由来のmenu
-            if tag == "menu" and label in os_menu_blacklist:
+            # ★ 変更点3: self.os_menu_blacklist を参照するように変更
+            if tag == "menu" and label in self.os_menu_blacklist:
                 continue
 
-            # 3-a) __MACOSX, .DS_Store など、OSファイル由来のラベルはタグに関係なく弾く
+            # 3-a) __MACOSX, .DS_Store など
             if label in OS_NOISE_LABELS:
                 continue
 

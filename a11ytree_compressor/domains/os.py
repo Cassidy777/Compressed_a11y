@@ -15,6 +15,11 @@ class OSCompressor(BaseA11yCompressor):
     enable_background_filtering = False
     use_statusbar = True 
 
+    os_menu_blacklist = {
+        "google chrome",
+        "__macosx",
+    }
+
     MODAL_KEYWORDS: Set[str] = {
         "authentication", "password", "required", "authenticate", "cancel"
     }
@@ -297,7 +302,7 @@ class OSCompressor(BaseA11yCompressor):
         }
 
         LAUNCHER_X_LIMIT = w * 0.05
-        TOP_BAR_MAX_Y    = h * 0.03
+        TOP_BAR_MAX_Y    = h * 0.04
         
         sidebar_bbox = self._detect_sidebar_region(nodes)
         breadcrumb_bbox = self._detect_breadcrumb_region(nodes)
@@ -523,6 +528,8 @@ class OSCompressor(BaseA11yCompressor):
                 prefix = "[top-battery]"
             elif any(k in lower for k in ("sound", "volume", "speaker")):
                 prefix = "[top-sound]"
+            elif "system" in lower: 
+                prefix = "[top-system]"
             else:
                 prefix = "[top-item]"
 

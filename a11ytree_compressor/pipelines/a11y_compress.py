@@ -14,8 +14,9 @@ from ..domains.libreoffice_calc import LibreOfficeCalcCompressor
 from ..domains.libreoffice_writer import LibreOfficeWriterCompressor
 from ..domains.libreoffice_impress import LibreOfficeImpressCompressor
 from ..domains.os import OSCompressor
-# from ..domains.vlc import VlcCompressor
-
+from ..domains.thunderbird import ThunderbirdCompressor
+from ..domains.vlc import VlcCompressor
+from ..domains.vs_code import Vs_codeCompressor
 
 # 1) domain → Compressor クラスのマッピング
 DOMAIN_COMPRESSORS = {
@@ -25,7 +26,9 @@ DOMAIN_COMPRESSORS = {
     "libreoffice_writer": LibreOfficeWriterCompressor,
     "libreoffice_impress": LibreOfficeImpressCompressor,
     "os": OSCompressor,
-    # "vlc": VlcCompressor,
+    "thunderbird": ThunderbirdCompressor,
+    "vlc": VlcCompressor,
+    "vs_code": Vs_codeCompressor
 }
 
 
@@ -61,8 +64,12 @@ def compress_from_raw_a11y(
     elif domain == "gimp":
         compressor.enable_background_filtering = True
         compressor.use_statusbar = True
+    
+    elif domain == "vlc":
+        compressor.enable_background_filtering = False
+        compressor.use_statusbar = True
 
-    elif domain in ("libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
+    elif domain in ("libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vs_code"):
         compressor.enable_background_filtering = True
         compressor.use_statusbar = True
 
@@ -72,12 +79,12 @@ def compress_from_raw_a11y(
         compressor.use_statusbar = False
 
     # 4-2. multi-line 正規化 & static 行マージのフラグ
-    if domain in ("gimp", "libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vlc"):
+    if domain in ("gimp", "libreoffice_calc", "libreoffice_writer", "libreoffice_impress", "vs_code"):
         # a11y がガタガタな系
         compressor.enable_multiline_normalization = True
         compressor.enable_static_line_merge = True
 
-    elif domain in ("chrome", "os"):
+    elif domain in ("chrome", "os" , "vlc"):
         # OS / Chrome は「見えたまま」を残したいので、あまり潰しすぎない
         compressor.enable_multiline_normalization = False
         compressor.enable_static_line_merge = False

@@ -211,6 +211,7 @@ class VlcCompressor(BaseA11yCompressor):
             "detail view",
             "choose",
             "directories",
+            "table-cell",
         }
 
     def _looks_like_filechooser(self, nodes: List[Node]) -> bool:
@@ -384,6 +385,7 @@ class VlcCompressor(BaseA11yCompressor):
                 "entry",
                 "text",
                 "radio-button",
+                "table-cell",
             }:
                 filtered.append(n)
 
@@ -419,6 +421,8 @@ class VlcCompressor(BaseA11yCompressor):
                 prefix = "[label]"
             elif tag == "radio-button":
                 prefix = "[radio]"
+            elif tag == "table-cell":
+                prefix = "[table-cell]"
             else:
                 prefix = f"[{tag}]"
 
@@ -488,7 +492,7 @@ class VlcCompressor(BaseA11yCompressor):
 
             if tag == "label":
                 labels.append((n, cx, cy))
-            elif tag in {"combo-box", "spin-button", "check-box", "push-button", "entry", "text", "radio-button"}:
+            elif tag in {"combo-box", "spin-button", "check-box", "push-button", "entry", "text", "radio-button", "table-cell"}:
                 controls.append((n, cx, cy))
 
         pairs = []
@@ -591,6 +595,13 @@ class VlcCompressor(BaseA11yCompressor):
 
         return hits >= 2
 
+    def _looks_like_vlc_advanced_settings(self, nodes: List[Node]) -> bool:
+        texts = [self._disp(n) for n in nodes if self._disp(n)]
+        if any("advanced settings" in t for t in texts):
+            return True
+        # table-cell が一定数あるなら Advanced settings の左カテゴリツリー濃厚
+        table_cells = sum(1 for n in nodes if (n.get("tag") or "").lower() == "table-cell")
+        return table_cells >= 8
 
     def _disp(self, n: Node) -> str:
         return (n.get("name") or n.get("text") or "").strip().lower()
@@ -757,6 +768,12 @@ class VlcCompressor(BaseA11yCompressor):
                     # ★Preferences を CONTENT から取り除く
                     regions["CONTENT"] = []
 
+
+        if is_vlc_prefs and modal_nodes:
+            # filechooser は本物の modal として残したい
+            if (not self._looks_like_filechooser(modal_nodes)) and self._looks_like_vlc_advanced_settings(modal_nodes):
+                pref_nodes = list(pref_nodes) + list(modal_nodes)
+                modal_nodes = []
 
         # (C) Preferences が確定したら、Preferences用ノードを保存して次回に備える
         if is_vlc_prefs:

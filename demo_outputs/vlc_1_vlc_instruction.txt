@@ -1,0 +1,79 @@
+============================================================
+SAMPLE: domain=vlc, id=1 (vlc-1), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+menu-item	Media	""			(76, 64)	(44, 20)
+menu-item	Playback	""			(126, 64)	(62, 20)
+menu-item	Audio	""			(194, 64)	(43, 20)
+menu-item	Video	""			(243, 64)	(42, 20)
+menu-item	Subtitle	""			(291, 64)	(55, 20)
+menu-item	Tools	""			(352, 64)	(38, 20)
+menu-item	View	""			(396, 64)	(37, 20)
+menu-item	Help	""			(439, 64)	(36, 20)
+label	 --:-- 	""			(70, 1028)	(44, 18)
+label	 --:-- 	""			(...
+
+INSTRUCTION:
+Help me modify the folder used to store my recordings to Desktop
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 104 <-- selected
+
+DETECTED DOMAIN: vlc
+
+=== COMPRESSED A11Y ===
+=== SYSTEM ===
+[menu] "VLC media player" @ (185, 13)
+[menu] "vlc" @ (1794, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[menu-item] "Media" @ (98, 74)
+[menu-item] "Playback" @ (157, 74)
+[menu-item] "Audio" @ (215, 74)
+[menu-item] "Video" @ (264, 74)
+[menu-item] "Subtitle" @ (318, 74)
+[menu-item] "Tools" @ (371, 74)
+[menu-item] "View" @ (414, 74)
+[menu-item] "Help" @ (457, 74)
+
+=== PLAYER STATUS ===
+[time-elapsed] "--:--" @ (92, 1037)
+[time-duration] "--:--" @ (1898, 1037)

@@ -456,6 +456,8 @@ def _score_os(nodes: List[Dict[str, Any]]) -> int:
             "gimp",
             "visual studio code",
             "vlc media player",
+            "mozilla thunderbird",
+            "thunderbird mail", 
         ]
         has_other_domain_hint = any(kw in text_blob for kw in other_domain_keywords)
 
@@ -464,6 +466,219 @@ def _score_os(nodes: List[Dict[str, Any]]) -> int:
             score = 5  # 小さめのスコア：他ドメインが1つでも検出されればそっちが勝つ
 
     return score
+
+
+
+def _score_thunderbird(nodes: List[Dict[str, Any]]) -> int:
+    score = 0
+
+    has_inbox = has_sent = has_local_folders = False
+
+    for n in nodes:
+        tag = (n.get("tag") or "").lower()
+        name = (n.get("name") or "").lower()
+        text = (n.get("text") or "").lower()
+        raw  = (n.get("raw")  or "").lower()
+
+        # --- 1) ウィンドウタイトル / アプリ名 ---
+        if "mozilla thunderbird" in name or "thunderbird mail" in name:
+            score += 25
+            _dbg("thunderbird", 25, score, "window title contains Thunderbird", n)
+
+        # --- 2) Thunderbird 固有のテキスト ---
+        key_phrases = [
+            "about mozilla thunderbird",
+            "welcome to freedom",
+            "thunderbird is funded by users like you",
+            "add-ons manager",
+        ]
+        if any(k in text for k in key_phrases):
+            delta = 10
+            score += delta
+            _dbg("thunderbird", delta, score, "thunderbird specific phrase", n)
+
+        # --- 3) フォルダツリーのキーワード ---
+        if "inbox" in text:
+            has_inbox = True
+        if "sent" in text:
+            has_sent = True
+        if "local folders" in text:
+            has_local_folders = True
+
+        # Compose っぽいラベル (おまけ程度)
+        if tag == "label" and text.strip() in {"to", "cc", "bcc", "subject"}:
+            score += 1
+            _dbg("thunderbird", 1, score, "compose label", n)
+
+    # フォルダツリーの組み合わせボーナス
+    if has_inbox and has_sent and has_local_folders:
+        score += 8
+        _dbg("thunderbird", 8, score, "mail folders combo", {"tag": "dummy"})
+
+    return score
+
+
+
+def _score_vlc(nodes: List[Dict[str, Any]]) -> int:
+    """
+    VLC のスコアリング
+    - メニューバー: Media / Playback / Audio / Video / Subtitle / Tools / View / Help
+    - ウィンドウタイトル: "VLC media player"
+    - 再生時間っぽい "--:--" が下部に出る
+    """
+    score = 0
+
+    vlc_menu_items = {
+        "media", "playback", "audio", "video", "subtitle", "tools", "view", "help"
+    }
+
+    menu_hit = 0
+    time_like_hit = 0
+
+    for n in nodes:
+        tag = (n.get("tag") or "").lower()
+        name = (n.get("name") or "").strip()
+        text = (n.get("text") or "").strip()
+
+        lname = name.lower()
+        ltext = text.lower()
+
+        # 1) 決定打: ウィンドウタイトル/メニューに "VLC media player"
+        # a11y 例だと tag=menu の name が "VLC media player"
+        if "vlc media player" in lname or "vlc media player" in ltext:
+            score += 25
+
+        # 2) メニューバー（menu-item）: Media/Playback/... が揃う
+        if tag == "menu-item" and lname in vlc_menu_items:
+            menu_hit += 1
+            score += 4  # 1個ごとに加点（揃えば強い）
+
+        # 3) 下部の時間表示っぽい "--:--"（name に入ることが多い）
+        # 例: label  --:--
+        if tag in ("label", "text") and ("--:--" in name or "--:--" in text):
+            time_like_hit += 1
+            if time_like_hit <= 2:
+                score += 3  # 左右で2つ出る想定なので上限2
+
+        # 4) 右上に "vlc" が出ることがある（OS上部バー等）
+        if tag == "menu" and lname == "vlc":
+            score += 4
+
+    # メニューがある程度揃っていたらボーナス（誤検知を一気に減らす）
+    if menu_hit >= 6:
+        score += 12
+    elif menu_hit >= 4:
+        score += 6
+
+    return score
+
+
+
+def _score_vscode(nodes: List[Dict[str, Any]]) -> int:
+    score = 0
+
+    # 1) 決定打: ウィンドウタイトル
+    # 例: "● vscode_replace_text.txt - Visual Studio Code"
+    #     "Welcome - Visual Studio Code"
+    title_hit = 0
+
+    # 2) メニューバー（push-button）
+    vsc_menu_buttons = {
+        "file", "edit", "selection", "view", "go", "run", "terminal", "help"
+    }
+    menu_hit = 0
+
+    # 3) Activity Bar（左縦の機能アイコン）
+    # 例: Explorer (Ctrl+Shift+E), Search (Ctrl+Shift+F), ...
+    activity_keywords = {
+        "explorer", "search", "source control", "run and debug", "extensions"
+    }
+    activity_hit = 0
+
+    # 4) Status Bar の典型語
+    # 例: "Ln 2, Col 11", "Spaces: 4", "UTF-8", "LF", "No Problems", "remote", "Notifications"
+    status_keywords = {
+        "ln", "col", "spaces:", "utf-8", "lf", "no problems", "remote", "notifications"
+    }
+    status_hit = 0
+
+    # 5) VS Code固有っぽい補助ワード（Welcomeページ）
+    welcome_keywords = {
+        "walkthroughs", "get started", "open folder", "clone repository", "recent"
+    }
+    welcome_hit = 0
+
+    for n in nodes:
+        tag = (n.get("tag") or "").lower()
+        name = (n.get("name") or "").strip()
+        text = (n.get("text") or "").strip()
+
+        lname = name.lower()
+        ltext = text.lower()
+        joined = (lname + " " + ltext).strip()
+
+        # --- 1) ウィンドウタイトル（最重要） ---
+        # document-web の name で拾えることが多いが、他tagでも拾えるようにする
+        if "visual studio code" in joined:
+            title_hit += 1
+            if title_hit <= 2:
+                score += 25  # 決定打なので強め
+
+        # --- 2) メニューバー ---
+        # 例では tag=push-button の name が "File", "Edit", ...
+        if tag == "push-button" and lname in vsc_menu_buttons:
+            menu_hit += 1
+            score += 4
+
+        # --- 3) Activity Bar ---
+        # "Explorer (Ctrl+Shift+E)" のような形が多いので部分一致
+        if tag in ("section", "push-button"):
+            for k in activity_keywords:
+                if k in joined:
+                    activity_hit += 1
+                    score += 4
+                    break
+
+        # --- 4) Status Bar ---
+        # "Ln 2, Col 11 ..." は joined に ln/col が入る
+        # "Spaces: 4", "UTF-8", "LF", "No Problems", "remote", "Notifications" など
+        if tag in ("push-button", "section", "static", "label"):
+            for k in status_keywords:
+                if k in joined:
+                    status_hit += 1
+                    # 多発するので加点は控えめ + 上限
+                    if status_hit <= 10:
+                        score += 2
+                    break
+
+        # --- 5) Welcome補助 ---
+        if tag in ("heading", "static", "push-button", "paragraph", "document-frame", "document-web"):
+            for k in welcome_keywords:
+                if k in joined:
+                    welcome_hit += 1
+                    if welcome_hit <= 6:
+                        score += 2
+                    break
+
+    # --- ボーナス（揃い具合で誤検知を減らす） ---
+    # メニューが揃うと強い（8個中5〜6以上）
+    if menu_hit >= 6:
+        score += 12
+    elif menu_hit >= 4:
+        score += 6
+
+    # Activity bar が3つ以上見えるとかなり強い
+    if activity_hit >= 4:
+        score += 10
+    elif activity_hit >= 3:
+        score += 6
+
+    # Statusbar が一定数あると強い（ただし他アプリでも出るので弱め）
+    if status_hit >= 6:
+        score += 4
+
+    return score
+
 
 
 
@@ -501,7 +716,10 @@ def detect_domain_and_scores(nodes: List[Dict[str, Any]]) -> Tuple[str, Dict[str
         "libreoffice_calc": _score_libreoffice_calc(nodes),
         "libreoffice_impress": _score_libreoffice_impress(nodes),
         "libreoffice_writer": _score_libreoffice_writer(nodes),
+        "thunderbird": _score_thunderbird(nodes), 
         "os": _score_os(nodes),
+        "vlc": _score_vlc(nodes),
+        "vscode":_score_vsc(nodes),
     }
 
     domain, best = "generic", 0

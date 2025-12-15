@@ -1,0 +1,136 @@
+============================================================
+SAMPLE: domain=vs_code, id=16 (vs_code-16), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+document-web	Keyboard Shortcuts - Visual Studio Code	""			(70, 89)	(1850, 991)
+section	Explorer (Ctrl+Shift+E)	""			(70, 89)	(48, 48)
+section					(82, 101)	(24, 24)
+static					(82, 101)	(24, 24)
+section	Search (Ctrl+Shift+F)	""			(70, 137)	(48, 48)
+section					(82, 149)	(24, 24)
+static					(82, 149)	(24, 24)
+section	Source Control (Ctrl+Shift+G)	""			(70, 185)	(48, 48)
+sect...
+
+INSTRUCTION:
+Please help me remove the shortcut "ctrl+f" for Tree view Find (Explorer search) in VS Code Explorer view to avoid shortcut conflict.
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 15
+  - vsc: 60 <-- selected
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 60
+
+DETECTED DOMAIN: vsc
+
+=== COMPRESSED A11Y ===
+=== SYSTEM ===
+[menu] "Visual Studio Code" @ (191, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+---
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+---
+[launcher-app] "Visual Studio Code" @ (35, 201)
+---
+[launcher-app] "VLC media player" @ (35, 269)
+---
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+---
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+---
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+---
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+---
+[launcher-app] "Files" @ (35, 609)
+---
+[launcher-app] "Ubuntu Software" @ (35, 677)
+---
+[launcher-app] "Help" @ (35, 745)
+---
+[launcher-app] "Trash" @ (35, 816)
+---
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== MENUBAR ===
+[menu] "File" @ (88, 76)
+[menu] "Edit" @ (125, 76)
+[menu] "Selection" @ (182, 76)
+[menu] "View" @ (243, 76)
+[menu] "Go" @ (281, 76)
+[menu] "Run" @ (316, 76)
+[menu] "Terminal" @ (372, 76)
+[menu] "Help" @ (430, 76)
+
+=== ACTIVITY_BAR ===
+[section] "" @ (94, 161)
+[section] "" @ (94, 209)
+[section] "" @ (94, 257)
+[section] "" @ (94, 305)
+[section] "" @ (94, 986)
+[section] "" @ (128, 135)
+
+=== SIDE_BAR ===
+[push-button] "No Folder Opened Section" @ (245, 135)
+[section] "You have not yet opened a folder. Open Folder Opening a folder will close all currently open editors. To keep them open, add a folder instead. You can clone a repository locally. Clone Repository To learn more about how to use Git and source control in VS Code read our docs ." @ (245, 580)
+[push-button] "Open Folder" @ (245, 204)
+[push-button] "add a folder" @ (244, 276)
+[push-button] "Clone Repository" @ (245, 343)
+[push-button] "read our docs" @ (241, 407)
+
+=== EDITOR ===
+[heading] "EXPLORER" @ (165, 106)
+[push-button] "Views and More Actions..." @ (350, 106)
+[heading] "NO FOLDER OPENED" @ (194, 135)
+[paragraph] "You have not yet opened a folder." @ (245, 168)
+[paragraph] "Opening a folder will close all currently open editors. To keep them open,  instead." @ (245, 258)
+[paragraph] "You can clone a repository locally." @ (245, 307)
+[paragraph] "To learn more about how to use Git and source control in VS Code ." @ (245, 398)
+[heading] "OUTLINE" @ (162, 1025)
+[heading] "TIMELINE" @ (164, 1047)
+[push-button] "Split Editor Right (Ctrl+\) [Alt] Split Editor Down" @ (1871, 106)
+[push-button] "More Actions..." @ (1897, 106)
+
+=== STATUSBAR ===
+[label] "Home" @ (1853, 1045)
+[push-button] "Outline Section" @ (245, 1025)
+[push-button] "Timeline Section" @ (245, 1047)
+[push-button] "remote" @ (87, 1069)
+[push-button] "No Problems" @ (137, 1069)
+[push-button] "No Ports Forwarded" @ (189, 1069)
+[push-button] "Notifications" @ (1898, 1069)
+
+=== MODAL / NOTIFICATION ===
+[section] "Notifications" @ (1898, 1069)
+[push-button] "Close (Ctrl+W)" @ (479, 106)
+[section] "Keyboard Shortcuts" @ (573, 106)
+[section] "" @ (515, 106)
+[section] "" @ (656, 106)
+[push-button] "Open Keyboard Shortcuts (JSON)" @ (1845, 106)
+[section] "" @ (1845, 106)
+[entry] "Showing 17 Keybindings in alphabetical order" @ (1155, 150)
+[section] "" @ (1833, 150)
+[section] "" @ (1859, 150)
+[push-button] "Clear Keybindings Search Input (Escape)" @ (1885, 150)
+[section] "" @ (1885, 150)
+[section] "Command" @ (669, 191)
+[section] "Keybinding" @ (1049, 191)
+[section] "When" @ (1467, 191)
+[section] "Source" @ (1826, 191)
+[list-item] "Find, Control+F, editorFocus || editorIsOpen, System, use space or enter to change the keybinding." @ (1160, 219)
+[section] "Find (actions.find)" @ (464, 219)
+[section] "Control+F" @ (938, 219)
+[section] "editorFocus || editorIsOpen" @ (1472, 219)
+[section] "System" @ (1764, 219)
+[list-item] "Format Selection, Control+K Control+F, editorHasDocumentSelectionFormattingProvider && editorTextFocus && !editorReadonly, System, use space or enter to change the keybinding." @ (1160, 243)

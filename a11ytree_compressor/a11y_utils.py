@@ -23,7 +23,11 @@ KNOWN_TAGS = {
     "list-item",
     "document-presentation",
     "document-frame",
-    "terminal",   # ★ terminal も既知タグ
+    "terminal",
+    "tree-item",
+    "section",
+    "entry",
+    "check-menu-item",
 }
 
 COORD_RE = re.compile(r"\(\s*\d+,\s*\d+\s*\)")

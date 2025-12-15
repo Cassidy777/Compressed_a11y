@@ -1,0 +1,112 @@
+============================================================
+SAMPLE: domain=thunderbird, id=5 (thunderbird-5), mode=instruction
+============================================================
+
+ORIGINAL LINEAR A11Y (Head 500 chars):
+LINEAR AT: tag	name	text	class	description	position (top-left x&y)	size (w&h)
+label	Home	Home			(1833, 1037)	(40, 17)
+push-button	Mail (Ctrl+1)	""			(77, 71)	(30, 30)
+push-button	Address Book (Ctrl+2)	""			(77, 116)	(30, 30)
+push-button	Calendar (Ctrl+3)	""			(77, 161)	(30, 30)
+push-button	Tasks (Ctrl+4)	""			(77, 206)	(30, 30)
+push-button	Chat (Ctrl+5)	""			(77, 251)	(30, 30)
+push-button	Settings	""			(77, 998)	(30, 30)
+push-button	Hide Spaces Toolbar	""			(77, 1043)	(30, 30)
+entry	Search:	""		...
+
+INSTRUCTION:
+I've got a bunch of email accounts in Thunderbird, and it's a hassle to check them one by one. Can you show me how to set up a unified inbox so I can see all my emails in one place?
+
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 17
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 50 <-- selected
+  - os: 0
+
+DETECTED DOMAIN: thunderbird
+
+=== COMPRESSED A11Y ===
+DEBUG_VIEW_TYPE: account_settings
+=== SYSTEM ===
+[menu] "Thunderbird Mail" @ (185, 13)
+
+=== LAUNCHER ===
+[launcher-app] "Google Chrome" @ (35, 65)
+[launcher-app] "Thunderbird Mail" @ (35, 133)
+[launcher-app] "Visual Studio Code" @ (35, 201)
+[launcher-app] "VLC media player" @ (35, 269)
+[launcher-app] "LibreOffice Writer" @ (35, 337)
+[launcher-app] "LibreOffice Calc" @ (35, 405)
+[launcher-app] "LibreOffice Impress" @ (35, 473)
+[launcher-app] "GNU Image Manipulation Program" @ (35, 541)
+[launcher-app] "Files" @ (35, 609)
+[launcher-app] "Ubuntu Software" @ (35, 677)
+[launcher-app] "Help" @ (35, 745)
+[launcher-app] "Trash" @ (35, 816)
+[launcher-app] "Show Applications" @ (35, 1045)
+
+=== TOOLBAR ===
+[entry] "Search:" @ (979, 86)
+[push-button] "Search" @ (1428, 86)
+
+=== SPACES ===
+[push-button] "Mail (Ctrl+1)" @ (92, 86)
+[push-button] "Address Book (Ctrl+2)" @ (92, 131)
+[push-button] "Calendar (Ctrl+3)" @ (92, 176)
+[push-button] "Tasks (Ctrl+4)" @ (92, 221)
+[push-button] "Chat (Ctrl+5)" @ (92, 266)
+[push-button] "Settings" @ (92, 1013)
+[push-button] "Hide Spaces Toolbar" @ (92, 1058)
+
+=== ACCOUNT SETTINGS ===
+=== ACCOUNT SETTINGS SIDEBAR ===
+[tree-item] "anonym-x2024@outlook.com" @ (259, 289)
+[tree-item] "Server Settings" @ (259, 224)
+[list-item] "General" @ (259, 239)
+[tree-item] "Copies & Folders" @ (259, 250)
+[tree-item] "Composition & Addressing" @ (259, 276)
+[list-item] "Composition" @ (259, 287)
+[tree-item] "Junk Settings" @ (259, 302)
+[list-item] "Privacy & Security" @ (259, 335)
+[tree-item] "Synchronization & Storage" @ (259, 328)
+[tree-item] "End-To-End Encryption" @ (259, 354)
+[list-item] "Chat" @ (259, 383)
+[tree-item] "Return Receipts" @ (259, 380)
+[tree-item] "Local Folders" @ (259, 432)
+[tree-item] "Junk Settings" @ (259, 432)
+[tree-item] "Disk Space" @ (259, 458)
+[tree-item] "Outgoing Server (SMTP)" @ (259, 484)
+[push-button] "Account Actions" @ (259, 896)
+[link] "Thunderbird Settings" @ (259, 963)
+    [label] "Thunderbird Settings" @ (277, 963)
+[link] "Add-ons and Themes" @ (259, 1001)
+    [label] "Add-ons and Themes" @ (277, 1001)
+=== ACCOUNT SETTINGS MAIN ===
+[section] "Account Settings" @ (745, 128)
+[push-button] "Close Tab" @ (853, 129)
+[menu-item] "File per folder (mbox)" @ (511, 162)
+[label] "Account Settings" @ (518, 200)
+[label] "The following is a special account. There are no identities associated with it." @ (803, 245)
+[entry] "Account Name:" @ (858, 280)
+[label] "Account Name:" @ (484, 280)
+[label] "Message Storage" @ (504, 336)
+[check-box] "Empty Trash on Exit" @ (512, 372)
+[combo-box] "Message Store Type:" @ (685, 413)
+[label] "Message Store Type:" @ (504, 413)
+[entry] "Local Directory:" @ (806, 465)
+[push-button] "Browse…" @ (1122, 465)
+[label] "Local Directory:" @ (486, 465)
+[label] "Home" @ (1853, 1045)
+=== ACCOUNT SETTINGS (scroll down) ===
+[list-item] "Important" @ (776, 2691)
+[list-item] "Work" @ (776, 2729)
+[list-item] "Personal" @ (776, 2768)
+[list-item] "To Do" @ (776, 2807)
+[list-item] "Later" @ (776, 2845)
+=== STATUS BAR ===
+[push-button] "You are currently online." @ (129, 1068)
+[label] "Done" @ (1032, 1068)
