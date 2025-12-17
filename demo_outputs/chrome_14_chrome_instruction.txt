@@ -13,6 +13,18 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Show side effects of Tamiflu.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 128 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -61,9 +73,6 @@ BROWSER_UI:
 [browser-button] "Bookmark this tab" @ (1812, 90)
 CONTENT:
 [BLOCK]
-[document-web] "Tamiflu - Search results. Page 1 of about 681 results" @ (995, 597)
-[/BLOCK]
-[BLOCK]
 [link] "Drugs.com - Go to homepage" @ (473, 163)
 [entry] "Search Drugs.com" @ (1012, 158)
 [combo-box] "Select the section you want to search in" @ (1298, 158)
@@ -109,7 +118,8 @@ CONTENT:
 [link] "Pro Edition" @ (1134, 225)
 [link] "More Resources …" @ (1236, 225)
 [link] "Help & Support" @ (1513, 225)
-[static] "Resources / More" @ (1286, 223)
+[static] "Resources" @ (1286, 223)
+[static] "More" @ (1228, 224)
 [/BLOCK]
 [BLOCK "Tamiflu"]
 [link] "Home" @ (421, 399)
@@ -118,7 +128,10 @@ CONTENT:
 [heading] "Tamiflu" @ (763, 473)
 [link] "Tamiflu Tamiflu is an antiviral medication that blocks the actions of influen..." @ (805, 531)
 [paragraph] "Tamiflu is an antiviral medication that blocks the actions of influenza virus..." @ (805, 551)
-[static] "Tamiflu / is an antiviral medication that blocks the actions of influenza vir..." @ (458, 510)
+[static] "Tamiflu" @ (458, 510)
+[static] "is an antiviral medication that blocks the actions of influenza virus types A and B in your body." @ (795, 523)
+[static] "is used to treat flu symptoms caused by influenza virus in people have had symptoms for less than 2 days. This medicine may also be given to..." @ (787, 564)
+[static] "Tamiflu" @ (504, 537)
 [link] "Side Effects" @ (473, 628)
 [link] "Pregnancy / Breastfeeding" @ (530, 662)
 [link] "Drug Interactions" @ (495, 696)
@@ -141,11 +154,14 @@ CONTENT:
 [BLOCK "Tamiflu Prescribing Information"]
 [heading] "Tamiflu Prescribing Information" @ (805, 864)
 [link] "Tamiflu Prescribing Information Prescribing Information (FDA) TAMIFLU is indi..." @ (805, 940)
-[static] "Tamiflu / Prescribing Information" @ (444, 863)
+[static] "Tamiflu" @ (444, 863)
+[static] "Prescribing Information" @ (618, 863)
 [static] "Prescribing Information (FDA)" @ (504, 899)
 [paragraph] "TAMIFLU is indicated for the treatment of acute, uncomplicated illness due to..." @ (805, 977)
-[static] "TAMIFLU / is indicated for the treatment of acute, uncomplicated illness due ..." @ (440, 936)
-[/BLOCK]
-[BLOCK]
+[static] "TAMIFLU" @ (440, 936)
+[static] "is indicated for the treatment of acute, uncomplicated illness due to influenza A and B infection in patients 2 weeks of age and older who h..." @ (795, 950)
+[static] "TAMIFLU" @ (440, 991)
+[static] "is not..." @ (794, 1004)
+[static] "is indicated for the prophylaxis of influenza A and B in patients 1 year and older." @ (786, 991)
 [link] "Frequently asked questions about Tamiflu" @ (632, 1086)
 [/BLOCK]

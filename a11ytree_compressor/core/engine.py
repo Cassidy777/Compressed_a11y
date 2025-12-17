@@ -1,6 +1,8 @@
 # core/engine.py
 import re
-from typing import List, Dict, Any, Tuple, Optional, Set 
+from typing import List, Dict, Any, Tuple, Optional, Set
+from collections import Counter
+
 from ..a11y_instruction_utils import get_instruction_keywords, smart_truncate
 from .common_ops import (
     Node, node_bbox_from_raw, bbox_to_center_tuple,
@@ -11,13 +13,11 @@ from .common_ops import (
     dedup_similar_nodes_by_priority, dedup_heading_and_static
 )
 from .modal_strategies import DiffModalDetector, ClusterModalDetector, ModalDetector
-from collections import Counter
 
 
 class BaseA11yCompressor:
     domain_name = "generic"
-    
-    
+
     # ★ 追加: 背景ノイズ（デスクトップアイコン等）を除去するかどうかのフラグ
     # OSドメインなど、ファイル自体が主役の場合は False にオーバーライドする
     enable_background_filtering: bool = True
@@ -35,22 +35,32 @@ class BaseA11yCompressor:
     # 追加：近接 static 行のマージ（"A / B / C" みたいにまとめるか）
     enable_static_line_merge: bool = True
 
+    # ★ 追加: デバッグ出力を有効化するか
+    DEBUG: bool = False
+
     os_menu_blacklist: Set[str] = {
         "system",
         "google chrome",
         "__macosx",
     }
 
-    def __init__(self):
+    def __init__(self, debug: bool = False):
+        self.DEBUG = debug
+
         self.diff_detector = DiffModalDetector()
+
         # instruction 用の状態を初期化しておくと安心
         self.instruction: str = ""
         self.instruction_keywords: Set[str] = set()
         self.use_instruction: bool = False
         self.current_instruction: str = ""
         self.current_instruction_keywords: set[str] = set()
-    
-    
+
+    def _debug(self, *args, **kwargs) -> None:
+        """DEBUG=True のときだけログを出す"""
+        if self.DEBUG:
+            print(*args, **kwargs)
+
     def split_static_ui(
         self,
         nodes: List[Node],
@@ -65,7 +75,6 @@ class BaseA11yCompressor:
         """
         return nodes, []
 
-
     def compress(
         self,
         nodes: List[Node],
@@ -76,8 +85,8 @@ class BaseA11yCompressor:
         use_instruction: bool = False,
     ) -> Dict[str, Any]:
 
-        print("[DEBUG] instruction passed to modal_detector:", repr(instruction))
-    
+        self._debug("[DEBUG] instruction passed to modal_detector:", repr(instruction))
+
         # ★ ここでインスタンスに保持しておく
         self.instruction = instruction or ""
         self.instruction_keywords = instruction_keywords or set()
@@ -86,37 +95,35 @@ class BaseA11yCompressor:
         # instruction process
         # 1. instruction文字列から抽出
         extracted = get_instruction_keywords(instruction) if instruction else set()
-        
+
         # 2. 引数で渡されたキーワードがあればマージ
         if instruction_keywords:
             extracted.update(instruction_keywords)
-            
+
         # 3. インスタンス変数に保存 (以降の処理で使用)
         self.current_instruction_keywords = extracted
-        
+
         # キーワードがあるなら Smart Truncate モードを有効化
         self.use_instruction = bool(self.current_instruction_keywords)
 
-        
         # common process
         # 1. 前処理
-        nodes = self.preprocess_nodes(nodes, instruction, use_instruction)
+        nodes = self.preprocess_nodes(nodes, instruction or "", use_instruction)
 
         # === DEBUG 1: preprocess_nodes 後のタグ分布 ===
         tag_counter = Counter((n.get("tag") or "").lower() for n in nodes)
-        print("[DEBUG-1] AFTER preprocess_nodes tag_counter:", tag_counter)
+        self._debug("[DEBUG-1] AFTER preprocess_nodes tag_counter:", tag_counter)
         for n in nodes:
             tag = (n.get("tag") or "").lower()
             if tag == "link":
                 label = (n.get("name") or n.get("text") or "")[:80]
-                print("[DEBUG-1] LINK AFTER PREPROCESS:", label, "@", n.get("x"), n.get("y"))
+                self._debug("[DEBUG-1] LINK AFTER PREPROCESS:", label, "@", n.get("x"), n.get("y"))
         # === DEBUG 1 END ===
 
         # 1.5 ★ 静的UIをモーダル検出から外す（ここで一時退避）
         nodes_for_modal, detached_static_nodes = self.split_static_ui(
             nodes, screen_w, screen_h
         )
-
 
         # 2. モーダル分離（Diff / ドメイン専用 / Cluster）
         modal_nodes, base_nodes_after_modal, modal_mode = self._detect_modals(
@@ -167,13 +174,13 @@ class BaseA11yCompressor:
 
         # === DEBUG-preprocess 1: 入ってきた時点のタグ分布 ===
         before_tags = Counter((n.get("tag") or "").lower() for n in nodes)
-        print("=== preprocess_nodes: BEFORE ===")
-        print("[DEBUG-pre] tags BEFORE:", before_tags)
+        self._debug("=== preprocess_nodes: BEFORE ===")
+        self._debug("[DEBUG-pre] tags BEFORE:", before_tags)
         for n in nodes:
             tag = (n.get("tag") or "").lower()
             if tag == "link":
                 label = (n.get("name") or n.get("text") or "")[:80]
-                print("[DEBUG-pre] RAW LINK:", label, "@", n.get("x"), n.get("y"))
+                self._debug("[DEBUG-pre] RAW LINK:", label, "@", n.get("x"), n.get("y"))
         # === DEBUG-preprocess 1 END ===
 
         # 0. マルチラインラベルを1行に統一（共通処理）
@@ -220,19 +227,16 @@ class BaseA11yCompressor:
 
         # === DEBUG-preprocess 2: 出ていく時点のタグ分布 ===
         after_tags = Counter((n.get("tag") or "").lower() for n in nodes)
-        print("=== preprocess_nodes: AFTER ===")
-        print("[DEBUG-pre] tags AFTER:", after_tags)
+        self._debug("=== preprocess_nodes: AFTER ===")
+        self._debug("[DEBUG-pre] tags AFTER:", after_tags)
         for n in nodes:
             tag = (n.get("tag") or "").lower()
             if tag == "link":
                 label = (n.get("name") or n.get("text") or "")[:80]
-                print("[DEBUG-pre] PROCESSED LINK:", label, "@", n.get("x"), n.get("y"))
+                self._debug("[DEBUG-pre] PROCESSED LINK:", label, "@", n.get("x"), n.get("y"))
         # === DEBUG-preprocess 2 END ===
 
         return nodes
-
-
-
 
     def _detect_modals(self, nodes, w, h, instruction) -> Tuple[List[Node], List[Node], str]:
         modal_nodes, bg_nodes, mode = [], nodes, "none"
@@ -242,18 +246,18 @@ class BaseA11yCompressor:
         m, b, m_mode = self.diff_detector.detect(nodes, w, h, instruction)
         if m_mode == "diff" and m:
             modal_nodes, bg_nodes, mode = m, b, "diff"
-        
+
         # 2. Priority 2: Domain Specific (Diffで見つからなかった場合)
         if not modal_nodes:
             for detector in self.get_modal_detectors():
-                print("[DEBUG] Trying detector:", detector.__class__.__name__)  # ← 追加
+                self._debug("[DEBUG] Trying detector:", detector.__class__.__name__)
 
                 m, b = detector.detect(nodes, w, h)
                 if m:
                     modal_nodes, bg_nodes, mode = m, b, detector.__class__.__name__
-                    print("[DEBUG] SUCCESS detector:", mode)  # ← 追加
+                    self._debug("[DEBUG] SUCCESS detector:", mode)
                     break
-            
+
         # 3. Priority 3: Generic Cluster (最終手段)
         if not modal_nodes and self.enable_cluster_fallback:
             m, b = ClusterModalDetector().detect(nodes, w, h)
@@ -261,33 +265,28 @@ class BaseA11yCompressor:
                 modal_nodes, bg_nodes, mode = m, b, "cluster"
 
         if modal_nodes:
-            print(f"[DEBUG ENGINE] modal_nodes count BEFORE safety filter: {len(modal_nodes)}")
+            self._debug(f"[DEBUG ENGINE] modal_nodes count BEFORE safety filter: {len(modal_nodes)}")
             apply_found = any("Apply" in (n.get("name") or n.get("text") or "") for n in modal_nodes)
-            print(f"[DEBUG ENGINE] 'Apply' in modal_nodes BEFORE filter? {apply_found}")
-        
+            self._debug(f"[DEBUG ENGINE] 'Apply' in modal_nodes BEFORE filter? {apply_found}")
+
         # =========================================================================
         # ★ UI Safety Filter (検出後に「UI領域」を強制排除する)
         # =========================================================================
         if modal_nodes:
-            # ここが重要！
-            # 判定のために「全ノード (modal + bg)」を渡して get_semantic_regions を呼ぶ。
-            # これにより、アドレスバー等の位置関係が正しく認識され、
-            # "Reload" ボタンなどが正確に "BROWSER_UI" に分類されるようになる。
             modal_ids = {id(n) for n in modal_nodes}
-            print("[DEBUG ENGINE] modal_ids BEFORE region filter:", len(modal_ids))
-            
+            self._debug("[DEBUG ENGINE] modal_ids BEFORE region filter:", len(modal_ids))
+
             # ※ ID(メモリ番地)で追跡するために、一旦リストを結合
             check_nodes = modal_nodes + bg_nodes
-            
+
             # ドメインロジックで分類を実行
-            # (この内部で n["tag"] が書き換わる副作用があるが、正しいtagになるなら歓迎)
             regions = self.get_semantic_regions(check_nodes, w, h, dry_run=True)
-            
+
             # モーダルに含まれてはいけない領域（静的UI）
             FORBIDDEN_REGIONS = {
                 "WINDOW_CONTROLS",
                 "BROWSER_TABS",
-                "BROWSER_UI",     
+                "BROWSER_UI",
                 "APP_LAUNCHER",
                 "STATUSBAR",
                 "NAV", "TOOLS", "MENU_BAR"
@@ -309,12 +308,15 @@ class BaseA11yCompressor:
                     rejected_nodes.append(n)
                 else:
                     safe_modal_nodes.append(n)
-            
+
             # 結果を更新
             modal_nodes = safe_modal_nodes
             if rejected_nodes:
                 bg_nodes.extend(rejected_nodes)
-            print(f"[DEBUG ENGINE] modal_nodes count AFTER safety filter: {len(modal_nodes)}, "f"rejected={len(rejected_nodes)}")
+
+            self._debug(
+                f"[DEBUG ENGINE] modal_nodes count AFTER safety filter: {len(modal_nodes)}, rejected={len(rejected_nodes)}"
+            )
 
         # =========================================================================
         # ★ 共通クリーニング (重複除去・ゴミ除去)
@@ -322,10 +324,12 @@ class BaseA11yCompressor:
         if modal_nodes:
             before_clean = len(modal_nodes)
             modal_nodes = clean_modal_nodes(modal_nodes)
-            print(f"[DEBUG ENGINE] modal_nodes AFTER clean_modal_nodes: {len(modal_nodes)} "f"(before={before_clean})")
-            
+            self._debug(
+                f"[DEBUG ENGINE] modal_nodes AFTER clean_modal_nodes: {len(modal_nodes)} (before={before_clean})"
+            )
+
             if not modal_nodes:
-                print("[DEBUG ENGINE] All modal_nodes removed by clean_modal_nodes")
+                self._debug("[DEBUG ENGINE] All modal_nodes removed by clean_modal_nodes")
                 return [], nodes, "none"
 
         return modal_nodes, bg_nodes, mode
@@ -373,7 +377,6 @@ class BaseA11yCompressor:
             lower = raw_name.lower()
             normalized = zero_width_chars.sub("", lower)
 
-            
             if normalized in ignored_names:
                 continue
 
@@ -394,16 +397,15 @@ class BaseA11yCompressor:
 
         return clean_nodes
 
-
     def extract_system_ui(self, nodes: List[Node], w: int, h: int) -> Tuple[List[Node], List[Node], List[Node]]:
         launcher: List[Node] = []
         status: List[Node] = []
         main: List[Node] = []
-    
+
         LAUNCHER_X_MAX = int(w * 0.035)
         STATUS_Y_MIN = int(h * 0.90)
         ICON_W_MAX = int(w * 0.05)
-    
+
         # ファイル名パターン再利用
         file_ext_pattern = re.compile(
             r'\.(pptx|docx|xlsx|pdf|png|jpg|jpeg|gif|xcf|desktop|zip)(~|#)?$',
@@ -466,18 +468,16 @@ class BaseA11yCompressor:
 
         return launcher, status, main
 
-    
-
     def get_semantic_regions(self, nodes: List[Node], w: int, h: int, dry_run: bool = False) -> Dict[str, List[Node]]:
         return {"CONTENT": nodes}
 
     def _build_output(self, regions, modal_nodes, w, h) -> List[str]:
         lines = []
         lines.extend(self.get_meta_header(regions))
-    
+
         # 順序定義
         order = ["WINDOW_CONTROLS", "BROWSER_TABS", "APP_LAUNCHER", "BROWSER_UI", "NAV", "TOOLS", "STATUSBAR"]
-    
+
         keys = list(regions.keys())
 
         # ★ ここがポイント：STATUSBAR を使わないドメインでは強制的に除外
@@ -486,7 +486,7 @@ class BaseA11yCompressor:
 
         sorted_keys = [k for k in order if k in keys]
         other_keys = [k for k in keys if k not in order and k != "CONTENT"]
-    
+
         for key in sorted_keys + other_keys:
             r_nodes = regions[key]
             if not r_nodes:
@@ -506,12 +506,12 @@ class BaseA11yCompressor:
         if content_nodes := regions.get("CONTENT"):
             lines.append("CONTENT:")
             lines.extend(self.process_content_lines(content_nodes, w, h))
-            
+
         return lines
 
-    def get_meta_header(self, regions: Dict[str, List[Node]]) -> List[str]: 
+    def get_meta_header(self, regions: Dict[str, List[Node]]) -> List[str]:
         return []
-    
+
     def process_region_lines(self, nodes, w, h):
         tuples = self._nodes_to_tuples(nodes)
         tuples.sort()
@@ -522,21 +522,21 @@ class BaseA11yCompressor:
         コンテンツ領域の圧縮パイプライン。
         Instruction-Awareな整形を行う前に、ノードの冗長性を排除する。
         """
-        print("[DEBUG] process_content_lines:", self.domain_name, "static_merge=", self.enable_static_line_merge)
+        self._debug("[DEBUG] process_content_lines:", self.domain_name, "static_merge=", self.enable_static_line_merge)
+
         # 1. Content固有のフィルタリング
-        #    (ドメイン固有の _should_skip_for_content など)
         filtered_nodes = [n for n in nodes if not self._should_skip_for_content(n)]
-        
-        # 2. HeadingとStaticの重複を排除 (「heading + static の重複 → heading だけ残す」)
+
+        # 2. HeadingとStaticの重複を排除
         filtered_nodes = dedup_heading_and_static(filtered_nodes)
-        
-        # 3. 類似ラベル+近接座標のノードを、優先度に基づいて排除 (メインの重複排除)
+
+        # 3. 類似ラベル+近接座標のノードを、優先度に基づいて排除
         filtered_nodes = dedup_similar_nodes_by_priority(filtered_nodes, distance_threshold=20.0)
-        
-        # 4. 抽出・整形（Instruction-Awareな処理もここに含まれる）
+
+        # 4. 抽出・整形
         tuples = self._nodes_to_tuples(filtered_nodes)
 
-        # 5. 構造化・圧縮（common_ops.pyのレイアウト純粋関数に委譲）
+        # 5. 構造化・圧縮
         tuples.sort()
         y_tol = int(h * 0.03)
         x_tol = int(w * 0.15)
@@ -545,16 +545,16 @@ class BaseA11yCompressor:
         return [t[2] for t in tuples]
 
     def process_modal_nodes(self, nodes: List[Node]) -> List[str]:
-        # 1. 類似ラベル+近接座標のノードを、優先度に基づいて排除 (共通圧縮)
+        # 1. 類似ラベル+近接座標のノードを、優先度に基づいて排除
         filtered_nodes = dedup_similar_nodes_by_priority(
-            nodes, 
+            nodes,
             distance_threshold=20.0
         )
-        
+
         # ★ 修正: Close Menuの断片化を解消するための専用クリーンアップ
         final_nodes = []
         found_semantic_close_button = False
-        
+
         # (A) フィルタリングとセマンティック要素の検出
         for n in filtered_nodes:
             tag = (n.get("tag") or "").lower()
@@ -565,11 +565,10 @@ class BaseA11yCompressor:
                 found_semantic_close_button = True
                 final_nodes.append(n)
                 continue
-            
-            # (A2) Headingの冗長性解消（Step 1の補完）
+
+            # (A2) Headingの冗長性解消
             if label == "Sort Your Refinement By" and tag == "static":
-                # Heading版が残っているはずなのでStaticはスキップ
-                continue 
+                continue
 
             # (A3) Close menuの断片要素を削除
             if tag == "static" and (label == "" or label == "Close menu"):
@@ -578,26 +577,23 @@ class BaseA11yCompressor:
             final_nodes.append(n)
 
         # (B) semantic buttonが存在しない場合、手動で挿入
-        # (これはDiff検出がSemantic Buttonを背景に誤分類し、断片だけがModalに残ったケースをカバーする)
-        if not found_semantic_close_button:
-             # Close buttonの代用ノードを構築し、挿入
-             close_btn_node = {
-                 "tag": "push-button",
-                 "name": " Close menu",
-                 "text": "Close menu",
-                 "states": [],
-                 "raw": "push-button\t Close menu\tClose menu\t\t\t(422, 146)\t(16, 16)",
-                 "description": "",
-                 "role": ""
-             }
-             final_nodes.append(close_btn_node)
+        if not found_semantic_close_button and self.domain_name != "chrome":
+            close_btn_node = {
+                "tag": "push-button",
+                "name": " Close menu",
+                "text": "Close menu",
+                "states": [],
+                "raw": "push-button\t Close menu\tClose menu\t\t\t(422, 146)\t(16, 16)",
+                "description": "",
+                "role": ""
+            }
+            final_nodes.append(close_btn_node)
 
         # 2. タプル化（整形）
         tuples = self._nodes_to_tuples(final_nodes)
-        
+
         # 3. 整形済みラインをそのまま返す
         return [t[2] for t in tuples]
-    
 
     def _nodes_to_tuples(self, nodes: List[Node]) -> List[Tuple[int, int, str]]:
         results = []
@@ -606,22 +602,22 @@ class BaseA11yCompressor:
             cx, cy = bbox_to_center_tuple(bbox)
             tag = n.get("tag", "unknown")
             label = (n.get("name") or n.get("text") or "").strip()
-            
+
             val = (n.get("value") or "").strip()
             val_attr = ""
             # Value も truncate 対象
             if val and val != label:
                 v_out = truncate_label(val)
                 val_attr = f' value="{v_out}"'
-            
+
             state_str = build_state_suffix(tag, n.get("states", []))
-            
+
             # ★ ラベルの整形: Instructionがあるなら Smart Truncate
             if self.use_instruction and self.current_instruction_keywords:
                 label_out = smart_truncate(label, self.current_instruction_keywords)
             else:
                 label_out = truncate_label(label)
-            
+
             line = f'[{tag}] "{label_out}"{state_str}{val_attr} @ ({cx}, {cy})'
             results.append((bbox["y"], bbox["x"], line))
         return results

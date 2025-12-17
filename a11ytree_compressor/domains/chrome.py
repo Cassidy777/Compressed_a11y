@@ -22,6 +22,21 @@ SAFE_BANNER_KEYWORDS = {
     "クッキー", "プライバシー", "同意"
 }
 
+# モーダルとして「引き抜く」対象の強力なキーワード
+PRIVACY_MODAL_KEYWORDS = {
+    "cookie", "privacy", "consent", "gdpr", "policy", "term", 
+    "allow", "accept", "reject", "agree", "decline", "manage", "setting", "choice",
+    "necessary", "optional", "advertising", "analytics", "performance",
+    "クッキー", "プライバシー", "同意", "許可", "拒否", "設定"
+}
+
+# プライバシーモーダル内にあるアクションボタンのキーワード
+PRIVACY_ACTION_KEYWORDS = {
+    "accept", "agree", "allow", "reject", "decline", "save", "confirm", "close", "x", "×",
+    "settings", "preferences", "options", "choices", "continue", "ok", "got it",
+    "同意", "許可", "拒否", "保存", "確認", "設定"
+}
+
 # 構造スコア判定用のインタラクティブ要素
 FORM_INTERACTIVE_TAGS = {
     "entry", "input", "text field", "textarea"
@@ -51,6 +66,24 @@ TAG_COMPAT_GROUPS = {
     "text": {"paragraph", "static", "section", "label", "heading"},
     "action": {"push-button", "link", "button", "toggle-button", "radio-button", "check-box"},
 }
+
+# =========================
+# Modal post-filter settings
+# =========================
+MODAL_CLUSTER_EPS_PX = 140  # 近傍クラスタリング半径（中心距離）
+MODAL_KEEP_SCORE_TH = 4.2   # これ未満のクラスタはMODALから落とす
+MODAL_KEEP_RELATIVE = 0.80  # max_score * この比率以上も残す（複数モーダル対策）
+
+ACTION_TAGS = {
+    "push-button", "button", "link", "toggle-button",
+    "check-box", "radio-button", "menu-item",
+}
+INPUT_TAGS = {"entry", "combo-box", "spin-button"}
+DIALOG_TAGS = {"dialog", "alert", "alertdialog"}  # a11y実装で出るなら強い根拠
+
+# 「巨大クラスタが実は背景shift」の時に落とすための閾値
+BG_SHIFT_AREA_RATIO_TH = 0.45
+BG_SHIFT_LOW_ACTION_DENSITY_TH = 0.012
 
 
 # ============================================================================
@@ -189,9 +222,39 @@ class HybridModalDetector(ModalDetector):
         
         return set()
 
+
+    def _is_privacy_node(self, node: Node) -> bool:
+        """
+        このノードが「プライバシーモーダルの一部」として抽出されるべきか判定する。
+        """
+        tag = (node.get("tag") or "").lower()
+        role = (node.get("role") or "").lower()
+        label = (node.get("name") or node.get("text") or "").strip().lower()
+        
+        # 1. トグルやチェックボックスは、プライバシー設定の一部である可能性が高い
+        if tag in TOGGLE_TAGS:
+            return True
+            
+        # 2. テキスト系: プライバシー関連語が含まれているか
+        if tag in {"static", "paragraph", "label", "heading", "section", "link"}:
+            if any(kw in label for kw in PRIVACY_MODAL_KEYWORDS):
+                return True
+        
+        # 3. ボタン系: アクションキーワードが含まれているか
+        if tag in ACTION_BUTTON_TAGS:
+            # 閉じるボタンは無条件で拾う
+            if label in {"x", "×", "close"}:
+                return True
+            # "Accept All" などのキーワードチェック
+            if any(kw in label for kw in PRIVACY_ACTION_KEYWORDS):
+                return True
+                
+        return False
+
     def _detect_centered_popup(self, nodes: List[Node], candidate_indices: List[int], sw: int, sh: int) -> Set[int]:
         """
-        案2: スコアリングによる中央ポップアップ検出 (修正版: ヘッダー誤爆対策入り)
+        案2: スコアリングによる中央ポップアップ検出
+        修正: プライバシーキーワード駆動抽出 (Cherry-Picking) + 検索ウィジェットガード
         """
         if not candidate_indices:
             return set()
@@ -203,7 +266,9 @@ class HybridModalDetector(ModalDetector):
             cx, cy = bbox["x"] + bbox["w"] // 2, bbox["y"] + bbox["h"] // 2
             centers.append((i, cx, cy))
 
-        DIST_THRESH = min(sw, sh) * 0.15
+        # クラスタリング距離 (前回修正値)
+        DIST_THRESH = min(sw, sh) * 0.08
+        
         clusters = []
         visited = set()
 
@@ -230,21 +295,51 @@ class HybridModalDetector(ModalDetector):
                         queue.append(j)
             clusters.append(group)
 
-        # 2. クラスタごとのスコアリング
-        best_cluster = set()
-        max_score = 0.0
+        # 2. クラスタごとの処理
+        final_set = set()
+        
         SCORE_THRESHOLD = 65.0
-
         screen_cx, screen_cy = sw // 2, sh // 2
         
-        # ★ ヘッダー誤爆防止用の定数
-        HEADER_Y_LIMIT = sh * 0.25      # 画面上部25%より上から始まるものはヘッダーの疑い
-        WIDE_HEADER_RATIO = 0.8         # 画面幅の80%以上を使うものはヘッダー/フッターの疑い
-        FLAT_ASPECT_RATIO = 4.0         # 横:縦比が4:1以上の「細長い帯」はモーダルではない
+        HEADER_Y_LIMIT = sh * 0.25
+        WIDE_HEADER_RATIO = 0.8
+        FLAT_ASPECT_RATIO = 4.0
 
         CHROME_NTP_KEYWORDS = {"search google or type a url", "web store"}
+        
+        SEARCH_WIDGET_KEYWORDS = {
+            "round trip", "one way", "multi-city", "find flights", 
+            "book a flight", "search flights", "departure", "destination",
+            "passenger", "advanced search", "return trip", "flight"
+        }
 
         for group in clusters:
+            # --- Step 1: このクラスタが「プライバシー/Cookie系」か判定 ---
+            has_privacy_feature = False
+            
+            for idx in group:
+                label = (nodes[idx].get("name") or nodes[idx].get("text") or "").lower()
+                if any(kw in label for kw in PRIVACY_MODAL_KEYWORDS):
+                    has_privacy_feature = True
+                    break
+            
+            # --- Step 2: プライバシー系なら「決め打ち抽出」を実行 ---
+            if has_privacy_feature:
+                extracted_count = 0
+                for idx in group:
+                    if self._is_privacy_node(nodes[idx]):
+                        final_set.add(idx)
+                        extracted_count += 1
+                
+                if self.debug and extracted_count > 0:
+                    min_y = min([node_bbox_from_raw(nodes[i])["y"] for i in group])
+                    print(f"  [Cluster] Detected PRIVACY Cluster. Cherry-picked {extracted_count}/{len(group)} nodes. Y={min_y}")
+                
+                # プライバシー系として処理したので、このクラスタの処理は完了（重なっている検索フォームなどを巻き込まないため）
+                continue
+
+            # --- Step 3: それ以外（通常のポップアップ）は既存のスコアリングで判定 ---
+            
             xs, ys = [], []
             structure_score = 0
             
@@ -253,6 +348,7 @@ class HybridModalDetector(ModalDetector):
             buttons = 0
             has_close = False
             has_ntp_keyword = False
+            has_search_keyword = False
             
             group_indices = set(group)
             
@@ -268,6 +364,9 @@ class HybridModalDetector(ModalDetector):
                 if any(k in label for k in CHROME_NTP_KEYWORDS):
                     has_ntp_keyword = True
                 
+                if any(k in label for k in SEARCH_WIDGET_KEYWORDS):
+                    has_search_keyword = True
+
                 if tag in FORM_INTERACTIVE_TAGS:
                     inputs += 1
                 elif tag in TOGGLE_TAGS:
@@ -290,51 +389,38 @@ class HybridModalDetector(ModalDetector):
             aspect_ratio = w / (h + 1e-9)
             width_ratio = w / (sw + 1e-9)
 
-            # === [GUARD] ヘッダー/ナビゲーションバー除外ロジック ===
+            # === [GUARD] ===
             is_rejected = False
             
-            # 1. 位置と形状によるガード
-            # 「画面上部(y < 25%)から始まり」かつ「横幅が広い(>80%)」または「極端に横長(アスペクト比>4)」
             if min_y < HEADER_Y_LIMIT:
-                if width_ratio > WIDE_HEADER_RATIO:
-                    is_rejected = True # ヘッダーバーと判定
-                elif aspect_ratio > FLAT_ASPECT_RATIO:
-                    is_rejected = True # ナビゲーション帯と判定
+                if width_ratio > WIDE_HEADER_RATIO: is_rejected = True
+                elif aspect_ratio > FLAT_ASPECT_RATIO: is_rejected = True
 
-            # 2. 検索バー誤爆対策
-            # 入力フォームがあるが、縦幅が極端に狭い (Search Bar only) 場合はモーダルとしない
             if inputs > 0 and h < sh * 0.1:
                 is_rejected = True
 
             if has_ntp_keyword:
                 is_rejected = True
 
-            if is_rejected:
+            # 検索ウィジェットガード (プライバシー判定はStep1で済んでいるので、ここは純粋に弾く)
+            if has_search_keyword and not has_close:
+                is_rejected = True
                 if self.debug:
-                    print(f"  [Cluster REJECTED] Header/Nav detected: y={min_y}, w_ratio={width_ratio:.2f}, aspect={aspect_ratio:.2f}")
+                    print(f"  [Cluster REJECTED] Search Widget detected: y={min_y}")
+
+            if is_rejected:
                 continue
             # ====================================================
 
-            # --- 構造点 (Structure Score) ---
-            # Pattern A: 入力フォーム (Drugs.com対策)
-            if inputs >= 1 and buttons >= 1:
-                structure_score += 40
-            
-            # Pattern B: 設定/同意ダイアログ (Delta対策)
-            if toggles >= 2 and buttons >= 1:
-                structure_score += 40
-            
-            # Pattern C: 単純な通知
-            if inputs == 0 and buttons >= 1 and len(group) > 3:
-                structure_score += 20
-            
-            if has_close:
-                structure_score += 10
+            # --- 構造点 ---
+            if inputs >= 1 and buttons >= 1: structure_score += 40
+            if toggles >= 2 and buttons >= 1: structure_score += 40
+            if inputs == 0 and buttons >= 1 and len(group) > 3: structure_score += 20
+            if has_close: structure_score += 10
 
-            # --- 基本点 (Base Score) ---
+            # --- 基本点 ---
             dist_norm = ((cx - screen_cx)**2 + (cy - screen_cy)**2)**0.5 / (sh * 0.5)
             center_score = max(0, 30 * (1.0 - dist_norm))
-            
             density_score = min(len(group), 20)
             isolation_score = 10 
 
@@ -343,35 +429,10 @@ class HybridModalDetector(ModalDetector):
             if self.debug:
                 print(f"  [Cluster] score={total_score:.1f} (Struct={structure_score}, Center={center_score:.1f}) | Inputs={inputs}, Toggles={toggles}, Y={min_y}")
 
-            if total_score > max_score:
-                max_score = total_score
-                best_cluster = group_indices
+            if total_score > SCORE_THRESHOLD:
+                final_set.update(group_indices)
 
-        if max_score > SCORE_THRESHOLD:
-            final_set = set(best_cluster)
-            
-            # 吸収処理
-            xs, ys = [], []
-            for idx in best_cluster:
-                bbox = node_bbox_from_raw(nodes[idx])
-                xs.extend([bbox["x"], bbox["x"] + bbox["w"]])
-                ys.extend([bbox["y"], bbox["y"] + bbox["h"]])
-            
-            bx1, bx2 = min(xs) - 20, max(xs) + 20
-            by1, by2 = min(ys) - 20, max(ys) + 20
-            
-            for i in candidate_indices:
-                if i in final_set: continue
-                bbox = node_bbox_from_raw(nodes[i])
-                cx = bbox["x"] + bbox["w"] // 2
-                cy = bbox["y"] + bbox["h"] // 2
-                
-                if bx1 <= cx <= bx2 and by1 <= cy <= by2:
-                    final_set.add(i)
-            
-            return final_set
-
-        return set()
+        return final_set
 
 
 # ============================================================================

@@ -18,6 +18,18 @@ ent...
 INSTRUCTION:
 Can you make a new folder for me on the bookmarks bar in my internet browser? Let's call it 'Favorites.'
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 74 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===

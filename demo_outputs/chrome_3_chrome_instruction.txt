@@ -14,6 +14,18 @@ label	woman_​sitting_​...
 INSTRUCTION:
 Can you make a new folder for me on the bookmarks bar in my internet browser? Let's call it 'Favorites.'
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 89 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 29
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -59,7 +71,6 @@ BROWSER_UI:
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
-[static] "Customise Chrome" @ (1832, 1047)
 [menu-item] "New tab Ctrl+T" @ (1737, 134)
 [menu-item] "New window Ctrl+N" @ (1737, 165)
 [menu-item] "New Incognito window Ctrl+Shift+N" @ (1737, 196)
@@ -83,7 +94,6 @@ MODAL:
 [menu-item] "Help" @ (1737, 773)
 [menu-item] "Settings" @ (1737, 804)
 [menu-item] "Exit" @ (1737, 835)
-[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
 [combo-box] "Search Google or type a URL" @ (995, 400)

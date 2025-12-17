@@ -13,6 +13,18 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 On next Monday, look up a flight from Mumbai to Stockholm.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 84 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 26
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -60,18 +72,22 @@ BROWSER_UI:
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
+[label] "Home" @ (1721, 1045)
 [paragraph] "We use cookies to tailor your experience to your needs, bringing you special offers, unique features and much more. By selecting ‘Agree’, yo..." @ (995, 974)
 [link] "Cookie preferences" @ (1315, 1041)
 [link] "Accept all" @ (1507, 1041)
+[heading] "Let's go places together" @ (987, 920)
 [paragraph] "Discover the latest offers and news and start planning your next trip with us." @ (987, 980)
-[push-button] " Close menu" @ (430, 154)
+[image] "Senior Exclusive" @ (542, 1094)
+[image] "Book early and save" @ (838, 1094)
+[image] "Stopover in Qatar from $14 pp" @ (1134, 1094)
+[image] "Celebrate Disney Enchanted Winter" @ (1430, 1094)
+[static] "Next" @ (1580, 1162)
 CONTENT:
-[BLOCK "Unlock more with our Silver Hair travel exclusive"]
-[heading] "Unlock more with our Silver Hair travel exclusive" @ (0, 0)
-[document-web] "Book Flights - Book & Fly from Hong Kong | Qatar Airways" @ (995, 597)
+[BLOCK]
 [image] "Unlock more with our<br>Silver Hair travel exclusive" @ (987, 354)
 [/BLOCK]
-[BLOCK]
+[BLOCK "Unlock more with our Silver Hair travel exclusive"]
 [link] "TSA Checked Baggage Restriction for Travellers to/from, or via, USA" @ (863, 115)
 [section] "Travel alerts" @ (995, 133)
 [link] "Prohibited Tobacco Items in the Republic of Singapore" @ (863, 145)
@@ -83,7 +99,9 @@ CONTENT:
 [image] "Qatar Airways Logo" @ (480, 182)
 [image] "one world logo" @ (594, 184)
 [link] "one-world one world logo One World Logo" @ (594, 184)
-[static] "(current) / Explore" @ (740, 186)
+[static] "(current)" @ (740, 186)
+[static] "Explore" @ (673, 187)
+[heading] "Unlock more with our Silver Hair travel exclusive" @ (987, 333)
 [static] "Unlock more with our" @ (584, 308)
 [static] "Silver Hair travel exclusive" @ (613, 356)
 [push-button] "Book now" @ (477, 442)
@@ -97,7 +115,8 @@ CONTENT:
 [push-button] "Search Icon" @ (1315, 185)
 [push-button] "EN" @ (1375, 185)
 [image] "Profile Icon" @ (1434, 189)
-[static] "Log in / Sign up" @ (1478, 188)
+[static] "Log in" @ (1478, 188)
+[static] "Sign up" @ (1542, 188)
 [/BLOCK]
 [BLOCK]
 [radio-button] "Return" @ (443, 629)
@@ -113,27 +132,15 @@ CONTENT:
 [BLOCK]
 [entry] "Please enter depart date in the format dd space mmm space yyyy" @ (1055, 688)
 [entry] "Please enter return date in the format dd space mmm space yyyy" @ (1193, 688)
-[static] "Departure / Return" @ (1024, 679)
+[static] "Departure" @ (1024, 679)
+[static] "Return" @ (1154, 679)
 [label] "Passengers / Class" @ (1404, 680)
 [static] "ꤐ" @ (1522, 690)
 [push-button] "Search flights" @ (1449, 768)
 [section] "ꤠAdd promo code" @ (1262, 768)
-[static] "ꤠ / Add promo code" @ (1200, 768)
+[static] "ꤠ" @ (1200, 768)
+[static] "Add promo code" @ (1272, 768)
 [/BLOCK]
 [BLOCK]
 [push-button] "Feedback" @ (1903, 845)
-[/BLOCK]
-[BLOCK "Let's go places together"]
-[heading] "Let's go places together" @ (987, 920)
-[static] "Discover the latest offers and news and start planning your next trip with us." @ (690, 968)
-[image] "Senior Exclusive" @ (542, 1094)
-[/BLOCK]
-[BLOCK]
-[image] "Book early and save" @ (838, 1094)
-[/BLOCK]
-[BLOCK]
-[image] "Stopover in Qatar from $14 pp" @ (1134, 1094)
-[/BLOCK]
-[BLOCK]
-[image] "Celebrate Disney Enchanted Winter" @ (1430, 1094)
 [/BLOCK]

@@ -13,6 +13,18 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Show side effects of Tamiflu.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 89 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -61,11 +73,7 @@ BROWSER_UI:
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
 [static] "https://www.drugs.com/sfx/tamiflu-side-effects.html" @ (257, 1069)
-[push-button] " Close menu" @ (430, 154)
 CONTENT:
-[BLOCK]
-[document-web] "Tamiflu - Search results. Page 1 of about 681 results" @ (995, 597)
-[/BLOCK]
 [BLOCK]
 [link] "Drugs.com - Go to homepage" @ (473, 163)
 [/BLOCK]

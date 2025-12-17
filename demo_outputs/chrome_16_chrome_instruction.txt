@@ -13,6 +13,18 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Show side effects of Tamiflu.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 75 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -60,12 +72,7 @@ BROWSER_UI:
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
 MODAL:
-[document-web] "Tamiflu Side Effects: Common, Severe, Long Term" @ (995, 597)
 [push-button] "Close" @ (1321, 392)
-[section] "DRUGS.COM NEWSLETTERS" @ (771, 418)
-[heading] "Drug & health news" @ (771, 511)
-[static] "Drug &" @ (749, 461)
-[static] "health news" @ (745, 536)
 [paragraph] "Stay up-to-date with the latest drug news and FDA Alerts delivered straight to your inbox." @ (1117, 454)
 [check-box] "News & warnings for Tamiflu" (UNCHECKED) @ (936, 539)
 [check-box] "FDA Safety Alerts" (UNCHECKED) @ (936, 578)
@@ -78,4 +85,10 @@ MODAL:
 [static] "Your" @ (946, 773)
 [link] "privacy" @ (987, 773)
 [static] "is important to us." @ (1074, 773)
-[push-button] " Close menu" @ (430, 154)
+CONTENT:
+[BLOCK "Drug & health news"]
+[static] "DRUGS.COM NEWSLETTERS" @ (773, 418)
+[heading] "Drug & health news" @ (771, 511)
+[static] "Drug &" @ (749, 461)
+[static] "health news" @ (745, 536)
+[/BLOCK]
