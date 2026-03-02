@@ -72,43 +72,6 @@ BROWSER_UI:
 [browser-button] "View site information" @ (207, 90)
 [browser-entry] "Address and search bar" @ (1009, 90)
 [browser-button] "Bookmark this tab" @ (1812, 90)
-MODAL:
-[link] "Home" @ (421, 399)
-[link] "Search" @ (481, 399)
-[list-item] "7,586 results" @ (556, 399)
-[link] "Español" @ (1185, 399)
-[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 525)
-[heading] "Drugs & Medications A to Z" @ (805, 449)
-[section] "/drug_information.html" @ (805, 484)
-[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 562)
-[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 522)
-[static] "Database" @ (1027, 522)
-[static] "International Drug" @ (786, 535)
-[static] "Medical Q & A Compare Drugs" @ (642, 549)
-[static] "Natural" @ (792, 549)
-[static] "Products" @ (863, 549)
-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 576)
-[link] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 748)
-[heading] "Drugs & Medications A to Z" @ (805, 672)
-[section] "/rootdocs/a-to-z-drug-list.html" @ (805, 707)
-[paragraph] "...Drug Database International Drug Database Medical Q & A Compare Drugs Natural Products Pricing & Coupons Inactive Ingredients Info en Español Care..." @ (805, 785)
-[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 745)
-[static] "Database" @ (1027, 745)
-[static] "International Drug" @ (786, 758)
-[static] "Medical Q & A Compare Drugs" @ (642, 772)
-[static] "Natural" @ (792, 772)
-[static] "Products" @ (863, 772)
-[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 799)
-[link] "...ark Liver Oil Uses, Benefits & Side Effects /npc/shark-liver-oil.html Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 944)
-[heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
-[section] "/npc/shark-liver-oil.html" @ (805, 930)
-[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer..." @ (805, 981)
-[static] "Products" @ (440, 967)
-[static] ". Facts & Comparisons [" @ (564, 967)
-[static] "database" @ (689, 967)
-[link] "...cattle have been resolved. References 1. Bovine Colostrum. Review of Natural Products. Facts & Comparisons [database online]. St. Louis, MO: Wolte..." @ (805, 1126)
-[heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
-[push-button] " Close menu" @ (430, 154)
 CONTENT:
 [BLOCK]
 [link] "Drugs.com - Go to homepage" @ (473, 163)
@@ -159,6 +122,59 @@ CONTENT:
 [static] "Resources" @ (1286, 223)
 [static] "More" @ (1228, 224)
 [/BLOCK]
+[BLOCK "Drugs & Medications A to Z"]
+[link] "Home" @ (421, 399)
+[link] "Search" @ (481, 399)
+[static] "7,586 results" @ (556, 399)
+[heading] "Drugs & Medications A to Z" @ (805, 449)
+[link] "...Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 525)
+[static] "/drug_information.html" @ (483, 484)
+[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 562)
+[static] "International Drug" @ (786, 535)
+[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 522)
+[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 576)
+[static] "Database" @ (484, 549)
+[static] "Medical Q & A Compare Drugs" @ (642, 549)
+[/BLOCK]
 [BLOCK]
-[label] "Home" @ (1721, 1045)
+[static] "Natural" @ (792, 549)
+[static] "Products" @ (863, 549)
+[/BLOCK]
+[BLOCK]
+[static] "Database" @ (1027, 522)
+[/BLOCK]
+[BLOCK]
+[link] "Español" @ (1185, 399)
+[/BLOCK]
+[BLOCK "Drugs & Medications A to Z"]
+[heading] "Drugs & Medications A to Z" @ (805, 672)
+[link] "...Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 748)
+[static] "/rootdocs/a-to-z-drug-list.html" @ (506, 707)
+[paragraph] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug Database International Drug Database Medical Q & A Compare Drugs Natural Produ..." @ (805, 785)
+[static] "International Drug" @ (786, 758)
+[static] "Pharma Company Generic Drug Status Veterinary Drugs OTC Drugs UK Drug" @ (696, 745)
+[static] "Pricing & Coupons Inactive Ingredients Info en Español Care Guides (Español) Popular drug searches Acetaminophen Adderall Amitriptyline Amlo..." @ (801, 799)
+[static] "Database" @ (484, 772)
+[static] "Medical Q & A Compare Drugs" @ (642, 772)
+[/BLOCK]
+[BLOCK]
+[static] "Natural" @ (792, 772)
+[static] "Products" @ (863, 772)
+[/BLOCK]
+[BLOCK]
+[static] "Database" @ (1027, 745)
+[/BLOCK]
+[BLOCK "Shark Liver Oil Uses, Benefits & Side Effects"]
+[heading] "Shark Liver Oil Uses, Benefits & Side Effects" @ (805, 895)
+[link] "...Side Effects /npc/shark-liver-oil.html Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011...." @ (805, 944)
+[static] "/npc/shark-liver-oil.html" @ (484, 930)
+[paragraph] "Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011...." @ (805, 981)
+[static] "Products" @ (440, 967)
+[static] "online]. St. Louis, MO: Wolters Kluwer Health Inc; January 2011...." @ (787, 981)
+[static] ". Facts & Comparisons [" @ (564, 967)
+[heading] "Bovine colostrum Uses, Benefits & Side Effects" @ (805, 1063)
+[link] "...1. Bovine Colostrum. Review of Natural Products. Facts & Comparisons [database online]. St. Louis, MO: Wolters Kluwer Health Inc; December 2012...." @ (805, 1126)
+[/BLOCK]
+[BLOCK]
+[static] "database" @ (689, 967)
 [/BLOCK]

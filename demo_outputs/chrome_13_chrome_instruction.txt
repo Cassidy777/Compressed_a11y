@@ -13,6 +13,18 @@ label	woman_​sitting_​by_​the_​tree2.​png	woman_​sitting_​by_​th
 INSTRUCTION:
 Show side effects of Tamiflu.
 
+DOMAIN SCORES (from domain_detector):
+  - gimp: 0
+  - chrome: 145 <-- selected
+  - vsc: 20
+  - libreoffice_calc: 0
+  - libreoffice_impress: 20
+  - libreoffice_writer: 20
+  - thunderbird: 25
+  - os: 0
+  - vlc: 25
+  - vscode: 20
+
 DETECTED DOMAIN: chrome
 
 === COMPRESSED A11Y ===
@@ -61,7 +73,6 @@ BROWSER_UI:
 [browser-button] "Bookmark this tab" @ (1812, 90)
 CONTENT:
 [BLOCK]
-[document-web] "Drugs.com – Know More. Be Sure." @ (995, 597)
 [link] "Health Professionals" @ (257, 536)
 [section] "Health Professionals" @ (257, 575)
 [/BLOCK]
@@ -75,7 +86,8 @@ CONTENT:
 [link] "News" @ (1136, 163)
 [link] "Pro Edition" @ (1224, 163)
 [link] "More Resources …" @ (1318, 163)
-[static] "Resources / More" @ (1368, 160)
+[static] "Resources" @ (1368, 160)
+[static] "More" @ (1310, 163)
 [heading] "Know more. Be sure." @ (987, 268)
 [static] "Drug and health information, from pharmacists you can trust." @ (987, 309)
 [entry] "Search Drugs.com" @ (987, 362)
@@ -89,7 +101,8 @@ CONTENT:
 [link] "Dupixent" @ (1152, 414)
 [link] "Journavx" @ (1222, 414)
 [link] "Austedo" @ (1289, 414)
-[static] "Trending / searches" @ (688, 414)
+[static] "Trending" @ (688, 414)
+[static] "searches" @ (752, 414)
 [link] "Drugs & Medications" @ (549, 536)
 [link] "Pill Identifier" @ (841, 536)
 [link] "Drug Interaction Checker" @ (1133, 536)
@@ -102,7 +115,13 @@ CONTENT:
 [section] "Drug Interaction Checker" @ (1133, 575)
 [section] "Symptom Checker" @ (1425, 575)
 [section] "Side Effects" @ (1717, 575)
-[static] "Drugs & / Medications / Pill / Identifier / Drug Interaction / Checker / Symptom" @ (500, 575)
+[static] "Drugs &" @ (500, 575)
+[static] "Medications" @ (584, 575)
+[static] "Pill" @ (803, 575)
+[static] "Identifier" @ (857, 575)
+[static] "Drug Interaction" @ (1100, 575)
+[static] "Checker" @ (1202, 575)
+[static] "Symptom" @ (1392, 575)
 [link] "Symptoms" @ (709, 659)
 [static] "Browse by Site Section" @ (1108, 659)
 [link] "Browse drugs by letter: a" @ (423, 723)
@@ -122,7 +141,19 @@ CONTENT:
 [link] "Drugs A-Z" @ (1041, 714)
 [link] "Español" @ (1119, 714)
 [link] "Health Professionals" @ (1379, 714)
-[static] "A / B / C / D / E / F / G / H / I / J / K / L / M" @ (423, 723)
+[static] "A" @ (423, 723)
+[static] "B" @ (467, 723)
+[static] "C" @ (511, 723)
+[static] "D" @ (555, 723)
+[static] "E" @ (599, 723)
+[static] "F" @ (643, 723)
+[static] "G" @ (687, 723)
+[static] "H" @ (731, 723)
+[static] "I" @ (775, 723)
+[static] "J" @ (819, 723)
+[static] "K" @ (863, 723)
+[static] "L" @ (907, 723)
+[static] "M" @ (951, 723)
 [link] "Side Effects Checker" @ (1082, 748)
 [link] "Medical News" @ (1353, 748)
 [link] "Browse drugs by letter: n" @ (423, 767)
@@ -138,7 +169,19 @@ CONTENT:
 [link] "Browse drugs by letter: x" @ (863, 767)
 [link] "Browse drugs by letter: y" @ (907, 767)
 [link] "Browse drugs by letter: z" @ (951, 767)
-[static] "N / O / P / Q / R / S / T / U / V / W / X / Y / Z" @ (423, 767)
+[static] "N" @ (423, 767)
+[static] "O" @ (467, 767)
+[static] "P" @ (511, 767)
+[static] "Q" @ (555, 767)
+[static] "R" @ (599, 767)
+[static] "S" @ (643, 767)
+[static] "T" @ (687, 767)
+[static] "U" @ (731, 767)
+[static] "V" @ (775, 767)
+[static] "W" @ (819, 767)
+[static] "X" @ (863, 767)
+[static] "Y" @ (907, 767)
+[static] "Z" @ (951, 767)
 [link] "Dosage Guidelines" @ (1075, 782)
 [link] "FDA Alerts" @ (1341, 782)
 [link] "Browse drugs by numbers: 0-9" @ (423, 811)
@@ -146,9 +189,10 @@ CONTENT:
 [static] "0-9" @ (423, 811)
 [link] "Manage your Meds" @ (1076, 816)
 [link] "New Drugs" @ (1342, 816)
-[static] "Resources / More" @ (1379, 849)
+[static] "Resources" @ (1379, 849)
 [link] "Mobile Apps" @ (1051, 850)
 [link] "More Resources" @ (1320, 850)
+[static] "More" @ (1320, 850)
 [paragraph] "Browse A-Z: , , , or" @ (687, 857)
 [static] "Browse A-Z:" @ (451, 857)
 [link] "drugs" @ (520, 857)
