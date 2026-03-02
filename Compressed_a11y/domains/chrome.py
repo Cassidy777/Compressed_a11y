@@ -1212,4 +1212,4 @@ class ChromeCompressor(BaseA11yCompressor):
         x_tol = int(screen_w * 0.15)
         if self.enable_static_line_merge:
             tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
-        return build_hierarchical_content_lines(tuples, big_gap_px=None, heading_section_gap_px=None)
+        return build_hierarchical_content_lines(tuples, big_gap_px=None, heading_section_gap_px=None, enable_region_segmentation=self.enable_region_segmentation)

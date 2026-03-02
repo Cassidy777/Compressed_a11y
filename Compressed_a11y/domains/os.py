@@ -292,6 +292,13 @@ class OSCompressor(BaseA11yCompressor):
         """
         OS(ubuntu/gnome) 向けのセマンティック分割。
         """
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFなら全部CONTENTに入れて終わる
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            return {"CONTENT": nodes}
+
         regions: Dict[str, List[Node]] = {
             "APP_LAUNCHER": [],
             "TOP_BAR": [],
@@ -458,10 +465,39 @@ class OSCompressor(BaseA11yCompressor):
 
     # === 圧縮系ユーティリティ (共通) ===
 
-    def _format_center(self, n: Node) -> str:
-        bbox = node_bbox_from_raw(n)
-        cx, cy = bbox_to_center_tuple(bbox)
-        return f"@ ({cx}, {cy})"
+    # def _format_center(self, n: Node) -> str:
+    #     bbox = node_bbox_from_raw(n)
+    #     cx, cy = bbox_to_center_tuple(bbox)
+    #     return f"@ ({cx}, {cy})"
+
+
+    # -------------------------------------------------------------------------
+    # 座標と追加属性のフォーマット
+    # -------------------------------------------------------------------------
+    def _format_center(self, node: Node) -> str:
+        """フラグに応じて、中心座標(圧縮ON)か、生BBox+詳細属性(圧縮OFF)を切り替えて返す"""
+        bbox = node_bbox_from_raw(node)
+        
+        # engine.pyで追加したフラグをチェック
+        if getattr(self, "enable_redundancy_reduction", True):
+            # ==========================================
+            # ★ Trueの時: 圧縮・冗長性削減 ON (元の挙動)
+            # ==========================================
+            cx, cy = bbox_to_center_tuple(bbox)
+            return f"@ ({cx}, {cy})"
+        else:
+            # ==========================================
+            # ★ Falseの時: 圧縮・冗長性削減 OFF (生のデータ)
+            # ==========================================
+            desc = (node.get("description") or "").strip()
+            desc_attr = f' desc="{desc}"' if desc else ""
+            
+            role = (node.get("role") or "").strip()
+            role_attr = f' role="{role}"' if role else ""
+            
+            # 属性文字列と生のバウンディングボックス(x, y, w, h)を結合して返す
+            return f"{desc_attr}{role_attr} @ ({bbox['x']}, {bbox['y']}, {bbox['w']}, {bbox['h']})"
+
 
     # === OS向け 各領域の圧縮ロジック ===
 
@@ -1058,6 +1094,21 @@ class OSCompressor(BaseA11yCompressor):
         screen_h: int,
     ) -> List[str]:
         lines = []
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFの場合は、OS専用の複雑なウィンドウ分類をスキップして全データを出力
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            content_nodes = regions.get("CONTENT", [])
+            if content_nodes:
+                lines.extend(self.process_region_lines(content_nodes, screen_w, screen_h))
+            
+            if modal_nodes:
+                lines.append("MODAL:")
+                lines.extend(self.process_region_lines(modal_nodes, screen_w, screen_h))
+                
+            return lines
+        # ==========================================
 
         if r := self._compress_app_launcher(regions.get("APP_LAUNCHER", [])): lines.append("APP_LAUNCHER:"); lines.extend(r)
         if r := self._compress_top_bar(regions.get("TOP_BAR", [])): lines.append("TOP_BAR:"); lines.extend(r)

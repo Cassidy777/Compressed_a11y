@@ -37,7 +37,11 @@ def compress_from_raw_a11y(
     instruction: Optional[str] = None,
     mode: Literal["instruction", "observation"] = "instruction",
     compressor: Optional[BaseA11yCompressor] = None,
+    enable_modal_detection: bool = True,
+    enable_redundancy_reduction: bool = True,
+    enable_region_segmentation: bool = True,
 ) -> Dict[str, Any]:
+
     # 1. パース
     nodes = parse_raw_a11y(raw_a11y)
 
@@ -54,6 +58,10 @@ def compress_from_raw_a11y(
     # 型的には BaseA11yCompressor とみなす
     compressor: BaseA11yCompressor
     compressor.domain_name = domain
+
+    compressor.enable_modal_detection = enable_modal_detection
+    compressor.enable_redundancy_reduction = enable_redundancy_reduction
+    compressor.enable_region_segmentation = enable_region_segmentation
 
     # 4-1. 背景フィルタ / STATUSBAR フラグ
     if domain == "os":

@@ -38,6 +38,11 @@ class BaseA11yCompressor:
     # ★ 追加: デバッグ出力を有効化するか
     DEBUG: bool = False
 
+
+    enable_modal_detection: bool = True
+    enable_redundancy_reduction: bool = True
+    enable_region_segmentation: bool = True
+
     os_menu_blacklist: Set[str] = {
         "system",
         "google chrome",
@@ -81,7 +86,7 @@ class BaseA11yCompressor:
         screen_w: int = 1920,
         screen_h: int = 1080,
         instruction: Optional[str] = None,
-        instruction_keywords: Optional[Set[str]] = None,  # ★ 追加
+        instruction_keywords: Optional[Set[str]] = None, 
         use_instruction: bool = False,
     ) -> Dict[str, Any]:
 
@@ -126,26 +131,35 @@ class BaseA11yCompressor:
         )
 
         # 2. モーダル分離（Diff / ドメイン専用 / Cluster）
-        modal_nodes, base_nodes_after_modal, modal_mode = self._detect_modals(
-            nodes_for_modal, screen_w, screen_h, instruction
-        )
+        if self.enable_modal_detection:
+            modal_nodes, base_nodes_after_modal, modal_mode = self._detect_modals(
+                nodes_for_modal, screen_w, screen_h, instruction
+            )
+        else:
+            # オフの場合はモーダル無しとして、すべてのノードを背景(base_nodes)に回す
+            modal_nodes, base_nodes_after_modal, modal_mode = [], nodes_for_modal, "none"
 
         # 2.5 ★ モーダル背景側に静的UIを戻す（モーダル候補には絶対入れない）
         base_nodes = base_nodes_after_modal + detached_static_nodes
 
-        # 3. システムUI (Launcher / Status) の分離
-        launcher_nodes, status_nodes, main_nodes = self.extract_system_ui(
-            base_nodes, screen_w, screen_h
-        )
+        regions = {}
+        if self.enable_region_segmentation:
+            # 3. システムUI (Launcher / Status) の分離
+            launcher_nodes, status_nodes, main_nodes = self.extract_system_ui(
+                base_nodes, screen_w, screen_h
+            )
 
-        # 4. セマンティック領域分割（ここから先は今まで通り）
-        regions = self.get_semantic_regions(main_nodes, screen_w, screen_h)
+            # 4. セマンティック領域分割
+            regions = self.get_semantic_regions(main_nodes, screen_w, screen_h)
 
-        regions["APP_LAUNCHER"] = launcher_nodes
-        if status_nodes:
-            if "STATUSBAR" not in regions:
-                regions["STATUSBAR"] = []
-            regions["STATUSBAR"].extend(status_nodes)
+            regions["APP_LAUNCHER"] = launcher_nodes
+            if status_nodes:
+                if "STATUSBAR" not in regions:
+                    regions["STATUSBAR"] = []
+                regions["STATUSBAR"].extend(status_nodes)
+        else:
+            # オフの場合は領域分割をせず、全ノードをそのまま "CONTENT" 領域に突っ込む
+            regions["CONTENT"] = base_nodes
 
         # 5. 出力生成
         output_lines = self._build_output(regions, modal_nodes, screen_w, screen_h)
@@ -188,42 +202,43 @@ class BaseA11yCompressor:
             nodes = normalize_multiline_fields(nodes)
 
         # 1. タグ・ラベル・座標が完全一致する重複ノードをまとめる
-        nodes = dedup_same_label_same_pos(nodes)
+        if self.enable_redundancy_reduction:
+            nodes = dedup_same_label_same_pos(nodes)
 
-        # 2. OSノイズラベル（タグに依存しない）
-        OS_NOISE_LABELS = {
-            "__macosx",
-            ".ds_store",
-        }
+            # 2. OSノイズラベル（タグに依存しない）
+            OS_NOISE_LABELS = {
+                "__macosx",
+                ".ds_store",
+            }
 
-        filtered: List[Node] = []
-        for n in nodes:
-            tag = (n.get("tag") or "").lower()
-            name = (n.get("name") or "") or ""
-            text = (n.get("text") or "") or ""
+            filtered: List[Node] = []
+            for n in nodes:
+                tag = (n.get("tag") or "").lower()
+                name = (n.get("name") or "") or ""
+                text = (n.get("text") or "") or ""
 
-            # name/text をまとめてラベルっぽく扱う
-            label = (name or text).strip().lower()
+                # name/text をまとめてラベルっぽく扱う
+                label = (name or text).strip().lower()
 
-            # ゼロ幅スペースなどを削除（_​_​MACOSX 対策）
-            for ch in ("\u200b", "\u200e", "\u200f"):
-                label = label.replace(ch, "")
+                # ゼロ幅スペースなどを削除（_​_​MACOSX 対策）
+                for ch in ("\u200b", "\u200e", "\u200f"):
+                    label = label.replace(ch, "")
 
-            # ★ 変更点3: self.os_menu_blacklist を参照するように変更
-            if tag == "menu" and label in self.os_menu_blacklist:
-                continue
+                # ★ 変更点3: self.os_menu_blacklist を参照するように変更
+                if tag == "menu" and label in self.os_menu_blacklist:
+                    continue
 
-            # 3-a) __MACOSX, .DS_Store など
-            if label in OS_NOISE_LABELS:
-                continue
+                # 3-a) __MACOSX, .DS_Store など
+                if label in OS_NOISE_LABELS:
+                    continue
 
-            filtered.append(n)
+                filtered.append(n)
 
-        nodes = filtered
+            nodes = filtered
 
-        # 4. 背景ファイル除去（enable_background_filtering=True のときのみ）
-        if self.enable_background_filtering:
-            nodes = self._filter_background_noise(nodes)
+            # 4. 背景ファイル除去（enable_background_filtering=True のときのみ）
+            if self.enable_background_filtering:
+                nodes = self._filter_background_noise(nodes)
 
         # === DEBUG-preprocess 2: 出ていく時点のタグ分布 ===
         after_tags = Counter((n.get("tag") or "").lower() for n in nodes)
@@ -515,7 +530,11 @@ class BaseA11yCompressor:
     def process_region_lines(self, nodes, w, h):
         tuples = self._nodes_to_tuples(nodes)
         tuples.sort()
-        return spatially_group_lines(tuples, y_threshold=int(h * 0.04))
+        return spatially_group_lines(
+            tuples, 
+            y_threshold=int(h * 0.04),
+            enable_region_segmentation=self.enable_region_segmentation,
+        )
 
     def process_content_lines(self, nodes, w, h):
         """
@@ -523,15 +542,16 @@ class BaseA11yCompressor:
         Instruction-Awareな整形を行う前に、ノードの冗長性を排除する。
         """
         self._debug("[DEBUG] process_content_lines:", self.domain_name, "static_merge=", self.enable_static_line_merge)
-
+        
         # 1. Content固有のフィルタリング
         filtered_nodes = [n for n in nodes if not self._should_skip_for_content(n)]
 
-        # 2. HeadingとStaticの重複を排除
-        filtered_nodes = dedup_heading_and_static(filtered_nodes)
+        if self.enable_redundancy_reduction:
+            # 2. HeadingとStaticの重複を排除
+            filtered_nodes = dedup_heading_and_static(filtered_nodes)
 
-        # 3. 類似ラベル+近接座標のノードを、優先度に基づいて排除
-        filtered_nodes = dedup_similar_nodes_by_priority(filtered_nodes, distance_threshold=20.0)
+            # 3. 類似ラベル+近接座標のノードを、優先度に基づいて排除
+            filtered_nodes = dedup_similar_nodes_by_priority(filtered_nodes, distance_threshold=20.0)
 
         # 4. 抽出・整形
         tuples = self._nodes_to_tuples(filtered_nodes)
@@ -540,11 +560,16 @@ class BaseA11yCompressor:
         tuples.sort()
         y_tol = int(h * 0.03)
         x_tol = int(w * 0.15)
-        if self.enable_static_line_merge:
+        if self.enable_static_line_merge and self.enable_redundancy_reduction:
             tuples = merge_fragmented_static_lines(tuples, y_tol, x_tol)
         return [t[2] for t in tuples]
 
     def process_modal_nodes(self, nodes: List[Node]) -> List[str]:
+        if not self.enable_redundancy_reduction:
+            # オフの場合はそのまま処理
+            tuples = self._nodes_to_tuples(nodes)
+            return [t[2] for t in tuples]
+
         # 1. 類似ラベル+近接座標のノードを、優先度に基づいて排除
         filtered_nodes = dedup_similar_nodes_by_priority(
             nodes,
@@ -605,19 +630,42 @@ class BaseA11yCompressor:
 
             val = (n.get("value") or "").strip()
             val_attr = ""
-            # Value も truncate 対象
-            if val and val != label:
-                v_out = truncate_label(val)
-                val_attr = f' value="{v_out}"'
-
+            
+            # states は共通で取得
             state_str = build_state_suffix(tag, n.get("states", []))
 
-            # ★ ラベルの整形: Instructionがあるなら Smart Truncate
-            if self.use_instruction and self.current_instruction_keywords:
-                label_out = smart_truncate(label, self.current_instruction_keywords)
-            else:
-                label_out = truncate_label(label)
+            if self.enable_redundancy_reduction:
+                # ==========================================
+                # ★ Trueの時: 圧縮・冗長性削減 ON (GitHubの元のコードと同じ挙動)
+                # ==========================================
+                if val and val != label:
+                    v_out = truncate_label(val)
+                    val_attr = f' value="{v_out}"'
 
-            line = f'[{tag}] "{label_out}"{state_str}{val_attr} @ ({cx}, {cy})'
+                if self.use_instruction and self.current_instruction_keywords:
+                    label_out = smart_truncate(label, self.current_instruction_keywords)
+                else:
+                    label_out = truncate_label(label)
+                
+                # (cx, cy) の中心座標と、必須属性のみで出力
+                line = f'[{tag}] "{label_out}"{state_str}{val_attr} @ ({cx}, {cy})'
+            else:
+                # ==========================================
+                # ★ Falseの時: 圧縮・冗長性削減 OFF (生のA11yツリーを出力)
+                # ==========================================
+                if val and val != label:
+                    val_attr = f' value="{val}"'
+                
+                label_out = label
+                
+                desc = (n.get("description") or "").strip()
+                desc_attr = f' desc="{desc}"' if desc else ""
+                
+                role = (n.get("role") or "").strip()
+                role_attr = f' role="{role}"' if role else ""
+                
+                # (x, y, w, h) の全座標と、description, roleを含めて出力
+                line = f'[{tag}] "{label_out}"{state_str}{val_attr}{desc_attr}{role_attr} @ ({bbox["x"]}, {bbox["y"]}, {bbox["w"]}, {bbox["h"]})'
+
             results.append((bbox["y"], bbox["x"], line))
         return results

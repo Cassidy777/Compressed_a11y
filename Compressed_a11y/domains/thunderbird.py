@@ -58,6 +58,13 @@ class ThunderbirdCompressor(BaseA11yCompressor):
     def get_semantic_regions(
         self, nodes: List[Node], w: int, h: int, dry_run: bool = False
     ) -> Dict[str, List[Node]]:
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFなら全部CONTENTに入れて終わる
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            return {"CONTENT": nodes}
+
         regions: Dict[str, List[Node]] = {
             "APP_LAUNCHER": [],
             "TOP_BAR": [],
@@ -159,19 +166,52 @@ class ThunderbirdCompressor(BaseA11yCompressor):
 
         return regions
 
+    # # === フォーマット用ヘルパー ===
+    # def _format_node(self, n: Node) -> str:
+    #     """標準的な [tag] "name" @ (cx, cy) 形式で出力"""
+    #     bbox = node_bbox_from_raw(n)
+    #     cx, cy = bbox_to_center_tuple(bbox)
+        
+    #     tag = (n.get("tag") or "").lower()
+    #     name = (n.get("name") or n.get("text") or "").strip()
+        
+    #     if not name:
+    #         return ""
+            
+    #     return f"[{tag}] \"{name}\" @ ({cx}, {cy})"
+
+    
     # === フォーマット用ヘルパー ===
     def _format_node(self, n: Node) -> str:
-        """標準的な [tag] "name" @ (cx, cy) 形式で出力"""
+        """フラグに応じて、圧縮ON(元の挙動)か、生BBox+詳細属性の圧縮OFFを切り替えて返す"""
         bbox = node_bbox_from_raw(n)
-        cx, cy = bbox_to_center_tuple(bbox)
-        
         tag = (n.get("tag") or "").lower()
         name = (n.get("name") or n.get("text") or "").strip()
-        
-        if not name:
-            return ""
+
+        # 追加したフラグをチェック
+        if getattr(self, "enable_redundancy_reduction", True):
+            # ==========================================
+            # ★ Trueの時: 圧縮・冗長性削減 ON (元の挙動)
+            # ==========================================
+            if not name:
+                return ""
+            cx, cy = bbox_to_center_tuple(bbox)
+            return f"[{tag}] \"{name}\" @ ({cx}, {cy})"
+        else:
+            # ==========================================
+            # ★ Falseの時: 圧縮・冗長性削減 OFF (生データ)
+            # ==========================================
+            desc = (n.get("description") or "").strip()
+            desc_attr = f' desc="{desc}"' if desc else ""
             
-        return f"[{tag}] \"{name}\" @ ({cx}, {cy})"
+            role = (n.get("role") or "").strip()
+            role_attr = f' role="{role}"' if role else ""
+            
+            val = (n.get("value") or "").strip()
+            val_attr = f' value="{val}"' if val and val != name else ""
+            
+            return f"[{tag}] \"{name}\"{val_attr}{desc_attr}{role_attr} @ ({bbox['x']}, {bbox['y']}, {bbox['w']}, {bbox['h']})"
+
 
     # === 圧縮関数群 ===
 
@@ -2181,6 +2221,21 @@ class ThunderbirdCompressor(BaseA11yCompressor):
         print("[DEBUG] _build_output called", file=sys.stderr, flush=True)
 
         lines: List[str] = []
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFの場合は、Thunderbird専用の複雑なビュー分類をスキップして全データを出力
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            content_nodes = regions.get("CONTENT", [])
+            if content_nodes:
+                lines.extend(self.process_region_lines(content_nodes, screen_w, screen_h))
+            
+            if modal_nodes:
+                lines.append("MODAL:")
+                lines.extend(self.process_region_lines(modal_nodes, screen_w, screen_h))
+                
+            return lines
+        # ==========================================
 
         # --- view type detect ---
         all_nodes_for_detect: List[Node] = []

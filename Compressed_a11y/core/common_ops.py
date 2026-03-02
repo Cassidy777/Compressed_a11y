@@ -194,7 +194,10 @@ def extract_launcher_and_status(
 
 
 # 処理済みの行リストを上から順に見て。y座標が一定以上離れたら区切り線を入れる
-def spatially_group_lines(tuples: List[Tuple[int, int, str]], y_threshold: int) -> List[str]:
+def spatially_group_lines(tuples: List[Tuple[int, int, str]], y_threshold: int, enable_region_segmentation: bool = True) -> List[str]:
+    if not enable_region_segmentation:
+        return [line for _y, _x, line in tuples]
+
     grouped = []
     last_y = None
     for y, x, line in tuples:
@@ -410,6 +413,7 @@ def build_hierarchical_content_lines(
     content_tuples: List[Tuple[int, int, str]],
     big_gap_px: Optional[int] = None,
     heading_section_gap_px: Optional[int] = None,
+    enable_region_segmentation: bool = True,    
 ) -> List[str]:
 
     if not content_tuples:
@@ -507,6 +511,12 @@ def build_hierarchical_content_lines(
 
     # 7. 出力文字列の生成
     out_lines = []
+    if not enable_region_segmentation:
+        for block in final_blocks:
+            for _y, _x, line in block:
+                out_lines.append(line)
+        return out_lines
+
     for block in final_blocks:
         block_heading = None
         for _y, _x, line in block:

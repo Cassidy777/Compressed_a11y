@@ -627,6 +627,14 @@ class LibreOfficeCalcCompressor(BaseA11yCompressor):
             lines.extend(self.process_region_lines(sheet_tab_nodes, w, h))
 
         # =====================================================
+        # ★ 追加: CONTENT（領域分割オフ時の全ノードの受け皿）
+        # =====================================================
+        content_nodes = filter_modal(regions.get("CONTENT", []), "CONTENT")
+        if content_nodes:
+            lines.append("CONTENT:")
+            lines.extend(self.process_content_lines(content_nodes, w, h))
+
+        # =====================================================
         # STATUSBAR
         # =====================================================
         statusbar_nodes = filter_modal(regions.get("STATUSBAR", []), "STATUSBAR")

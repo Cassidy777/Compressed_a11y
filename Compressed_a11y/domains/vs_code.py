@@ -101,6 +101,14 @@ class Vs_codeCompressor(BaseA11yCompressor):
     domain_name = "vs_code"
 
     def preprocess_nodes(self, nodes: List[Node], *args, **kwargs) -> List[Node]:
+
+        # ==========================================
+        # ★ 追加: 冗長性削減(ノイズ除去)OFFなら、親クラスの処理も含めてそのまま返す
+        # ==========================================
+        if not getattr(self, "enable_redundancy_reduction", True):
+            return nodes
+        # ==========================================
+
         # 1. 親クラスの処理（あれば）
         try:
             nodes = super().preprocess_nodes(nodes, *args, **kwargs)
@@ -144,6 +152,13 @@ class Vs_codeCompressor(BaseA11yCompressor):
     def get_semantic_regions(
         self, nodes: List[Node], w: int, h: int, dry_run: bool = False
     ) -> Dict[str, List[Node]]:
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFなら全部CONTENTに入れて終わる
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            return {"CONTENT": nodes}
+
         regions: Dict[str, List[Node]] = {
             "APP_LAUNCHER": [],
             "MENUBAR": [],
@@ -288,10 +303,27 @@ class Vs_codeCompressor(BaseA11yCompressor):
     # ----------------------------
     # 圧縮ロジック
     # ----------------------------
+    # def _format_center(self, n: Node) -> str:
+    #     bbox = node_bbox_from_raw(n)
+    #     cx, cy = bbox_to_center_tuple(bbox)
+    #     return f"@ ({cx}, {cy})"
+    
     def _format_center(self, n: Node) -> str:
+        """フラグに応じて、中心座標(圧縮ON)か、生BBox+詳細属性(圧縮OFF)を切り替えて返す"""
         bbox = node_bbox_from_raw(n)
-        cx, cy = bbox_to_center_tuple(bbox)
-        return f"@ ({cx}, {cy})"
+
+        # engine.pyで追加したフラグをチェック
+        if getattr(self, "enable_redundancy_reduction", True):
+            cx, cy = bbox_to_center_tuple(bbox)
+            return f"@ ({cx}, {cy})"
+        else:
+            desc = (n.get("description") or "").strip()
+            desc_attr = f' desc="{desc}"' if desc else ""
+            
+            role = (n.get("role") or "").strip()
+            role_attr = f' role="{role}"' if role else ""
+            
+            return f"{desc_attr}{role_attr} @ ({bbox['x']}, {bbox['y']}, {bbox['w']}, {bbox['h']})"
 
 
     def _compress_menubar(self, nodes: List[Node]) -> List[str]:
@@ -644,6 +676,21 @@ class Vs_codeCompressor(BaseA11yCompressor):
     ) -> List[str]:
         lines: List[str] = []
         w, h = max(1, int(screen_w)), max(1, int(screen_h))
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFの場合は、VS Code専用の複雑なView判定やModal救済をスキップして全データを出力
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            content_nodes = regions.get("CONTENT", [])
+            if content_nodes:
+                lines.extend(self.process_region_lines(content_nodes, screen_w, screen_h))
+            
+            if modal_nodes:
+                lines.append("MODAL:")
+                lines.extend(self.process_region_lines(modal_nodes, screen_w, screen_h))
+                
+            return lines
+        # ===============
 
         # 1) merged modal
         merged_modal = list(regions.get("MODAL") or [])

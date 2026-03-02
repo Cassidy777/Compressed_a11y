@@ -147,11 +147,37 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
     # -------------------------------------------------------------------------
     # 中心座標
     # -------------------------------------------------------------------------
+    # def _format_center(self, node: Node) -> str:
+    #     """ノードの中心座標を '@ (cx, cy)' 形式の文字列で返す"""
+    #     bbox = node_bbox_from_raw(node)
+    #     cx, cy = bbox_to_center_tuple(bbox)
+    #     return f"@ ({cx}, {cy})"
+    # -------------------------------------------------------------------------
+    # 座標と追加属性のフォーマット
+    # -------------------------------------------------------------------------
     def _format_center(self, node: Node) -> str:
-        """ノードの中心座標を '@ (cx, cy)' 形式の文字列で返す"""
+        """フラグに応じて、中心座標(圧縮ON)か、生BBox+詳細属性(圧縮OFF)を切り替えて返す"""
         bbox = node_bbox_from_raw(node)
-        cx, cy = bbox_to_center_tuple(bbox)
-        return f"@ ({cx}, {cy})"
+        
+        # engine.pyで追加したフラグをチェック
+        if getattr(self, "enable_redundancy_reduction", True):
+            # ==========================================
+            # ★ Trueの時: 圧縮・冗長性削減 ON (元の挙動)
+            # ==========================================
+            cx, cy = bbox_to_center_tuple(bbox)
+            return f"@ ({cx}, {cy})"
+        else:
+            # ==========================================
+            # ★ Falseの時: 圧縮・冗長性削減 OFF (生のデータ)
+            # ==========================================
+            desc = (node.get("description") or "").strip()
+            desc_attr = f' desc="{desc}"' if desc else ""
+            
+            role = (node.get("role") or "").strip()
+            role_attr = f' role="{role}"' if role else ""
+            
+            # 属性文字列と生のバウンディングボックス(x, y, w, h)を結合して返す
+            return f"{desc_attr}{role_attr} @ ({bbox['x']}, {bbox['y']}, {bbox['w']}, {bbox['h']})"
 
     # -------------------------------------------------------------------------
     # 各セクションごとの圧縮ロジック
@@ -243,7 +269,8 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
                 continue
             
             bbox = node_bbox_from_raw(n)
-            cx, cy = bbox_to_center_tuple(bbox)
+            #cx, cy = bbox_to_center_tuple(bbox)
+            center_str = self._format_center(n)
 
             prefix = tag if tag else "content"
             
@@ -258,7 +285,8 @@ class LibreOfficeImpressCompressor(BaseA11yCompressor):
             # else:
             #     prefix = "content"
             
-            lines.append(f"[{prefix}] \"{name}\" @ ({cx}, {cy})")
+            #lines.append(f"[{prefix}] \"{name}\" @ ({cx}, {cy})")
+            lines.append(f"[{prefix}] \"{name}\" {center_str}")
             
         return lines
 

@@ -150,6 +150,8 @@ class GimpCompressor(BaseA11yCompressor):
         modal_ids = {id(n) for n in modal_nodes} if modal_nodes else set()
 
         def filter_modal(nodes, region_name="Unknown"):
+            if not nodes:  # ★ None が渡ってきたときのための安全対策
+                return []
             filtered = []
             for n in nodes:
                 if id(n) not in modal_ids:
@@ -165,36 +167,45 @@ class GimpCompressor(BaseA11yCompressor):
             lines.append("WINDOW_CONTROLS:")
             lines.extend(self.process_region_lines(filter_modal(regions["WINDOW_CONTROLS"]), w, h))
         
-        if regions["APP_LAUNCHER"]:
+        # ★ 変更: .get() を使うように修正
+        if regions.get("APP_LAUNCHER"):
             lines.append("APP_LAUNCHER:")
-            lines.extend(self.process_region_lines(filter_modal(regions["APP_LAUNCHER"]), w, h))
+            lines.extend(self.process_region_lines(filter_modal(regions.get("APP_LAUNCHER")), w, h))
 
-        if regions["MENUBAR"]:
+        # ★ 変更: .get() を使うように修正
+        if regions.get("MENUBAR"):
             lines.append("MENUBAR:")
-            lines.extend(self.process_region_lines(filter_modal(regions["MENUBAR"]), w, h))
+            lines.extend(self.process_region_lines(filter_modal(regions.get("MENUBAR")), w, h))
 
-        toolbox_nodes = filter_modal(regions["TOOLBOX"], "TOOLBOX")
+        # ★ 変更: .get("TOOLBOX", []) のようにデフォルトで空リストを返すようにする
+        toolbox_nodes = filter_modal(regions.get("TOOLBOX", []), "TOOLBOX")
         if toolbox_nodes:
             lines.append("TOOLBOX (Left Panel):")
             lines.extend(self.process_panel_lines(toolbox_nodes, w, h))
 
         # --- CANVAS (原因究明と出力) ---
-        canvas_nodes = filter_modal(regions["CANVAS"], "CANVAS")
+        # ★ 変更: .get("CANVAS", [])
+        canvas_nodes = filter_modal(regions.get("CANVAS", []), "CANVAS")
         if canvas_nodes:
-            # ★DEBUG: 犯人捜しコード
-            # もし背景フィルタがONだったら、berry.pngは消えていたか？をチェック
             self.check_background_filter_behavior(canvas_nodes, w, h)
-            
             lines.append("CANVAS (Center):")
-            # 修正済み(enable_background_filtering=False)なので、ここでは消えないはず
             lines.extend(self.process_content_lines(canvas_nodes, w, h))
 
-        docks_nodes = filter_modal(regions["DOCKS"], "DOCKS")
+        # ★ 変更: .get("DOCKS", [])
+        docks_nodes = filter_modal(regions.get("DOCKS", []), "DOCKS")
         if docks_nodes:
             lines.append("DOCKS (Right Panel):")
             lines.extend(self.process_panel_lines(docks_nodes, w, h))
 
-        # ★ STATUSBAR 出力部分を修正
+        # ==========================================
+        # ★ 追加: 領域分割オフの時は全要素が "CONTENT" に入るため、その受け皿を作る
+        # ==========================================
+        content_nodes = filter_modal(regions.get("CONTENT", []), "CONTENT")
+        if content_nodes:
+            lines.append("CONTENT:")
+            lines.extend(self.process_content_lines(content_nodes, w, h))
+
+        # ★ STATUSBAR 出力部分
         statusbar_nodes = filter_modal(regions.get("STATUSBAR", []), "STATUSBAR")
         if statusbar_nodes:
             lines.append("STATUSBAR:")
@@ -207,9 +218,7 @@ class GimpCompressor(BaseA11yCompressor):
                 m = status_pattern.match(ln)
                 if m:
                     text_inside = m.group(1).strip()
-                    # 中身が完全に空なら捨てる
                     if not text_inside:
-                        # print(f"[DEBUG] drop empty status line: {ln!r}")
                         continue
                 cleaned_status_lines.append(ln)
 
@@ -274,7 +283,7 @@ class GimpCompressor(BaseA11yCompressor):
                     continue
             merged_tuples.append(tuples[i])
 
-        return build_hierarchical_content_lines(merged_tuples)
+        return build_hierarchical_content_lines(merged_tuples, enable_region_segmentation=self.enable_region_segmentation)
 
     def _extract_text_content(self, line: str) -> str:
         import re

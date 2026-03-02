@@ -53,6 +53,10 @@ class LibreOfficeWriterCompressor(BaseA11yCompressor):
     def get_semantic_regions(
         self, nodes: List[Node], w: int, h: int, dry_run: bool = False
     ) -> Dict[str, List[Node]]:
+
+        if not getattr(self, "enable_region_segmentation", True):
+            return {"CONTENT": nodes}
+
         regions = {
             "MENUBAR": [],
             "APP_LAUNCHER": [],
@@ -136,10 +140,37 @@ class LibreOfficeWriterCompressor(BaseA11yCompressor):
 
     # === 圧縮系ユーティリティ ===
 
-    def _format_center(self, n: Node) -> str:
-        bbox = node_bbox_from_raw(n)
-        cx, cy = bbox_to_center_tuple(bbox)
-        return f"@ ({cx}, {cy})"
+    # def _format_center(self, n: Node) -> str:
+    #     bbox = node_bbox_from_raw(n)
+    #     cx, cy = bbox_to_center_tuple(bbox)
+    #     return f"@ ({cx}, {cy})"
+
+    # -------------------------------------------------------------------------
+    # 座標と追加属性のフォーマット
+    # -------------------------------------------------------------------------
+    def _format_center(self, node: Node) -> str:
+        """フラグに応じて、中心座標(圧縮ON)か、生BBox+詳細属性(圧縮OFF)を切り替えて返す"""
+        bbox = node_bbox_from_raw(node)
+        
+        # engine.pyで追加したフラグをチェック
+        if getattr(self, "enable_redundancy_reduction", True):
+            # ==========================================
+            # ★ Trueの時: 圧縮・冗長性削減 ON (元の挙動)
+            # ==========================================
+            cx, cy = bbox_to_center_tuple(bbox)
+            return f"@ ({cx}, {cy})"
+        else:
+            # ==========================================
+            # ★ Falseの時: 圧縮・冗長性削減 OFF (生のデータ)
+            # ==========================================
+            desc = (node.get("description") or "").strip()
+            desc_attr = f' desc="{desc}"' if desc else ""
+            
+            role = (node.get("role") or "").strip()
+            role_attr = f' role="{role}"' if role else ""
+            
+            # 属性文字列と生のバウンディングボックス(x, y, w, h)を結合して返す
+            return f"{desc_attr}{role_attr} @ ({bbox['x']}, {bbox['y']}, {bbox['w']}, {bbox['h']})"
 
     # === 各領域の圧縮ロジック ===
 
@@ -273,7 +304,8 @@ class LibreOfficeWriterCompressor(BaseA11yCompressor):
                 continue
 
             bbox = node_bbox_from_raw(n)
-            cx, cy = bbox_to_center_tuple(bbox)
+            # cx, cy = bbox_to_center_tuple(bbox)
+            center_str = self._format_center(n)
 
             if tag == "paragraph":
                 prefix = f"paragraph-{para_idx}"
@@ -301,7 +333,8 @@ class LibreOfficeWriterCompressor(BaseA11yCompressor):
             if not name and tag == "document-text":
                 name = "LibreOffice Document"
 
-            lines.append(f"[{prefix}] \"{name}\" @ ({cx}, {cy})")
+            # lines.append(f"[{prefix}] \"{name}\" @ ({cx}, {cy})")
+            lines.append(f"[{prefix}] \"{name}\" {center_str}")
 
         return lines
 
@@ -348,6 +381,24 @@ class LibreOfficeWriterCompressor(BaseA11yCompressor):
         instruction_keywords / use_instruction は現状未使用だが、
         API 互換のために受け取っておく。
         """
+
+        # ==========================================
+        # ★ 追加: 領域分割OFFの場合は、Writer専用のフィルタをスキップして全データを出力
+        # ==========================================
+        if not getattr(self, "enable_region_segmentation", True):
+            content_nodes = regions.get("CONTENT", [])
+            if content_nodes:
+                # BaseA11yCompressor(engine.py) の標準メソッドで全ノードを処理
+                lines.extend(self.process_region_lines(content_nodes, screen_w, screen_h))
+            
+            # モーダル要素がある場合もそのまま出力
+            if modal_nodes:
+                lines.append("MODAL:")
+                lines.extend(self.process_region_lines(modal_nodes, screen_w, screen_h))
+                
+            return lines
+        # ==========================================
+
         # APP_LAUNCHER
         if regions.get("APP_LAUNCHER"):
             lines.append("APP_LAUNCHER:")
